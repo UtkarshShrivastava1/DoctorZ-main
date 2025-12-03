@@ -7,7 +7,6 @@
     "rootDir": "./src",
     "outDir": "./dist",
 
-    "types": ["node"],
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "forceConsistentCasingInFileNames": true,
