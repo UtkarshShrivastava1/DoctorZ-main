@@ -1,10 +1,10 @@
-import bcrypt from "bcryptjs";
-import { transporter } from "../utils/email.js";
-import doctorModel from "../models/doctor.model.js";
-import Booking from "../models/booking.model.js";
+import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import Booking from "../models/booking.model.js";
 import clinicModel from "../models/clinic.model.js";
+import doctorModel from "../models/doctor.model.js";
 import patientModel from "../models/patient.model.js";
+import { transporter } from "../utils/email.js";
 const doctorRegister = async (req, res) => {
     try {
         console.log("Text fields:", req.body);
@@ -221,7 +221,13 @@ const updateDoctorData = async (req, res) => {
         const doctorId = req.params.id;
         const updates = { ...req.body };
         //  Block fields that should never be updated directly
-        const blockedFields = ["notifications", "clinic", "DegreeCertificate", "signature", "doctorId"];
+        const blockedFields = [
+            "notifications",
+            "clinic",
+            "DegreeCertificate",
+            "signature",
+            "doctorId",
+        ];
         blockedFields.forEach((field) => delete updates[field]);
         // convert number fields
         const numberFields = ["experience", "consultationFee", "Aadhar"];

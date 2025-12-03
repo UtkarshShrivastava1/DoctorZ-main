@@ -1,13 +1,11 @@
-import bcrypt from "bcryptjs";
-import { transporter } from "../utils/email.js";
-import nodemailer from "nodemailer";
-import type { Response, Request } from "express";
-import doctorModel from "../models/doctor.model.js";
-import Booking from "../models/booking.model.js";
+import bcrypt from "bcrypt";
+import type { Request, Response } from "express";
 import jwt from "jsonwebtoken";
+import Booking from "../models/booking.model.js";
 import clinicModel from "../models/clinic.model.js";
+import doctorModel from "../models/doctor.model.js";
 import patientModel from "../models/patient.model.js";
-import mongoose from "mongoose";
+import { transporter } from "../utils/email.js";
 
 interface MulterFiles {
   [fieldname: string]: Express.Multer.File[];
@@ -269,11 +267,6 @@ Your Hospital Admin Team
   }
 };
 
-
-
-
-
-
 const updateDoctorData = async (req: Request, res: Response) => {
   try {
     const doctorId = req.params.id;
@@ -281,7 +274,13 @@ const updateDoctorData = async (req: Request, res: Response) => {
     const updates: any = { ...req.body };
 
     //  Block fields that should never be updated directly
-    const blockedFields = ["notifications", "clinic", "DegreeCertificate", "signature", "doctorId"];
+    const blockedFields = [
+      "notifications",
+      "clinic",
+      "DegreeCertificate",
+      "signature",
+      "doctorId",
+    ];
 
     blockedFields.forEach((field) => delete updates[field]);
 
@@ -327,8 +326,6 @@ const updateDoctorData = async (req: Request, res: Response) => {
     return res.status(500).json({ message: "Server error" });
   }
 };
-
-
 
 const getClinicDoctors = async (req: Request, res: Response) => {
   try {
@@ -380,13 +377,13 @@ export const getTodaysBookedAppointments = async (
         999
       )
     );
- 
+
     const bookedAppointments = await Booking.find({
       doctorId,
       dateTime: { $gte: startOfDay, $lte: endOfDay },
       status: "pending",
     });
-     
+
     res.status(200).json(bookedAppointments);
   } catch (error) {
     console.error("Error fetching today's booked appointments:", error);
@@ -456,8 +453,6 @@ export const searchDoctors = async (req: Request, res: Response) => {
     res.status(500).json({ message: "Something went wrong" });
   }
 };
-
-
 
 export const getDoctorNotifications = async (req: Request, res: Response) => {
   try {

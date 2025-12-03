@@ -1,11 +1,11 @@
-import jwt from "jsonwebtoken";
+import bcrypt from "bcrypt";
 import dotenv from "dotenv";
-import doctorModel from "../models/doctor.model.js";
+import jwt from "jsonwebtoken";
 import nodemailer from "nodemailer";
-import { LabModel } from "../models/lab.model.js";
-import clinicModel from "../models/clinic.model.js";
-import bcrypt from "bcryptjs";
 import AdminModel from "../models/adminModel.js";
+import clinicModel from "../models/clinic.model.js";
+import doctorModel from "../models/doctor.model.js";
+import { LabModel } from "../models/lab.model.js";
 dotenv.config();
 // 🔹 Generate Token
 const generateToken = (id, email, role) => {
@@ -197,7 +197,9 @@ export const approveClinic = async (req, res) => {
         }
         catch (emailError) {
             console.error("Error sending clinic approval email:", emailError);
-            return res.status(500).json({ message: "Failed to send clinic approval email" });
+            return res
+                .status(500)
+                .json({ message: "Failed to send clinic approval email" });
         }
         return res.status(200).json({
             message: "Clinic approved ✅ & email sent successfully",
@@ -234,7 +236,9 @@ export const adminLogin = async (req, res) => {
     try {
         const { adminId, password } = req.body;
         if (!adminId || !password) {
-            return res.status(400).json({ message: "Admin ID and password are required" });
+            return res
+                .status(400)
+                .json({ message: "Admin ID and password are required" });
         }
         const admin = await AdminModel.findOne({ adminId });
         if (!admin) {

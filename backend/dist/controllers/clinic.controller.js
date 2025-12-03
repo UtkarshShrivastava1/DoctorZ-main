@@ -1,4 +1,4 @@
-import bcrypt from "bcryptjs";
+import { hash, compare } from "bcryptjs";
 import clinicModel from "../models/clinic.model.js";
 import doctorModel from "../models/doctor.model.js";
 import nodemailer from "nodemailer";
@@ -55,7 +55,7 @@ export const clinicRegister = async (req, res) => {
             staffEmail,
             staffName,
             staffId,
-            staffPassword: await bcrypt.hash(staffPassword, 10),
+            staffPassword: await hash(staffPassword, 10),
             registrationCertificate: registrationCertPath,
             clinicImage: clinicImagePath,
         });
@@ -102,7 +102,7 @@ export const clinicLogin = async (req, res) => {
                 message: "Clinic not found"
             });
         }
-        const isMatch = await bcrypt.compare(staffPassword, clinic.staffPassword);
+        const isMatch = await compare(staffPassword, clinic.staffPassword);
         if (!isMatch) {
             return res.status(401).json({
                 message: "Invalid credentials"
@@ -163,7 +163,7 @@ export const updateClinic = async (req, res) => {
         };
         // 🔒 Hash new password if provided
         if (staffPassword && staffPassword.trim() !== "") {
-            const hashedPassword = await bcrypt.hash(staffPassword, 10);
+            const hashedPassword = await hash(staffPassword, 10);
             updateData.staffPassword = hashedPassword;
         }
         // Optional file upload handling

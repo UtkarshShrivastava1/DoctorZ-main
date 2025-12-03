@@ -1,13 +1,12 @@
+import bcrypt from "bcrypt";
+import dotenv from "dotenv";
 import type { Request, Response } from "express";
 import jwt from "jsonwebtoken";
-import dotenv from "dotenv";
-import doctorModel from "../models/doctor.model.js";
 import nodemailer from "nodemailer";
-import { LabModel } from "../models/lab.model.js";
-import clinicModel from "../models/clinic.model.js";
-import Admin from "../models/adminModel.js";
-import bcrypt from "bcryptjs";
 import AdminModel from "../models/adminModel.js";
+import clinicModel from "../models/clinic.model.js";
+import doctorModel from "../models/doctor.model.js";
+import { LabModel } from "../models/lab.model.js";
 dotenv.config();
 
 // 🔹 Generate Token
@@ -298,7 +297,9 @@ export const approveClinic = async (
       console.log("Clinic approval email sent successfully");
     } catch (emailError) {
       console.error("Error sending clinic approval email:", emailError);
-      return res.status(500).json({ message: "Failed to send clinic approval email" });
+      return res
+        .status(500)
+        .json({ message: "Failed to send clinic approval email" });
     }
 
     return res.status(200).json({
@@ -310,7 +311,6 @@ export const approveClinic = async (
     return res.status(500).json({ message: "Server Error" });
   }
 };
-
 
 // ------------------ Reject Clinic ------------------
 export const rejectClinic = async (req: Request, res: Response) => {
@@ -346,14 +346,14 @@ export const rejectClinic = async (req: Request, res: Response) => {
 
 // admin login controllers
 
-
-
-export const adminLogin = async (req:Request, res:Response) => {
+export const adminLogin = async (req: Request, res: Response) => {
   try {
     const { adminId, password } = req.body;
 
     if (!adminId || !password) {
-      return res.status(400).json({ message: "Admin ID and password are required" });
+      return res
+        .status(400)
+        .json({ message: "Admin ID and password are required" });
     }
 
     const admin = await AdminModel.findOne({ adminId });
@@ -369,7 +369,7 @@ export const adminLogin = async (req:Request, res:Response) => {
     // ✅ Generate JWT token
     const token = jwt.sign(
       { adminId: admin.adminId, id: admin._id },
-      process.env.JWT_SECRET as string, 
+      process.env.JWT_SECRET as string,
       { expiresIn: "1d" } // Token valid for 1 day
     );
 
@@ -377,7 +377,6 @@ export const adminLogin = async (req:Request, res:Response) => {
       message: "Login successful",
       token,
     });
-
   } catch (error) {
     console.error("Admin login error:", error);
     res.status(500).json({ message: "Server error" });

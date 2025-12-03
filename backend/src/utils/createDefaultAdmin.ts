@@ -1,6 +1,6 @@
-import bcrypt from "bcryptjs";
-import AdminModel from "../models/adminModel.js";
+import bcrypt from "bcrypt";
 import { randomBytes } from "crypto";
+import AdminModel from "../models/adminModel.js";
 
 export const createDefaultAdmin = async () => {
   try {
@@ -22,8 +22,8 @@ export const createDefaultAdmin = async () => {
 
     console.log(
       `Default admin created:\n` +
-      `  ID: ${adminId}\n` +
-      `  Password: ${password}`
+        `  ID: ${adminId}\n` +
+        `  Password: ${password}`
     );
   } catch (err) {
     console.error("Error creating default admin:", err);

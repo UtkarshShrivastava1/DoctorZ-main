@@ -1,16 +1,14 @@
-
-
 ///////////////////// Manish Works (Fixed Version) ///////////////////////
+import bcrypt from "bcrypt";
 import type { Request, Response } from "express";
-import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
 import {
   LabModel,
-  LabTestBookingModel,
-  TestModel,
   LabPackageModel,
+  LabTestBookingModel,
   PackageBookingModel,
+  TestModel,
 } from "../models/lab.model.js";
 
 // ------------------ LAB REGISTER ------------------
@@ -44,7 +42,9 @@ const labRegister = async (req: Request, res: Response) => {
     const trimmedEmail = email.trim().toLowerCase();
     const existingLab = await LabModel.findOne({ trimmedEmail });
     if (existingLab) {
-      return res.status(400).json({ message: "Lab already registered with this email" });
+      return res
+        .status(400)
+        .json({ message: "Lab already registered with this email" });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -53,7 +53,7 @@ const labRegister = async (req: Request, res: Response) => {
     const lab = new LabModel({
       labId,
       name,
-      email:trimmedEmail,
+      email: trimmedEmail,
       password: hashedPassword,
       state,
       address,
@@ -78,7 +78,8 @@ const labRegister = async (req: Request, res: Response) => {
     });
   } catch (err: unknown) {
     console.error("Lab Register Error:", err);
-    const errorMessage = err instanceof Error ? err.message : "Lab Register Failed";
+    const errorMessage =
+      err instanceof Error ? err.message : "Lab Register Failed";
     return res.status(500).json({ message: errorMessage });
   }
 };
@@ -94,7 +95,8 @@ const labLogin = async (req: Request, res: Response) => {
       return res.status(403).json({ message: "Lab not approved yet" });
 
     const isMatch = await bcrypt.compare(password, lab.password);
-    if (!isMatch) return res.status(401).json({ message: "Invalid credentials" });
+    if (!isMatch)
+      return res.status(401).json({ message: "Invalid credentials" });
 
     const token = jwt.sign(
       { id: lab._id, labId: lab.labId, email: lab.email, role: "lab" },
@@ -117,7 +119,9 @@ const labLogin = async (req: Request, res: Response) => {
 // ------------------ GET ALL LAB TESTS ------------------
 const getAllLabTests = async (req: Request, res: Response) => {
   try {
-    const approvedLabs = await LabModel.find({ status: "approved" }).select("_id name");
+    const approvedLabs = await LabModel.find({ status: "approved" }).select(
+      "_id name"
+    );
     const approvedLabIds = approvedLabs.map((lab) => lab._id);
     const tests = await TestModel.find({ labId: { $in: approvedLabIds } })
       .populate("labId", "name")
@@ -138,7 +142,8 @@ const getAllLabTests = async (req: Request, res: Response) => {
     return res.status(200).json(formattedTests);
   } catch (err: unknown) {
     console.error("Error fetching all lab tests:", err);
-    const errorMessage = err instanceof Error ? err.message : "Failed to fetch tests";
+    const errorMessage =
+      err instanceof Error ? err.message : "Failed to fetch tests";
     return res.status(500).json({ message: errorMessage });
   }
 };
@@ -169,10 +174,13 @@ const addTestBooking = async (req: Request, res: Response) => {
       bookedAt: new Date(),
     });
 
-    return res.status(200).json({ message: "Test booked successfully", booking });
+    return res
+      .status(200)
+      .json({ message: "Test booked successfully", booking });
   } catch (err: unknown) {
     console.error("Error booking test:", err);
-    const errorMessage = err instanceof Error ? err.message : "Failed to book test";
+    const errorMessage =
+      err instanceof Error ? err.message : "Failed to book test";
     return res.status(500).json({ message: errorMessage });
   }
 };
@@ -195,10 +203,13 @@ const addTest = async (req: Request, res: Response) => {
 
     const savedTests = await TestModel.insertMany(testsToInsert);
 
-    return res.status(200).json({ message: "Tests Added Successfully", tests: savedTests });
+    return res
+      .status(200)
+      .json({ message: "Tests Added Successfully", tests: savedTests });
   } catch (err: unknown) {
     console.error("Error Adding Tests:", err);
-    const errorMessage = err instanceof Error ? err.message : "Error Adding Tests";
+    const errorMessage =
+      err instanceof Error ? err.message : "Error Adding Tests";
     return res.status(500).json({ message: errorMessage });
   }
 };
@@ -224,7 +235,11 @@ const updateLabProfile = async (req: Request, res: Response) => {
     const { labId } = req.params;
     const updateData = req.body;
 
-    const updatedLab = await LabModel.findByIdAndUpdate(labId, { $set: updateData }, { new: true });
+    const updatedLab = await LabModel.findByIdAndUpdate(
+      labId,
+      { $set: updateData },
+      { new: true }
+    );
     if (!updatedLab) return res.status(404).json({ message: "Lab not found" });
 
     return res
@@ -259,10 +274,15 @@ const updateLabTest = async (req: Request, res: Response) => {
     const { testId } = req.params;
     const updateData = req.body;
 
-    const updatedTest = await TestModel.findByIdAndUpdate(testId, updateData, { new: true });
-    if (!updatedTest) return res.status(404).json({ message: "Test not found" });
+    const updatedTest = await TestModel.findByIdAndUpdate(testId, updateData, {
+      new: true,
+    });
+    if (!updatedTest)
+      return res.status(404).json({ message: "Test not found" });
 
-    return res.status(200).json({ message: "Test updated successfully", updatedTest });
+    return res
+      .status(200)
+      .json({ message: "Test updated successfully", updatedTest });
   } catch (err: unknown) {
     console.error("Error updating test:", err);
     const errorMessage = err instanceof Error ? err.message : "Server Error";
@@ -276,8 +296,11 @@ const deleteLabTest = async (req: Request, res: Response) => {
     const { testId } = req.params;
     const deletedTest = await TestModel.findByIdAndDelete(testId);
 
-    if (!deletedTest) return res.status(404).json({ message: "Test not found" });
-    return res.status(200).json({ message: "Test deleted successfully", deletedTest });
+    if (!deletedTest)
+      return res.status(404).json({ message: "Test not found" });
+    return res
+      .status(200)
+      .json({ message: "Test deleted successfully", deletedTest });
   } catch (err: unknown) {
     console.error("Error deleting test:", err);
     const errorMessage = err instanceof Error ? err.message : "Server Error";
@@ -306,7 +329,13 @@ const addLabPackage = async (req: Request, res: Response) => {
   try {
     const { labId, packageName, description, testIds, totalPrice } = req.body;
 
-    if (!labId || !packageName || !Array.isArray(testIds) || testIds.length === 0 || !totalPrice) {
+    if (
+      !labId ||
+      !packageName ||
+      !Array.isArray(testIds) ||
+      testIds.length === 0 ||
+      !totalPrice
+    ) {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
@@ -315,7 +344,9 @@ const addLabPackage = async (req: Request, res: Response) => {
 
     const validTests = await TestModel.find({ _id: { $in: testIds }, labId });
     if (validTests.length !== testIds.length)
-      return res.status(400).json({ message: "Some tests are invalid or not owned by this lab" });
+      return res
+        .status(400)
+        .json({ message: "Some tests are invalid or not owned by this lab" });
 
     const newPackage = new LabPackageModel({
       packageName,
@@ -326,10 +357,13 @@ const addLabPackage = async (req: Request, res: Response) => {
     });
 
     await newPackage.save();
-    return res.status(200).json({ message: "Package created successfully", package: newPackage });
+    return res
+      .status(200)
+      .json({ message: "Package created successfully", package: newPackage });
   } catch (err: unknown) {
     console.error("Error adding package:", err);
-    const errorMessage = err instanceof Error ? err.message : "Failed to add package";
+    const errorMessage =
+      err instanceof Error ? err.message : "Failed to add package";
     return res.status(500).json({ message: errorMessage });
   }
 };
@@ -344,7 +378,8 @@ const getAllPackagesByLabId = async (req: Request, res: Response) => {
     return res.status(200).json({ message: "Packages retrieved", packages });
   } catch (err: unknown) {
     console.error("Error fetching packages:", err);
-    const errorMessage = err instanceof Error ? err.message : "Failed to fetch packages";
+    const errorMessage =
+      err instanceof Error ? err.message : "Failed to fetch packages";
     return res.status(500).json({ message: errorMessage });
   }
 };
@@ -360,11 +395,18 @@ const updateLabPackage = async (req: Request, res: Response) => {
       { new: true }
     );
 
-    if (!updatedPackage) return res.status(404).json({ message: "Package not found" });
-    return res.status(200).json({ message: "Package updated successfully", package: updatedPackage });
+    if (!updatedPackage)
+      return res.status(404).json({ message: "Package not found" });
+    return res
+      .status(200)
+      .json({
+        message: "Package updated successfully",
+        package: updatedPackage,
+      });
   } catch (err: unknown) {
     console.error("Error updating package:", err);
-    const errorMessage = err instanceof Error ? err.message : "Failed to update package";
+    const errorMessage =
+      err instanceof Error ? err.message : "Failed to update package";
     return res.status(500).json({ message: errorMessage });
   }
 };
@@ -374,11 +416,13 @@ const deleteLabPackage = async (req: Request, res: Response) => {
     const { packageId } = req.params;
     const deletedPackage = await LabPackageModel.findByIdAndDelete(packageId);
 
-    if (!deletedPackage) return res.status(404).json({ message: "Package not found" });
+    if (!deletedPackage)
+      return res.status(404).json({ message: "Package not found" });
     return res.status(200).json({ message: "Package deleted successfully" });
   } catch (err: unknown) {
     console.error("Error deleting package:", err);
-    const errorMessage = err instanceof Error ? err.message : "Failed to delete package";
+    const errorMessage =
+      err instanceof Error ? err.message : "Failed to delete package";
     return res.status(500).json({ message: errorMessage });
   }
 };
@@ -386,10 +430,14 @@ const deleteLabPackage = async (req: Request, res: Response) => {
 // ✅ Get all available packages (from approved labs)
 const getAllPackages = async (req: Request, res: Response) => {
   try {
-    const approvedLabs = await LabModel.find({ status: "approved" }).select("_id name city state");
+    const approvedLabs = await LabModel.find({ status: "approved" }).select(
+      "_id name city state"
+    );
     const approvedLabIds = approvedLabs.map((lab) => lab._id);
 
-    const packages = await LabPackageModel.find({ labId: { $in: approvedLabIds } })
+    const packages = await LabPackageModel.find({
+      labId: { $in: approvedLabIds },
+    })
       .populate("labId", "name city state")
       .populate("tests", "testName price category")
       .lean();
@@ -415,7 +463,8 @@ const getAllPackages = async (req: Request, res: Response) => {
     });
   } catch (err: unknown) {
     console.error("Error fetching all packages:", err);
-    const errorMessage = err instanceof Error ? err.message : "Failed to fetch packages";
+    const errorMessage =
+      err instanceof Error ? err.message : "Failed to fetch packages";
     return res.status(500).json({ message: errorMessage });
   }
 };
@@ -428,11 +477,18 @@ const getPackageDetailsById = async (req: Request, res: Response) => {
       .populate("tests", "testName price category description")
       .populate("labId", "name city state");
 
-    if (!packageDetails) return res.status(404).json({ message: "Package not found" });
-    return res.status(200).json({ message: "Package details fetched successfully", packageDetails });
+    if (!packageDetails)
+      return res.status(404).json({ message: "Package not found" });
+    return res
+      .status(200)
+      .json({
+        message: "Package details fetched successfully",
+        packageDetails,
+      });
   } catch (err) {
     console.error("Error fetching package details:", err);
-    const errorMessage = err instanceof Error ? err.message : "Failed to fetch package details";
+    const errorMessage =
+      err instanceof Error ? err.message : "Failed to fetch package details";
     return res.status(500).json({ message: errorMessage });
   }
 };
@@ -447,7 +503,8 @@ const bookPackage = async (req: Request, res: Response) => {
     }
 
     const labPackage = await LabPackageModel.findById(packageId);
-    if (!labPackage) return res.status(404).json({ message: "Package not found" });
+    if (!labPackage)
+      return res.status(404).json({ message: "Package not found" });
 
     const booking = new PackageBookingModel({
       packageId,
@@ -459,10 +516,13 @@ const bookPackage = async (req: Request, res: Response) => {
     });
     await booking.save();
 
-    return res.status(200).json({ message: "Package booked successfully", booking });
+    return res
+      .status(200)
+      .json({ message: "Package booked successfully", booking });
   } catch (err) {
     console.error("Error booking package:", err);
-    const errorMessage = err instanceof Error ? err.message : "Failed to book package";
+    const errorMessage =
+      err instanceof Error ? err.message : "Failed to book package";
     return res.status(500).json({ message: errorMessage });
   }
 };

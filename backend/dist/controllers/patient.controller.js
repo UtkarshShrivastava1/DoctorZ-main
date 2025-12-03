@@ -1,12 +1,12 @@
-import mongoose from "mongoose";
-import patientModel from "../models/patient.model.js";
-import bcrypt from "bcryptjs";
-import timeSlotsModel from "../models/timeSlots.model.js";
+import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import EMRModel from "../models/emr.model.js";
+import mongoose from "mongoose";
 import Booking from "../models/booking.model.js";
-import PrescriptionModel from "../models/prescription.model.js";
+import EMRModel from "../models/emr.model.js";
 import { LabTestBookingModel } from "../models/lab.model.js";
+import patientModel from "../models/patient.model.js";
+import PrescriptionModel from "../models/prescription.model.js";
+import timeSlotsModel from "../models/timeSlots.model.js";
 const patientRegister = async (req, res) => {
     try {
         console.log("Received body:", req.body);
@@ -37,7 +37,9 @@ const patientRegister = async (req, res) => {
             return res.status(400).json({ message: "Email already exists" });
         }
         // Check if Aadhar exists
-        const existingAadhar = await patientModel.findOne({ aadhar: String(aadhar) });
+        const existingAadhar = await patientModel.findOne({
+            aadhar: String(aadhar),
+        });
         if (existingAadhar) {
             return res
                 .status(400)
@@ -195,7 +197,7 @@ const getAvailableSlotsByDoctorId = async (req, res) => {
             });
         }
         const slotsByMonth = {};
-        timeSlotDocs.forEach(doc => {
+        timeSlotDocs.forEach((doc) => {
             // Skip if slots array is empty
             if (!doc.slots || doc.slots.length === 0)
                 return;
@@ -206,7 +208,7 @@ const getAvailableSlotsByDoctorId = async (req, res) => {
                 slotsByMonth[monthKey] = [];
             slotsByMonth[monthKey].push({
                 date: dateKey,
-                slots: doc.slots.map(s => ({
+                slots: doc.slots.map((s) => ({
                     _id: s._id,
                     time: s.time,
                     isActive: s.isActive,
@@ -251,30 +253,30 @@ const getBookedDoctor = async (req, res) => {
         // Sirf pending bookings fetch karenge
         const bookings = await Booking.find({
             userId: id,
-            status: 'pending' // yaha sirf pending bookings
-        }).populate('doctorId');
+            status: "pending", // yaha sirf pending bookings
+        }).populate("doctorId");
         console.log("here", bookings);
         // Agar koi bookings milti hain
         if (bookings.length === 0) {
             return res.status(404).json({
-                message: "No pending bookings found"
+                message: "No pending bookings found",
             });
         }
         // Response me doctor details aur booking date bhejna
-        const result = bookings.map(b => ({
+        const result = bookings.map((b) => ({
             doctor: b.doctorId,
             bookingDate: b.dateTime,
             roomId: b.roomId,
         }));
         return res.status(200).json({
             message: "Pending bookings fetched successfully",
-            data: result
+            data: result,
         });
     }
     catch (error) {
         console.log(error);
         return res.status(500).json({
-            message: "Something went wrong."
+            message: "Something went wrong.",
         });
     }
 };

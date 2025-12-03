@@ -1,5 +1,4 @@
-import mongoose from "mongoose";
-import { Types } from "mongoose";
+import mongoose, { Document, Types } from "mongoose";
 
 export interface IDoctor extends Document {
   doctorId: string;

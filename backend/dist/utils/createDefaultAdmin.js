@@ -1,6 +1,6 @@
-import bcrypt from "bcryptjs";
-import AdminModel from "../models/adminModel.js";
+import bcrypt from "bcrypt";
 import { randomBytes } from "crypto";
+import AdminModel from "../models/adminModel.js";
 export const createDefaultAdmin = async () => {
     try {
         const existingAdmin = await AdminModel.findOne();

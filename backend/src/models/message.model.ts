@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose, { Document } from "mongoose";
 // import { text } from "stream/consumers";
 
 export interface message extends Document{
