@@ -34,16 +34,10 @@
 
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react' // or vue, etc.
-import { visualizer } from 'rollup-plugin-visualizer'
 
 export default defineConfig({
   plugins: [
     react(),
-    visualizer({
-      filename: 'dist/stats.html',
-      gzipSize: true,
-      brotliSize: true,
-      open: true, // opens in browser after build
-    }),
   ],
+  base: './'
 })
