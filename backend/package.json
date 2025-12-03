@@ -8,19 +8,13 @@
     "node": ">=22"
   },
   "scripts": {
-    "build": "tsc",
-    "start": "node ./dist/index.js"
+    "build": "rimraf dist && tsc",
+    "start": "node dist/index.js",
+    "dev": "nodemon src/index.ts"
   },
   "dependencies": {
     "@types/axios": "^0.9.36",
-    "@types/bcrypt": "^6.0.0",
-    "@types/cors": "^2.8.19",
-    "@types/express": "^5.0.3",
     "@types/express-fileupload": "^1.5.1",
-    "@types/jsonwebtoken": "^9.0.10",
-    "@types/multer": "^2.0.0",
-    "@types/node": "^24.10.1",
-    "@types/nodemailer": "^7.0.1",
     "axios": "^1.13.2",
     "bcrypt": "^5.1.1",
     "bcryptjs": "^3.0.3",
@@ -34,8 +28,22 @@
     "multer": "^2.0.2",
     "nodemailer": "^7.0.10",
     "puppeteer": "^24.31.0",
-    "socket.io": "^4.8.1",
-    "typescript": "^5.9.3"
+    "socket.io": "^4.8.1"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "@types/bcrypt": "^6.0.0",
+    "@types/bcryptjs": "^3.0.0",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/mongoose": "^5.11.97",
+    "@types/multer": "^2.0.0",
+    "@types/node": "^24.10.1",
+    "@types/nodemailer": "^7.0.4",
+    "@types/puppeteer": "^7.0.4",
+    "nodemon": "^3.1.11",
+    "rimraf": "^6.1.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
+  }
 }
