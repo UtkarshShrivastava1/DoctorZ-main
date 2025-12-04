@@ -48,7 +48,7 @@ export default function AdminDoctor() {
     try {
       setActionLoading(id);
 
-      await fetch(`http://localhost:3000/api/admin/doctor/${id}/${action}`, {
+      await fetch(`https://doctorz-main.onrender.com/api/admin/doctor/${id}/${action}`, {
         method: "POST",
       });
 
