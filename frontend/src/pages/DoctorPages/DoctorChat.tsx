@@ -4,7 +4,7 @@ import io from "socket.io-client";
 // import api from "../../Services/mainApi";
 
 // Initialize socket outside component to avoid multiple connections
-const socket = io("http://localhost:3000", {
+const socket = io("https://doctorz-main.onrender.com", {
   transports: ["websocket"],
 });
 
