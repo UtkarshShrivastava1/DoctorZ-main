@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { Check, X, User, Search } from "lucide-react";
 import { Toaster, toast } from "react-hot-toast";
+// import api from "./mainApi";
+
 
 interface Doctor {
   _id: string;
@@ -27,7 +29,7 @@ export default function AdminDoctor() {
     try {
       setLoading(true);
       const token = localStorage.getItem("admin_token");
-      const res = await fetch("http://localhost:3000/api/admin/doctors/pending", {
+      const res = await fetch("https://doctorz-main.onrender.com/api/admin/doctors/pending", {
         method: "GET",
         headers: { Authorization: `Bearer ${token}` },
       });
