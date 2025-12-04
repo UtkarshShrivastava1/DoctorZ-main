@@ -17,7 +17,7 @@ const AdminSidebar = () => {
   };
 
   const menuItems = [
-    { name: "Home", path: "/", icon: <UserPlus size={18} /> },
+    { name: "Home", path: "/adminDashboard", icon: <UserPlus size={18} /> },
 
     { name: "Labs", path: "admin-lab", icon: <User size={18} /> },
     { name: "Doctors", path: "admin-doctor", icon: <UserPlus size={18} /> },
