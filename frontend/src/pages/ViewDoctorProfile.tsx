@@ -90,6 +90,7 @@ const ViewDoctorProfile: React.FC = () => {
   //     console.error("Error fetching favourite status:", error);
   //   }
   // };
+  console.log(api);
 
   useEffect(() => {
     if (!drId) return;
@@ -97,8 +98,8 @@ const ViewDoctorProfile: React.FC = () => {
     const fetchDoctor = async () => {
       try {
         const token = Cookies.get("patientToken");
-        const res = await axios.get<{ doctor: Doctor }>(
-          `${api}/api/doctor/${drId}`,
+        const res = await api.get<{ doctor: Doctor }>(
+          `/api/doctor/${drId}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         setDoctor(res.data.doctor);
