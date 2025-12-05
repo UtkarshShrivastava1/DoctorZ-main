@@ -80,16 +80,16 @@ const ViewDoctorProfile: React.FC = () => {
     },
   ];
 
-  const fetchFavouriteStatus = async (patientId: string) => {
-    try {
-      const favRes = await api.get<FavouriteStatusResponse>(
-        `/api/patient/isFavourite/${patientId}/${drId}`
-      );
-      setIsFavourite(favRes.data.isFavourite);
-    } catch (error) {
-      console.error("Error fetching favourite status:", error);
-    }
-  };
+  // const fetchFavouriteStatus = async (patientId: string) => {
+  //   try {
+  //     const favRes = await api.get<FavouriteStatusResponse>(
+  //       `/api/patient/isFavourite/${patientId}/${drId}`
+  //     );
+  //     setIsFavourite(favRes.data.isFavourite);
+  //   } catch (error) {
+  //     console.error("Error fetching favourite status:", error);
+  //   }
+  // };
 
   useEffect(() => {
     if (!drId) return;
@@ -105,7 +105,7 @@ const ViewDoctorProfile: React.FC = () => {
         if (token) {
           const decoded: any = jwtDecode(token);
           const patientId = decoded.id;
-          await fetchFavouriteStatus(patientId);
+          // await fetchFavouriteStatus(patientId);
         }
       } catch (err) {
         console.error("Error fetching doctor profile:", err);
