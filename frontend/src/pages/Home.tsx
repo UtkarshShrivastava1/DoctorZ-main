@@ -503,7 +503,7 @@ export default function HealthcareHomepage() {
               <h4 className="text-white font-semibold mb-4">Quick Links</h4>
               <ul className="space-y-2 text-sm">
                 <li>
-                  <a href="#" className="hover:text-white transition-colors">
+                  <a href="/search-results" className="hover:text-white transition-colors">
                     Find Doctors
                   </a>
                 </li>
@@ -513,32 +513,32 @@ export default function HealthcareHomepage() {
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-white transition-colors">
+                  <a href="/all-lab-test" className="hover:text-white transition-colors">
                     Book Lab Tests
                   </a>
                 </li>
-                <li>
+                {/* <li>
                   <a href="#" className="hover:text-white transition-colors">
                     Order Medicine
                   </a>
-                </li>
+                </li> */}
               </ul>
             </div>
             <div>
               <h4 className="text-white font-semibold mb-4">For Doctors</h4>
               <ul className="space-y-2 text-sm">
                 <li>
-                  <a href="#" className="hover:text-white transition-colors">
+                  <a href="/doctor-register" className="hover:text-white transition-colors">
                     Register as Doctor
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-white transition-colors">
+                  <a href="/doctor-login" className="hover:text-white transition-colors">
                     Doctor Login
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-white transition-colors">
+                  <a href="/clinic-register" className="hover:text-white transition-colors">
                     List Your Clinic
                   </a>
                 </li>

@@ -246,7 +246,8 @@ const ClinicCard: React.FC<ClinicCardProps> = ({
               Medical Specialities
             </h3>
             <p className="text-xs sm:text-sm text-gray-600 line-clamp-2">
-              {clinic.specialities?.join(", ") || "General Practice"}
+              {/* {clinic.specialities?.join(", ") || "General Practice"} */}
+              <span>{clinic.specialities?.join(", ") || "General Practice"}</span>
             </p>
           </div>
           <div className="flex-1 hidden sm:block"></div>

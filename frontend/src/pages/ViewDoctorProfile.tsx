@@ -98,7 +98,7 @@ const ViewDoctorProfile: React.FC = () => {
       try {
         const token = Cookies.get("patientToken");
         const res = await axios.get<{ doctor: Doctor }>(
-          `http://localhost:3000/api/doctor/${drId}`,
+          `${api}/api/doctor/${drId}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         setDoctor(res.data.doctor);
