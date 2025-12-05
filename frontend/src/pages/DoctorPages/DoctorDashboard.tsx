@@ -51,6 +51,7 @@ export default function DoctorDashboard() {
   const handleLogout = () => {
     localStorage.removeItem("doctorId");
     localStorage.removeItem("token");
+    localStorage.clear();
     navigate("/");
   };
 

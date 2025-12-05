@@ -318,6 +318,7 @@ const DoctorSearchResults: React.FC = () => {
       <div className="border border-gray-300 rounded-lg bg-white p-3 mb-6 shadow-sm">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
           <SearchInput
+          
             icon={<Stethoscope className="w-4 h-4 text-gray-400" />}
             placeholder="Specialty"
             value={specialty}
@@ -529,7 +530,7 @@ const SearchInput = ({
     <input
       type={type}
       placeholder={placeholder}
-      className="w-full outline-none text-gray-700"
+      className="w-full outline-none text-gray-700 font-semibold"
       value={value}
       onChange={(e) => onChange(e.target.value)}
     />

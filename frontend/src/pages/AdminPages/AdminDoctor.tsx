@@ -52,7 +52,7 @@ export default function AdminDoctor() {
         method: "POST",
       });
 
-      toast.success(
+      toast.success(  
         action === "approve" ? "Doctor Approved Successfully!" : "Doctor Rejected!"
       );
 

@@ -339,7 +339,7 @@ const ClinicSearchResults: React.FC = () => {
                 <input
                   type="text"
                   placeholder="Specialty (e.g. Dental)"
-                  className="w-full outline-none text-gray-700"
+                  className="w-full outline-none text-gray-700 font-semibold"
                   value={specialty}
                   onChange={(e) => setSpecialty(e.target.value)}
                 />
@@ -350,7 +350,7 @@ const ClinicSearchResults: React.FC = () => {
                 <input
                   type="text"
                   placeholder="Location (district or state)"
-                  className="w-full outline-none text-gray-700"
+                  className="w-full outline-none text-gray-700 font-semibold"
                   value={locationValue}
                   onChange={(e) => setLocationValue(e.target.value)}
                 />
