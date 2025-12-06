@@ -29,7 +29,7 @@ interface Package {
 }
 
 /* -------------------- API -------------------- */
-const API_BASE = "http://localhost:3000/api/lab";
+const API_BASE = "https://doctorz-main.onrender.com/api/lab";
 const API = {
   getTestsByLab: (labId: string) => `${API_BASE}/getAllTestByLabId/${labId}`,
   addTest: () => `${API_BASE}/addTest`,

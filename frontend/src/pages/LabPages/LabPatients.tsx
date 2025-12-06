@@ -3,6 +3,7 @@ import React, { useEffect, useMemo, useState, memo } from "react";
 import axios from "axios";
 import { useOutletContext } from "react-router-dom";
 import { Helmet } from "react-helmet";
+import api from "../../Services/mainApi";
 
 interface PatientBooking {
   _id: string;
@@ -62,8 +63,8 @@ const Patients: React.FC = memo(() => {
     let active = true;
     (async () => {
       try {
-        const res = await axios.get<{ labPatients: PatientBooking[] }>(
-          `http://localhost:3000/api/lab/getLabPatients/${labId}`
+        const res = await api.get<{ labPatients: PatientBooking[] }>(
+          `/api/lab/getLabPatients/${labId}`
         );
         if (active) setPatients(res.data.labPatients || []);
       } catch (err) {
