@@ -199,7 +199,7 @@ function LabTestInUser() {
   const currentTests = labTests.slice(startIndex, startIndex + itemsPerPage);
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#08172c' }}>
+    <div className="min-h-screen">
       <div className="max-w-6xl mx-auto p-6">
         {/* Header */}
         <div className="mb-8">
@@ -226,16 +226,16 @@ function LabTestInUser() {
               {currentTests.map((test) => (
                 <div
                   key={test._id}
-                  className="bg-white rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden"
+                  className="bg-white border-b rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden"
                 >
                   {/* Card Header */}
-                  <div className="p-6 border-b border-gray-100" style={{ background: 'linear-gradient(135deg, #08172c 0%, #0a1f3d 100%)' }}>
+                  <div className="p-6 border-b border-gray-100">
                     <h2 className="text-2xl font-bold text-white mb-2">
-                      {test.testName}
+                      Test name: {test.testName}
                     </h2>
                     <div className="flex items-center gap-2 text-gray-300">
                       <Building2 className="w-4 h-4" />
-                      <span className="text-sm">{test.labId.name}</span>
+                      <span className="text-sm">Lab name: {test.labId.name}</span>
                     </div>
                   </div>
 
