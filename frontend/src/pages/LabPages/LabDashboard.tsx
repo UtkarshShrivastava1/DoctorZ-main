@@ -26,6 +26,7 @@ export default function LabDashboard() {
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("labId");
+    localStorage.clear();
     navigate("/lab-login");
   };
 
