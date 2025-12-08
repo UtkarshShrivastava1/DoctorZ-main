@@ -218,7 +218,7 @@ const DoctorChat = () => {
 
   // Initialize socket with proper cleanup
   useEffect(() => {
-    const socket = io("https://doct-main.onrender.com", {
+    const socket = io("https://doctorz-main.onrender.com", {
       transports: ["websocket"],
       autoConnect: false,
     });

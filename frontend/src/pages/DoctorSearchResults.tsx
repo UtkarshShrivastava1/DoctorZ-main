@@ -548,8 +548,8 @@ const FilterPanel = ({
   toggleExp,
   feeFilters,
   toggleFee,
-  languageFilters,
-  toggleLang,
+  // languageFilters,
+  // toggleLang,
 }: any) => (
   <div className="bg-white border border-gray-200 rounded-2xl shadow-md p-5 hover:shadow-lg transition-all duration-300">
     <div className="flex items-center justify-between mb-4">
@@ -634,7 +634,7 @@ const FilterPanel = ({
       </div>
 
       {/* Languages */}
-      <div className="pt-2">
+      {/* <div className="pt-2">
         <h4 className="text-sm font-medium text-gray-700 mb-2">Languages</h4>
         {["English", "Hindi", "Marathi", "Gujarati"].map((v) => (
           <label
@@ -651,7 +651,7 @@ const FilterPanel = ({
             {v}
           </label>
         ))}
-      </div>
+      </div> */}
     </div>
   </div>
 );

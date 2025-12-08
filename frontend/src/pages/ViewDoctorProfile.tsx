@@ -21,6 +21,8 @@ import {
 } from "lucide-react";
 import BookingDrawer from "../components/BookingDrawer";
 import api from "../Services/mainApi";
+import { toast } from "react-toastify";
+// import toast from "react-hot-toast";
 
 interface Doctor {
   _id: string;
@@ -146,7 +148,8 @@ const ViewDoctorProfile: React.FC = () => {
 
     // ✅ Login check first
     if (!token) {
-      alert("Please login to mark favourite doctors.");
+      // alert("Please login to mark favourite doctors.");
+            toast.info("Please login to mark favourite doctors.");
       return;
     }
 

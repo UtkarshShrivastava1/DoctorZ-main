@@ -50,8 +50,8 @@ export default function ClinicProfile() {
   const fetchClinicData = async () => {
     if (!clinicId) return;
     try {
-      const res = await axios.get<{ clinic: Clinic }>(
-        `http://localhost:3000/api/clinic/getClinicById/${clinicId}`
+      const res = await api.get<{ clinic: Clinic }>(
+        `/api/clinic/getClinicById/${clinicId}`
       );
       const clinicData = res.data.clinic;
       setClinic(clinicData);
@@ -361,7 +361,7 @@ export default function ClinicProfile() {
               </div>
 
               {/* LOGIN CREDENTIALS (similar to doctor design) */}
-              <div className="rounded-2xl bg-white p-6 shadow-md">
+              {/* <div className="rounded-2xl bg-white p-6 shadow-md">
                 <div className="flex justify-between items-center mb-4">
                   <h3 className="text-xl font-bold" style={{ color: PRIMARY }}>
                     Update Login Credentials
@@ -397,7 +397,7 @@ export default function ClinicProfile() {
                     </button>
                   </form>
                 )}
-              </div>
+              </div> */}
             </div>
           </div>
 

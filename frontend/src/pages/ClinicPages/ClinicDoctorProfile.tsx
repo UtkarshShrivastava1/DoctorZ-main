@@ -10,6 +10,7 @@ import {
   Stethoscope,
 } from "lucide-react";
 import Availability from "../../pages/TimeSlots"; // keep this import
+import api from "../../Services/mainApi";
 
 interface Doctor {
   _id: string;
@@ -48,8 +49,8 @@ const ClinicDoctorProfile: React.FC = () => {
     const fetchDoctor = async () => {
       try {
         const token = localStorage.getItem("token");
-        const res = await axios.get<{ doctor: Doctor }>(
-          `http://localhost:3000/api/doctor/${drId}`,
+        const res = await api.get<{ doctor: Doctor }>(
+          `/api/doctor/${drId}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         setDoctor(res.data.doctor);
