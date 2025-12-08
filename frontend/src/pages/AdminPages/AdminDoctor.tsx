@@ -3,7 +3,6 @@ import { Check, X, User, Search } from "lucide-react";
 import { Toaster, toast } from "react-hot-toast";
 // import api from "./mainApi";
 
-
 interface Doctor {
   _id: string;
   fullName: string;
@@ -17,10 +16,18 @@ interface Doctor {
   MedicalRegistrationNumber?: string;
 }
 
+type ActionType = "approve" | "reject";
+
 export default function AdminDoctor() {
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [loading, setLoading] = useState(true);
-  const [actionLoading, setActionLoading] = useState<string | null>(null);
+
+  // 👇 track which doctor + which action is loading
+  const [actionLoading, setActionLoading] = useState<{
+    id: string;
+    type: ActionType;
+  } | null>(null);
+
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const itemsPerPage = 10;
@@ -29,10 +36,13 @@ export default function AdminDoctor() {
     try {
       setLoading(true);
       const token = localStorage.getItem("admin_token");
-      const res = await fetch("https://doctorz-main.onrender.com/api/admin/doctors/pending", {
-        method: "GET",
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await fetch(
+        "https://doctorz-main.onrender.com/api/admin/doctors/pending",
+        {
+          method: "GET",
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
 
       const data = await res.json();
       setDoctors(data);
@@ -44,16 +54,22 @@ export default function AdminDoctor() {
     }
   };
 
-  const handleAction = async (id: string, action: "approve" | "reject") => {
+  const handleAction = async (id: string, action: ActionType) => {
     try {
-      setActionLoading(id);
+      // ✅ set which button is loading
+      setActionLoading({ id, type: action });
 
-      await fetch(`https://doctorz-main.onrender.com/api/admin/doctor/${id}/${action}`, {
-        method: "POST",
-      });
+      await fetch(
+        `https://doctorz-main.onrender.com/api/admin/doctor/${id}/${action}`,
+        {
+          method: "POST",
+        }
+      );
 
-      toast.success(  
-        action === "approve" ? "Doctor Approved Successfully!" : "Doctor Rejected!"
+      toast.success(
+        action === "approve"
+          ? "Doctor Approved Successfully!"
+          : "Doctor Rejected!"
       );
 
       await fetchDoctors();
@@ -73,7 +89,9 @@ export default function AdminDoctor() {
     (doc) =>
       doc.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       doc.specialization.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (doc.MedicalRegistrationNumber?.toLowerCase().includes(searchTerm.toLowerCase()) ??
+      (doc.MedicalRegistrationNumber?.toLowerCase().includes(
+        searchTerm.toLowerCase()
+      ) ??
         false)
   );
 
@@ -82,11 +100,11 @@ export default function AdminDoctor() {
   const endIndex = startIndex + itemsPerPage;
   const currentDoctors = filteredDoctors.slice(startIndex, endIndex);
 
-  const goToPage = (page: number) => setCurrentPage(Math.max(1, Math.min(page, totalPages)));
+  const goToPage = (page: number) =>
+    setCurrentPage(Math.max(1, Math.min(page, totalPages)));
 
   return (
     <main className="min-h-screen bg-gray-50 py-8 overflow-x-hidden">
-
       {/* 🔥 Global Toast Provider */}
       <Toaster
         position="top-right"
@@ -128,7 +146,9 @@ export default function AdminDoctor() {
                 <p className="text-sm text-gray-500 font-medium uppercase tracking-wide">
                   Total Pending
                 </p>
-                <p className="text-3xl font-bold text-gray-900">{doctors.length}</p>
+                <p className="text-3xl font-bold text-gray-900">
+                  {doctors.length}
+                </p>
               </div>
             </div>
 
@@ -164,71 +184,90 @@ export default function AdminDoctor() {
               </thead>
 
               <tbody>
-                {currentDoctors.map((doc) => (
-                  <tr key={doc._id} className="border-b border-gray-200 hover:bg-gray-50">
-                    <td className="px-4 py-4 flex items-center gap-3">
-                      <div className="w-12 h-12 bg-gray-800 rounded-lg flex items-center justify-center">
-                        <User className="w-6 h-6 text-white" />
-                      </div>
-                      <div>
-                        <p className="font-semibold">{doc.fullName}</p>
-                        <p className="text-sm text-gray-500">{doc.specialization}</p>
-                      </div>
-                    </td>
+                {currentDoctors.map((doc) => {
+                  const isApproveLoading =
+                    actionLoading?.id === doc._id &&
+                    actionLoading.type === "approve";
+                  const isRejectLoading =
+                    actionLoading?.id === doc._id &&
+                    actionLoading.type === "reject";
 
-                    <td className="px-4 py-4">
-                      {doc.MedicalRegistrationNumber || "Not Provided"}
-                    </td>
+                  return (
+                    <tr
+                      key={doc._id}
+                      className="border-b border-gray-200 hover:bg-gray-50"
+                    >
+                      <td className="px-4 py-4 flex items-center gap-3">
+                        <div className="w-12 h-12 bg-gray-800 rounded-lg flex items-center justify-center">
+                          <User className="w-6 h-6 text-white" />
+                        </div>
+                        <div>
+                          <p className="font-semibold">{doc.fullName}</p>
+                          <p className="text-sm text-gray-500">
+                            {doc.specialization}
+                          </p>
+                        </div>
+                      </td>
 
-                    <td className="px-4 py-4">{doc.qualification}</td>
+                      <td className="px-4 py-4">
+                        {doc.MedicalRegistrationNumber || "Not Provided"}
+                      </td>
 
-                    <td className="px-4 py-4">
-                      {doc.experience} {doc.experience === 1 ? "Year" : "Years"}
-                    </td>
+                      <td className="px-4 py-4">{doc.qualification}</td>
 
-                    <td className="px-4 py-4">₹{doc.consultationFee.toLocaleString()}</td>
+                      <td className="px-4 py-4">
+                        {doc.experience}{" "}
+                        {doc.experience === 1 ? "Year" : "Years"}
+                      </td>
 
-                    <td className="px-4 py-4 text-center">
-                      <span
-                        className={`px-3 py-1 rounded-full text-xs font-bold ${
-                          doc.status === "pending"
-                            ? "bg-yellow-100 text-yellow-800"
-                            : doc.status === "approved"
-                            ? "bg-green-100 text-green-800"
-                            : "bg-red-100 text-red-800"
-                        }`}
-                      >
-                        {doc.status}
-                      </span>
-                    </td>
+                      <td className="px-4 py-4">
+                        ₹{doc.consultationFee.toLocaleString()}
+                      </td>
 
-                    <td className="px-4 py-4 flex justify-center gap-2">
-                      <button
-                        onClick={() => handleAction(doc._id, "approve")}
-                        disabled={actionLoading === doc._id}
-                        className="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg disabled:opacity-50"
-                      >
-                        {actionLoading === doc._id ? (
-                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                        ) : (
-                          <Check className="w-4 h-4" />
-                        )}
-                      </button>
+                      <td className="px-4 py-4 text-center">
+                        <span
+                          className={`px-3 py-1 rounded-full text-xs font-bold ${
+                            doc.status === "pending"
+                              ? "bg-yellow-100 text-yellow-800"
+                              : doc.status === "approved"
+                              ? "bg-green-100 text-green-800"
+                              : "bg-red-100 text-red-800"
+                          }`}
+                        >
+                          {doc.status}
+                        </span>
+                      </td>
 
-                      <button
-                        onClick={() => handleAction(doc._id, "reject")}
-                        disabled={actionLoading === doc._id}
-                        className="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg disabled:opacity-50"
-                      >
-                        {actionLoading === doc._id ? (
-                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                        ) : (
-                          <X className="w-4 h-4" />
-                        )}
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                      <td className="px-4 py-4 flex justify-center gap-2">
+                        {/* Approve Button */}
+                        <button
+                          onClick={() => handleAction(doc._id, "approve")}
+                          disabled={isApproveLoading}
+                          className="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg disabled:opacity-50"
+                        >
+                          {isApproveLoading ? (
+                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                          ) : (
+                            <Check className="w-4 h-4" />
+                          )}
+                        </button>
+
+                        {/* Reject Button */}
+                        <button
+                          onClick={() => handleAction(doc._id, "reject")}
+                          disabled={isRejectLoading}
+                          className="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg disabled:opacity-50"
+                        >
+                          {isRejectLoading ? (
+                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                          ) : (
+                            <X className="w-4 h-4" />
+                          )}
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -237,7 +276,8 @@ export default function AdminDoctor() {
           {totalPages > 1 && (
             <div className="flex flex-col sm:flex-row justify-between items-center gap-4 p-4 bg-gray-50 border-t border-gray-200 mt-4 rounded-b-lg">
               <div className="text-sm text-gray-600">
-                Showing {startIndex + 1} to {Math.min(endIndex, filteredDoctors.length)} of{" "}
+                Showing {startIndex + 1} to{" "}
+                {Math.min(endIndex, filteredDoctors.length)} of{" "}
                 {filteredDoctors.length} results
               </div>
               <div className="flex items-center gap-2">
@@ -249,19 +289,21 @@ export default function AdminDoctor() {
                   &lt;
                 </button>
 
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                  <button
-                    key={page}
-                    onClick={() => goToPage(page)}
-                    className={`px-3 py-1 rounded ${
-                      currentPage === page
-                        ? "bg-gray-800 text-white"
-                        : "bg-white text-gray-800 border"
-                    }`}
-                  >
-                    {page}
-                  </button>
-                ))}
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                  (page) => (
+                    <button
+                      key={page}
+                      onClick={() => goToPage(page)}
+                      className={`px-3 py-1 rounded ${
+                        currentPage === page
+                          ? "bg-gray-800 text-white"
+                          : "bg-white text-gray-800 border"
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  )
+                )}
 
                 <button
                   onClick={() => goToPage(currentPage + 1)}
