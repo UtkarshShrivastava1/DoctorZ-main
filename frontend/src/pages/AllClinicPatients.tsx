@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
 import { User, User2, Phone, Calendar } from "lucide-react";
+import api from "../Services/mainApi";
 
 interface Patient {
   patientName: string;
@@ -33,8 +34,8 @@ export default function AllClinicPatients() {
       if (!clinicId) return;
       try {
         setLoading(true);
-        const res = await axios.get<GetPatientsResponse>(
-          `http://localhost:3000/api/clinic/getAllClinicPatients/${clinicId}`
+        const res = await api.get<GetPatientsResponse>(
+          `api/clinic/getAllClinicPatients/${clinicId}`
         );
         setPatients(res.data.patients || []);
       } catch {

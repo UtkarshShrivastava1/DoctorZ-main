@@ -177,7 +177,7 @@ export default function DoctorDashboard() {
               //   item.path === ""
               //     ? !!useMatch(`/doctorDashboard/${doctorId}`)
               //     : !!useMatch(`/doctorDashboard/${doctorId}/${item.path}`);
-              const basePath = `/doctorDashboard/${doctorId}`;
+              const basePath = `/doctordashboard/${doctorId}`;
 
               const isActive =
                 item.path === "appointments"

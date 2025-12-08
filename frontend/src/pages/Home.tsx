@@ -43,6 +43,7 @@ export default function HealthcareHomepage() {
       desc: "Connect with doctors instantly from anywhere in India",
       color: "from-blue-500 to-blue-600",
       cta: "Consult Now",
+      href:"/search-results"
     },
     {
       icon: Calendar,
@@ -50,6 +51,7 @@ export default function HealthcareHomepage() {
       desc: "Find nearby doctors and clinics based on your location",
       color: "from-green-500 to-green-600",
       cta: "Find Doctors",
+      href:"/search-results"
     },
     {
       icon: Microscope,
@@ -57,6 +59,7 @@ export default function HealthcareHomepage() {
       desc: "Book diagnostic tests at home or nearby labs",
       color: "from-purple-500 to-purple-600",
       cta: "Book Test",
+      href:"/all-lab-test"
     },
     {
       icon: Pill,
@@ -158,10 +161,12 @@ export default function HealthcareHomepage() {
                   <p className="text-gray-600 mb-6 leading-relaxed">
                     {service.desc}
                   </p>
+                  <Link to={`${service.href}`}>
                   <button className="w-full bg-[#0c213e] hover:bg-[#1a3557] text-white py-3 px-6 rounded-xl font-semibold transition-all flex items-center justify-center gap-2 group-hover:gap-3">
                     {service.cta}
                     <ChevronRight className="w-5 h-5" />
                   </button>
+                  </Link>
                 </div>
               </div>
             ))}

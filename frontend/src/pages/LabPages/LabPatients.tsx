@@ -11,6 +11,7 @@ interface PatientBooking {
   testName: string;
   bookingDate: string | null;
   status: string;
+  bookedAt:string | Date;
 }
 
 interface LabDashboardContext {
@@ -105,6 +106,7 @@ const Patients: React.FC = memo(() => {
     return filtered.slice(start, start + pageSize);
   }, [filtered, page, pageSize]);
 
+  console.log(pageItems);
   // Export CSV
     // const exportCSV = () => {
     //   // Build CSV manually to avoid an external dependency and missing types
@@ -300,6 +302,7 @@ const Patients: React.FC = memo(() => {
                 </tr>
               ) : (
                 pageItems.map((p, idx) => {
+                  console.log(p);
                   const rowAlt =
                     idx % 2 === 0
                       ? darkMode
@@ -324,7 +327,8 @@ const Patients: React.FC = memo(() => {
                         {p.testName || "—"}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
-                        {formatDate(p.bookingDate)}
+                        {/* {formatDate(p.bookingDate)} */}
+                        {(p.bookedAt).toLocaleString()}
                       </td>
                     </tr>
                   );

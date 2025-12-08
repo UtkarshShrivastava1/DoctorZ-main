@@ -41,7 +41,7 @@ export default function DoctorLogin() {
       setSuccessMsg(`Welcome Dr. ${res.doctor.fullName}! Redirecting...`);
 
       setTimeout(() => {
-        navigate(`/doctorDashboard/${res.doctor._id}`);
+        navigate(`/doctordashboard/${res.doctor._id}`);
       }, 1200);
 
     } catch (err: any) {

@@ -405,7 +405,7 @@ const DoctorProfile: React.FC = () => {
               </div>
 
               {/* LOGIN CREDENTIALS */}
-              <div className="rounded-2xl bg-white p-6 shadow-md">
+              {/* <div className="rounded-2xl bg-white p-6 shadow-md">
                 <div className="flex justify-between items-center mb-4">
                   <h3 className="text-xl font-bold" style={{ color: PRIMARY }}>
                     Update Login Credentials
@@ -429,7 +429,6 @@ const DoctorProfile: React.FC = () => {
 
                   {editCreds && (
                     <>
-                      {/* Doctor ID */}
                       <div className="flex flex-col">
                         <label className="font-semibold mb-2 text-gray-700">
                           New Doctor ID
@@ -445,7 +444,7 @@ const DoctorProfile: React.FC = () => {
                         />
                       </div>
 
-                      {/* Password */}
+                
                       <div className="flex flex-col">
                         <label className="font-semibold mb-2 text-gray-700">
                           New Password
@@ -461,7 +460,7 @@ const DoctorProfile: React.FC = () => {
                         />
                       </div>
 
-                      {/* Submit */}
+                     
                       <button
                         type="submit"
                         disabled={updatingCreds}
@@ -473,7 +472,7 @@ const DoctorProfile: React.FC = () => {
                     </>
                   )}
                 </form>
-              </div>
+              </div> */}
             </div>
           </div>
 
