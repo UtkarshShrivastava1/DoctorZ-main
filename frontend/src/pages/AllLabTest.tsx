@@ -18,6 +18,7 @@ import {
   Zap,
   ArrowRight,
 } from "lucide-react";
+import api from "../Services/mainApi"; // <- using same api as the first file
 
 // Icon mappings
 const iconMap = {
@@ -80,29 +81,37 @@ export default function LabTestsPage() {
 
   const resultsRef = useRef<HTMLDivElement>(null);
 
-  // Fetch data from API
+  // Fetch data from API using `api` (axios instance) — adapted from your first file
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
 
-        // Fetch tests
-        const testRes = await fetch("/api/lab/alllabtests");
-        const testData = await testRes.json();
-        const testsArray = Array.isArray(testData) ? testData : testData?.tests || [];
+        // Fetch tests (handle possible response shapes)
+        const testRes = await api.get("/api/lab/alllabtests");
+        const rawTests = testRes.data as any;
+        const testsArray: any[] = Array.isArray(rawTests)
+          ? rawTests
+          : Array.isArray(rawTests?.tests)
+          ? rawTests.tests
+          : [];
 
-        const normalizedTests = testsArray.map((t: any) => ({
+        const normalizedTests: LabTest[] = testsArray.map((t: any) => ({
           ...t,
           lab: t.lab || { name: t.labName || "Unknown Lab" },
         }));
         setTests(normalizedTests);
 
-        // Fetch packages
-        const packageRes = await fetch("/api/lab/packages");
-        const packageData = await packageRes.json();
-        const packagesArray = Array.isArray(packageData) ? packageData : packageData?.packages || [];
+        // Fetch packages (handle possible response shapes)
+        const packageRes = await api.get("/api/lab/packages");
+        const rawPackages = packageRes.data as any;
+        const packagesArray: any[] = Array.isArray(rawPackages)
+          ? rawPackages
+          : "packages" in (rawPackages || {}) && Array.isArray(rawPackages.packages)
+          ? rawPackages.packages
+          : [];
 
-        const normalizedPackages = packagesArray.map((p: any) => ({
+        const normalizedPackages: LabPackage[] = packagesArray.map((p: any) => ({
           ...p,
           lab: p.lab || { name: p.labName || "Unknown Lab" },
         }));
