@@ -202,7 +202,7 @@ const ClinicDetails: React.FC = () => {
               </div>
               <div className="flex items-center gap-3 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-lg">
                 <Clock size={20} className="text-blue-200 uppercase" />
-                <span>{clinic.operatingHours}</span>
+                <span className=" uppercase">{clinic.operatingHours}</span>
               </div>
             </div>
 

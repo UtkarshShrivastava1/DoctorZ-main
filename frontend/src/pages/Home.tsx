@@ -26,14 +26,32 @@ import {
   Zap,
   UserCheck 
 } from "lucide-react";
-import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
+import { Link, useNavigate } from "react-router-dom";
+// import { motion } from "framer-motion";
 import HealthcareHero from "../components/HeroSection";
 // import { CheckCircle } from "lucide-react";
 
 export default function HealthcareHomepage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [location, setLocation] = useState("");
+  const navigate = useNavigate();
+
+    interface SearchState {
+      specialty: string;
+      location: string;
+      date: string;
+    }
+
+    const handleHeroSearch = (query: string): void => {
+      setSearchQuery(query); // optional: keep state in sync
+      navigate("/search-results", {
+        state: {
+          specialty: query,
+          location,
+          date: "",
+        } as SearchState,
+      });
+    };
 
   // Main Services
   const mainServices = [
@@ -186,11 +204,13 @@ export default function HealthcareHomepage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-6 max-w-6xl mx-auto mb-12">
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-6 max-w-6xl mx-auto mb-4">
             {specialties.map((specialty, index) => (
               <button
-                key={index}
-                className="group bg-white hover:bg-gradient-to-br hover:from-[#0c213e] hover:to-[#1a3557] border-2 border-gray-200 hover:border-[#0c213e] rounded-2xl p-6 transition-all duration-300 hover:shadow-xl hover:-translate-y-1"
+               key={specialty.id ?? index}
+        onClick={() => handleHeroSearch(specialty.name)}
+        className="group bg-white hover:bg-gradient-to-br hover:from-[#0c213e] hover:to-[#1a3557] border-2 border-gray-200 hover:border-[#0c213e] rounded-2xl p-6 transition-all duration-300 hover:shadow-xl hover:-translate-y-1"
+        aria-label={`Search ${specialty.name}`}
               >
                 <div className="flex flex-col items-center text-center">
                   <div className="w-16 h-16 bg-gray-100 group-hover:bg-white/20 rounded-2xl flex items-center justify-center mb-4 transition-all">
@@ -199,20 +219,20 @@ export default function HealthcareHomepage() {
                   <h3 className="font-bold text-gray-900 group-hover:text-white mb-1 transition-colors">
                     {specialty.name}
                   </h3>
-                  <p className="text-sm text-gray-500 group-hover:text-blue-200 transition-colors">
+                  {/* <p className="text-sm text-gray-500 group-hover:text-blue-200 transition-colors">
                     {specialty.doctors}+ Doctors
-                  </p>
+                  </p> */}
                 </div>
               </button>
             ))}
           </div>
 
-          <div className="text-center">
+          {/* <div className="text-center">
             <button className="bg-white border-2 border-[#0c213e] text-[#0c213e] hover:bg-[#0c213e] hover:text-white px-8 py-4 rounded-xl font-semibold text-lg transition-all inline-flex items-center gap-2">
               View All Specialties
               <ChevronRight className="w-5 h-5" />
             </button>
-          </div>
+          </div> */}
         </div>
       </section>
 
