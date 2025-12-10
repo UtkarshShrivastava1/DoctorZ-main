@@ -19,6 +19,7 @@ export interface Doctor {
   MedicalRegistrationNumber?: string;
   location?: string;
   city?: string;
+  City?:string
   photo?: string;
   rating?: number;
   gender?: string;
@@ -192,7 +193,8 @@ const DoctorCard: React.FC<Props> = ({
           <div className="flex-shrink-0 flex items-start">
             {doctor.photo ? (
               <img
-                src={`http://localhost:3000/uploads/${doctor.photo}`}
+                // src={`http://localhost:3000/uploads/${doctor.photo}`}
+                src={`${doctor.photo}`}
                 alt={`Dr. ${doctor.fullName}`}
                 loading="lazy"
                 className="w-32 h-32 md:w-40 md:h-40 rounded-lg object-cover border border-gray-200"
@@ -222,7 +224,8 @@ const DoctorCard: React.FC<Props> = ({
 
               <div className="flex items-center gap-1 text-gray-600 text-sm mt-3">
                 <MapPin className="w-4 h-4 text-gray-500 flex-shrink-0" />
-                <span>{getLocationText()}</span>
+                {/* <span>{getLocationText()}</span> */}
+                <span>${doctor.City}</span>
               </div>
             </div>
 

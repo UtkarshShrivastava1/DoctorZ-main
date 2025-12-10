@@ -130,7 +130,7 @@ const ClinicCard: React.FC<ClinicCardProps> = ({
             className="w-24 h-24 sm:w-32 sm:h-32 object-cover rounded-lg border-2 border-white shadow-md group-hover:scale-105 transition-transform duration-300"
           />
           {/* Verified Badge */}
-          <div className="absolute -bottom-1 -right-1 bg-green-500 rounded-full p-1">
+          {/* <div className="absolute -bottom-1 -right-1 bg-green-500 rounded-full p-1">
             <svg
               className="w-3 h-3 text-white"
               fill="currentColor"
@@ -142,7 +142,7 @@ const ClinicCard: React.FC<ClinicCardProps> = ({
                 clipRule="evenodd"
               />
             </svg>
-          </div>
+          </div> */}
         </div>
       </div>
 
@@ -210,7 +210,7 @@ const ClinicCard: React.FC<ClinicCardProps> = ({
           <div className="flex items-center text-gray-700 text-xs sm:text-sm">
             <Calendar className="w-3 h-3 sm:w-4 sm:h-4 mr-2 text-gray-400 flex-shrink-0" />
             <span className="text-gray-600 mr-1">Hours:</span>
-            <span className="line-clamp-1">
+            <span className="line-clamp-1 uppercase">
               {clinic.operatingHours || "Not Available"}
             </span>
           </div>

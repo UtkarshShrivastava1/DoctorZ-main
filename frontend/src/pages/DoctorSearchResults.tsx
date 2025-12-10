@@ -78,9 +78,17 @@ const DoctorSearchResults: React.FC = () => {
   const [consultMode, setConsultMode] = useState<"online" | "hospital" | null>(
     null
   );
+  // const [location, setLocation] = useState("");
 
   // ✅ Fetch Doctors
   useEffect(() => {
+
+     const savedLocation = localStorage.getItem("userLocation");
+    if (savedLocation) {
+      setLocationValue(savedLocation);
+    }
+
+
     const fetchDoctors = async () => {
       setLoading(true);
       try {
@@ -315,8 +323,8 @@ const DoctorSearchResults: React.FC = () => {
       </div>
 
       {/* Search Filters Bar */}
-      <div className="border border-gray-300 rounded-lg bg-white p-3 mb-6 shadow-sm">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+      <div className="border border-gray-300 rounded-lg bg-white p-3 mb-3 shadow-sm">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <SearchInput
           
             icon={<Stethoscope className="w-4 h-4 text-gray-400" />}
@@ -330,13 +338,13 @@ const DoctorSearchResults: React.FC = () => {
             value={locationValue}
             onChange={setLocationValue}
           />
-          <SearchInput
+          {/* <SearchInput
             icon={<Calendar className="w-4 h-4 text-gray-400" />}
             placeholder="Date"
             type="date"
             value={date}
             onChange={setDate}
-          />
+          /> */}
           <button
             onClick={handleSearch}
             className="bg-[#0c213e] hover:bg-[#132d54] text-white rounded-lg px-5 py-2 font-medium flex items-center justify-center gap-2 transition"
@@ -350,7 +358,7 @@ const DoctorSearchResults: React.FC = () => {
       </div>
 
       {/* Consult Mode Toggle Buttons */}
-      <div className="flex gap-3 mb-6 px-2">
+      <div className="flex gap-3 mb-3 px-2">
         <button
           onClick={() => setConsultMode(consultMode === "online" ? null : "online")}
           className={`flex-1 py-2 rounded-lg text-center font-medium border transition ${

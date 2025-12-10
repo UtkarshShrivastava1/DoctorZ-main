@@ -92,6 +92,11 @@ const ClinicSearchResults: React.FC = () => {
     }));
 
   useEffect(() => {
+
+    const savedLocation = localStorage.getItem("userLocation");
+    if (savedLocation) {
+      setLocationValue(savedLocation);
+    }
     const fetchClinics = async () => {
       setLoading(true);
       try {
@@ -333,7 +338,7 @@ const ClinicSearchResults: React.FC = () => {
 
           {/* Search Bar */}
           <div className="bg-white border border-gray-400 rounded-lg p-3 mb-4 shadow-sm">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
               <div className="flex items-center gap-2 border border-gray-200 rounded-lg px-3 py-1.5 bg-white">
                 <Stethoscope className="w-4 h-4 text-gray-400" />
                 <input
@@ -356,7 +361,7 @@ const ClinicSearchResults: React.FC = () => {
                 />
               </div>
 
-              <div className="flex items-center gap-2 border border-gray-200 rounded-lg px-3 py-1.5 bg-white">
+              {/* <div className="flex items-center gap-2 border border-gray-200 rounded-lg px-3 py-1.5 bg-white">
                 <Calendar className="w-4 h-4 text-gray-400" />
                 <input
                   type="date"
@@ -364,7 +369,7 @@ const ClinicSearchResults: React.FC = () => {
                   value={date}
                   onChange={(e) => setDate(e.target.value)}
                 />
-              </div>
+              </div> */}
 
               <button
                 onClick={handleSearch}

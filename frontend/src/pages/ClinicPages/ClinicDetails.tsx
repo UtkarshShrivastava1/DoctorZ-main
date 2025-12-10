@@ -93,9 +93,20 @@ const ClinicDetails: React.FC = () => {
     }
 
     setFilters((prev) => {
-      const selected = prev[type].includes(value)
-        ? prev[type].filter((v) => v !== value)
-        : [...prev[type], value];
+      // ✅ Special case: only one gender can be selected
+      if (type === "gender") {
+        const isAlreadySelected = prev.gender.includes(value);
+        const selected = isAlreadySelected ? [] : [value]; // toggle single value
+        return { ...prev, gender: selected };
+      }
+
+      // ✅ Default: multi-select for other array filters
+      const currentValues = prev[type] as string[];
+
+      const selected = currentValues.includes(value)
+        ? currentValues.filter((v) => v !== value)
+        : [...currentValues, value];
+
       return { ...prev, [type]: selected };
     });
   };
@@ -190,16 +201,24 @@ const ClinicDetails: React.FC = () => {
                 <span>{clinic.email}</span>
               </div>
               <div className="flex items-center gap-3 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-lg">
-                <Clock size={20} className="text-blue-200" />
+                <Clock size={20} className="text-blue-200 uppercase" />
                 <span>{clinic.operatingHours}</span>
               </div>
             </div>
 
             <div className="flex flex-wrap justify-center gap-4 mt-8">
-              <div className="inline-flex items-center gap-2 bg-white text-[#0c213e] px-6 py-2 rounded-full font-semibold shadow-lg">
+              {/* <div className="inline-flex items-center gap-2 bg-white text-[#0c213e] px-6 py-2 rounded-full font-semibold shadow-lg">
                 <Phone size={18} />
                 {clinic.phone}
-              </div>
+              </div> */}
+
+              <a
+                href={`tel:${clinic.phone}`}
+                className="inline-flex items-center gap-2 bg-white text-[#0c213e] px-6 py-2 rounded-full font-semibold shadow-lg hover:bg-gray-100 transition-colors"
+              >
+                <Phone size={18} />
+                {clinic.phone}
+              </a>
 
               <button className="inline-flex items-center gap-2 bg-transparent border-2 border-white text-white hover:bg-white/10 px-6 py-2 rounded-full font-semibold transition-all duration-300">
                 <MapPin size={18} />
@@ -447,11 +466,33 @@ const ClinicDetails: React.FC = () => {
                     </button>
                   </div>
                   <div className="space-y-8">
+                    {/* Search */}
+                    <div>
+                      <h4 className="font-semibold text-gray-800 mb-3 text-lg">
+                        Search Doctors
+                      </h4>
+                      <div className="relative text-gray-600">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                          <Search size={20} className="text-gray-400" />
+                        </div>
+                        <input
+                          type="search"
+                          placeholder="Search by name or specialty..."
+                          value={filters.search}
+                          onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                            handleFilterChange("search", e.target.value)
+                          }
+                          className="w-full border border-gray-300 rounded-lg py-3 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
+                        />
+                      </div>
+                    </div>
+
                     {/* Gender */}
                     <div>
                       <h4 className="font-semibold text-gray-800 mb-3 text-lg">
                         Gender
                       </h4>
+
                       <div className="space-y-2">
                         {["Male", "Female"].map((g) => (
                           <label
@@ -460,35 +501,26 @@ const ClinicDetails: React.FC = () => {
                           >
                             <div className="relative">
                               <input
-                                type="checkbox"
+                                type="radio"
+                                name="gender"
                                 checked={filters.gender.includes(g)}
                                 onChange={() => handleFilterChange("gender", g)}
                                 className="sr-only"
                               />
+
                               <div
-                                className={`w-5 h-5 border-2 rounded flex items-center justify-center transition-all ${
+                                className={`w-5 h-5 border-2 rounded-full flex items-center justify-center transition-all ${
                                   filters.gender.includes(g)
                                     ? "bg-[#0c213e] border-[#0c213e]"
                                     : "border-gray-300 group-hover:border-[#0c213e]"
                                 }`}
                               >
                                 {filters.gender.includes(g) && (
-                                  <svg
-                                    className="w-3 h-3 text-white"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                  >
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      strokeWidth={3}
-                                      d="M5 13l4 4L19 7"
-                                    />
-                                  </svg>
+                                  <div className="w-2.5 h-2.5 bg-white rounded-full"></div>
                                 )}
                               </div>
                             </div>
+
                             <span className="text-gray-700 group-hover:text-[#0c213e] transition-colors">
                               {g}
                             </span>
@@ -524,8 +556,8 @@ const ClinicDetails: React.FC = () => {
                               <div
                                 className={`w-5 h-5 border-2 rounded flex items-center justify-center transition-all ${
                                   filters.fees.includes(value)
-                                    ? "bg-bg-[#0c213e] border-bg-[#0c213e]"
-                                    : "border-gray-300 group-hover:border-bg-[#0c213e]"
+                                    ? "bg-[#0c213e] border-[#0c213e]"
+                                    : "border-gray-300 group-hover:border-[#0c213e]"
                                 }`}
                               >
                                 {filters.fees.includes(value) && (
@@ -580,7 +612,7 @@ const ClinicDetails: React.FC = () => {
                               <div
                                 className={`w-5 h-5 border-2 rounded flex items-center justify-center transition-all ${
                                   filters.experience.includes(value)
-                                    ? "bg-bg-[#0c213e] border-bg-[#0c213e]"
+                                    ? "bg-[#0c213e] border-[#0c213e]"
                                     : "border-gray-300 group-hover:border-indigo-400"
                                 }`}
                               >
@@ -606,27 +638,6 @@ const ClinicDetails: React.FC = () => {
                             </span>
                           </label>
                         ))}
-                      </div>
-                    </div>
-
-                    {/* Search */}
-                    <div>
-                      <h4 className="font-semibold text-gray-800 mb-3 text-lg">
-                        Search Doctors
-                      </h4>
-                      <div className="relative text-gray-600">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                          <Search size={20} className="text-gray-400" />
-                        </div>
-                        <input
-                          type="search"
-                          placeholder="Search by name or specialty..."
-                          value={filters.search}
-                          onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                            handleFilterChange("search", e.target.value)
-                          }
-                          className="w-full border border-gray-300 rounded-lg py-3 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
-                        />
                       </div>
                     </div>
                   </div>
