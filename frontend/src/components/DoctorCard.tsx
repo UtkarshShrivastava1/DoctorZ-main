@@ -225,7 +225,7 @@ const DoctorCard: React.FC<Props> = ({
               <div className="flex items-center gap-1 text-gray-600 text-sm mt-3">
                 <MapPin className="w-4 h-4 text-gray-500 flex-shrink-0" />
                 {/* <span>{getLocationText()}</span> */}
-                <span>${doctor.City}</span>
+                <span>{doctor.City}</span>
               </div>
             </div>
 

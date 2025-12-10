@@ -290,7 +290,7 @@ const ClinicCard: React.FC<ClinicCardProps> = ({
           >
             
 
-           
+           View Clinic Details
             <svg
               className="w-3 h-3 sm:w-4 sm:h-4 ml-1 sm:ml-2 flex-shrink-0"
               fill="none"

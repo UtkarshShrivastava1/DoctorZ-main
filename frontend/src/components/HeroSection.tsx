@@ -1,7 +1,8 @@
-import  { use, useState } from 'react';
+import  {  useState } from 'react';
 import { Search, MapPin, CheckCircle, Video, Stethoscope, Microscope, Pill, Heart, Activity, Calendar, FileText, Shield } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import "../index.css"
 
 const HealthcareHero = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -24,6 +25,7 @@ const HealthcareHero = () => {
       },
     });
   };
+  
 
   return (
     <section className="relative bg-gradient-to-br from-[#0c213e] via-[#1a3557] to-[#0c213e] text-white overflow-hidden">
@@ -68,30 +70,35 @@ const HealthcareHero = () => {
             {/* Search Bar */}
             <div className="bg-white rounded-2xl shadow-2xl p-4 md:p-6">
               <div className="flex flex-col md:flex-row gap-3">
-                <div className="flex-1 relative">
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <div className="flex-1 relative font-semibold">
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-black w-5 h-5" />
                   <input
                     type="text"
                     placeholder="Search doctors, specialties..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-12 pr-4 py-3 md:py-4 rounded-xl border-2 border-gray-200 focus:border-[#0c213e] focus:outline-none text-gray-800 text-sm md:text-base"
+                    className="w-full pl-12 pr-4 py-3 md:py-4 rounded-xl border-2 border-gray-900 focus:border-[#0c213e] focus:outline-none text-gray-800 text-sm md:text-base"
                   />
                 </div>
-                <div className="flex-1 relative">
-                  <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <div className="flex-1 relative font-semibold">
+                  <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-black w-5 h-5" />
                   <input
                     type="text"
                     placeholder="Your city or location"
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
-                    className="w-full pl-12 pr-4 py-3 md:py-4 rounded-xl border-2 border-gray-200 focus:border-[#0c213e] focus:outline-none text-gray-800 text-sm md:text-base"
+                    className="w-full pl-12 pr-4 py-3 md:py-4 rounded-xl border-2 border-gray-900 focus:border-[#0c213e] focus:outline-none text-gray-800 text-sm md:text-base"
                   />
                 </div>
-                <button onClick={handleHeroSearch} className="bg-[#0c213e] hover:bg-[#1a3557] text-white px-6 md:px-8 py-3 md:py-4 rounded-xl font-semibold text-sm md:text-base transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-2 whitespace-nowrap">
-                  <Search className="w-5 h-5" />
-                  Search
-                </button>
+<button
+  onClick={handleHeroSearch}
+  className="  bg-[#0c213e] hover:bg-[#1a3557] text-white px-6 md:px-8 py-3 md:py-4 rounded-xl font-semibold text-sm md:text-base transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-2 whitespace-nowrap cursor-pointer"
+>
+  <Search className="w-5 h-5" />
+  Search
+</button>
+
+
               </div>
             </div>
 
