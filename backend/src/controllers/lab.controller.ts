@@ -151,7 +151,7 @@ const getAllLabTests = async (req: Request, res: Response) => {
 // ------------------ BOOK A TEST ------------------
 const addTestBooking = async (req: Request, res: Response) => {
   try {
-    const { test, patientId } = req.body;
+    const { test, patientId, bookingDate } = req.body;
 
     if (!test || !patientId) {
       return res.status(400).json({ message: "Missing test or patientId" });
@@ -159,6 +159,24 @@ const addTestBooking = async (req: Request, res: Response) => {
 
     if (!test.labId || !test.name) {
       return res.status(400).json({ message: "Invalid test data" });
+    }
+
+    // bookingDate validation: must be provided (if bookingDate required)
+    if (!bookingDate) {
+      return res.status(400).json({ message: "Please provide a bookingDate" });
+    }
+
+    const bookingDateObj = new Date(bookingDate);
+    if (isNaN(bookingDateObj.getTime())) {
+      return res.status(400).json({ message: "Invalid bookingDate format" });
+    }
+
+    // Optional: disallow past dates (server-side)
+    const today = new Date();
+    const t = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const b = new Date(bookingDateObj.getFullYear(), bookingDateObj.getMonth(), bookingDateObj.getDate());
+    if (b < t) {
+      return res.status(400).json({ message: "bookingDate cannot be in the past" });
     }
 
     const lab = await LabModel.findById(test.labId);
@@ -171,7 +189,8 @@ const addTestBooking = async (req: Request, res: Response) => {
       category: test.category || "General",
       price: test.price || 0,
       status: "pending",
-      bookedAt: new Date(),
+      bookingDate: bookingDateObj,
+      // bookedAt will default to Date.now via schema
     });
 
     return res
@@ -184,6 +203,7 @@ const addTestBooking = async (req: Request, res: Response) => {
     return res.status(500).json({ message: errorMessage });
   }
 };
+
 
 // ------------------ ADD LAB TEST ------------------
 const addTest = async (req: Request, res: Response) => {

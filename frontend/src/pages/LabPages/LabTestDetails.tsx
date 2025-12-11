@@ -1,9 +1,7 @@
-
+// src/pages/LabTestDetails.tsx
+import React, { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
-
 import api from "../../Services/mainApi";
-
 
 import diabetes from "../../assets/Diabetes.png";
 import fever from "../../assets/Fever and infections.png";
@@ -35,9 +33,10 @@ export default function LabTestDetails() {
   const test = location.state?.test as Test | undefined;
 
   const [loading, setLoading] = useState(false);
-  // const [bookingStatus, setBookingStatus] = useState<string | null>(null);
   const [otherTests, setOtherTests] = useState<Test[]>([]);
+  const [bookingDate, setBookingDate] = useState<string>("");
 
+  // category -> image map
   const categoryImages: Record<string, string> = {
     kidney,
     fever,
@@ -49,13 +48,22 @@ export default function LabTestDetails() {
     imaging: Imaging,
   };
 
+  // compute today's date in yyyy-mm-dd for `min` attr
+  const todayDateString = useMemo(() => {
+    const d = new Date();
+    const tzOffset = d.getTimezoneOffset() * 60000;
+    const localISO = new Date(d.getTime() - tzOffset).toISOString().slice(0, 10);
+    return localISO;
+  }, []);
+
+  // redirect if no test provided
   useEffect(() => {
     if (!test) navigate("/all-lab-test");
   }, [test, navigate]);
-  useEffect(() => {
-  window.scrollTo(0, 0);
-}, []);
 
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   useEffect(() => {
     const fetchOtherTests = async () => {
@@ -77,32 +85,59 @@ export default function LabTestDetails() {
 
   if (!test) return null;
 
+  // helper: check if a yyyy-mm-dd string is in the past (compares dates only)
+  const isPastDate = (dateStr: string) => {
+    if (!dateStr) return false;
+    const selected = new Date(dateStr);
+    const s = new Date(selected.getFullYear(), selected.getMonth(), selected.getDate());
+    const today = new Date();
+    const t = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    return s < t;
+  };
+
   const handleBookTest = async () => {
     setLoading(true);
-    // setBookingStatus(null);
 
     try {
+      // extract token cookie (patientToken)
       const token = document.cookie
         .split("; ")
         .find((row) => row.startsWith("patientToken="))
         ?.split("=")[1];
 
       if (!token) {
-       toast.error("Please login to book the test.");
+        toast.error("Please login to book the test.");
         setLoading(false);
         return;
       }
 
+      // decode token to get patient id (basic JWT decode)
       let patientId: string | null = null;
       try {
         const base64Payload = token.split(".")[1];
         const payload = JSON.parse(atob(base64Payload));
         patientId = payload.id;
-      } catch {
-      toast.error("Invalid session. Please login again.");
+      } catch (err) {
+        toast.error("Invalid session. Please login again.");
         setLoading(false);
         return;
       }
+
+      // validate bookingDate
+      if (!bookingDate) {
+        toast.error("Please select a booking date before continuing.");
+        setLoading(false);
+        return;
+      }
+      if (isPastDate(bookingDate)) {
+        toast.error("Selected booking date cannot be in the past.");
+        setLoading(false);
+        return;
+      }
+
+      // Convert yyyy-mm-dd -> ISO at midnight local, then to UTC ISO string
+      // (Backend will store Date object from this ISO)
+      const bookingDateISO = new Date(bookingDate + "T00:00:00").toISOString();
 
       const payload = {
         test: {
@@ -112,6 +147,7 @@ export default function LabTestDetails() {
           category: test.category || "General",
         },
         patientId,
+        bookingDate: bookingDateISO,
       };
 
       const res = await api.post("/api/lab/bookTest", payload, {
@@ -119,13 +155,10 @@ export default function LabTestDetails() {
       });
 
       console.log("✅ Booking response:", res.data);
-     toast.success("Test booked successfully!");
-      // setBookingStatus("Booking successful!");
-
+      toast.success("Test booked successfully!");
     } catch (error) {
       console.error("❌ Booking error:", error);
-     toast.error("Booking failed. Try again.");
-      // setBookingStatus("Booking failed. Try again.");
+      toast.error("Booking failed. Try again.");
     } finally {
       setLoading(false);
     }
@@ -206,6 +239,25 @@ export default function LabTestDetails() {
                 <FeatureItem text="NABL certified labs" />
               </div>
 
+              {/* Date picker */}
+              <div className="mt-4 text-left">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Choose booking date
+                </label>
+                <input
+                  type="date"
+                  value={bookingDate}
+                  min={todayDateString}
+                  onChange={(e) => setBookingDate(e.target.value)}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                />
+                {bookingDate && isPastDate(bookingDate) && (
+                  <p className="text-xs text-red-600 mt-1">
+                    Selected date is in the past.
+                  </p>
+                )}
+              </div>
+
               {/* Book Button */}
               <button
                 onClick={handleBookTest}
@@ -225,18 +277,6 @@ export default function LabTestDetails() {
                   "Book Test Now"
                 )}
               </button>
-
-              {/* {bookingStatus && (
-                <p
-                  className={`mt-3 text-sm font-medium ${
-                    bookingStatus.includes("successful")
-                      ? "text-green-600"
-                      : "text-red-600"
-                  }`}
-                >
-                  {bookingStatus}
-                </p>
-              )} */}
 
               {test.reportFile && (
                 <a
@@ -269,7 +309,7 @@ export default function LabTestDetails() {
                         </p>
                         <p className="text-sm text-gray-500">{t.category}</p>
                       </div>
-                      <span className="text-lg font-bold text-[[#0c213e]">
+                      <span className="text-lg font-bold text-[#0c213e]">
                         ₹{t.price}
                       </span>
                     </div>
@@ -375,7 +415,7 @@ export default function LabTestDetails() {
   );
 }
 
-// ✅ Subcomponents (Text Only)
+// Subcomponents
 const FeatureItem = ({ text }: { text: string }) => (
   <div className="text-sm text-gray-700">{text}</div>
 );
