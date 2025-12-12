@@ -195,7 +195,13 @@ const DoctorDashboardHome: React.FC = () => {
             </div>
           </div>
           <h3 className="text-white/80 text-sm font-medium mb-1">Quick Actions</h3>
-          <p className="text-2xl font-bold mb-4">Manage</p>
+          {/* <p className="text-2xl font-bold mb-4">Manage</p> */}
+          <button
+            onClick={() => navigate(`/doctordashboard/${doctorId}/time-slots`)}
+            className="w-full bg-white text-[#0c213e] px-4 py-2 rounded-lg font-medium text-sm hover:bg-gray-100 transition-colors"
+          >
+            Manage availability
+          </button>
           <button
             onClick={() => navigate(`/doctordashboard/${doctorId}/appointments`)}
             className="w-full bg-white text-[#0c213e] px-4 py-2 rounded-lg font-medium text-sm hover:bg-gray-100 transition-colors"
@@ -311,12 +317,12 @@ const DoctorDashboardHome: React.FC = () => {
               Edit Profile
             </button>
 
-            <button
+            {/* <button
               onClick={() => navigate(`/doctordashboard/${doctorId}/time-slots`)}
               className="w-full px-4 py-2 bg-[#0c213e] hover:bg-[#0a1a32] text-white rounded-lg font-medium text-sm transition-colors"
             >
               Manage Availability
-            </button>
+            </button> */}
           </div>
         </div>
       </div>

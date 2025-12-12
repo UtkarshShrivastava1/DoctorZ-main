@@ -615,7 +615,7 @@ const TimeSlots: React.FC = () => {
                       key={s.time}
                       className={`p-2 rounded-lg text-xs font-medium transition-all duration-200 ${
                         s.isActive
-                          ? "bg-[#0c213e] hover:bg-[#0a1a32] text-white shadow-sm"
+                          ? "bg-green-600 hover:bg-green-700 text-white shadow-sm"
                           : "bg-gray-100 hover:bg-gray-200 text-gray-600"
                       }`}
                       onClick={() => toggleSlot(slotItem._id, s.time, !s.isActive)}
