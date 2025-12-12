@@ -1,11 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useLocation, useParams } from "react-router-dom";
 import { X } from "lucide-react";
 import api from "../../Services/mainApi";
 import Swal from "sweetalert2";
 
 // JSON Files
-// import medicineData from "../../assets/indian_medicine_data.json";
 import diseaseData from "../../assets/Disease_symptom_dataset.json";
 import symptomData from "../../assets/symptoms.json";
 
@@ -15,25 +14,30 @@ interface Medicine {
   quantity?: string;
 }
 
-const PrescriptionForm = () => {
+const PrescriptionForm: React.FC = () => {
   const { bookingId, patientAadhar } = useParams();
-  const doctorId = localStorage.getItem("doctorId");
-  const { state } = useLocation();
-  const name = state?.name;
-  const gender = state?.gender;
+  const doctorId = localStorage.getItem("doctorId") || undefined;
+  const location = useLocation();
+
+  // Move incoming state into guarded local state (avoid reading location.state directly during render)
+  const [patientName, setPatientName] = useState<string | undefined>(
+    () => (location.state as any)?.name
+  );
+  const [patientGender, setPatientGender] = useState<string | undefined>(
+    () => (location.state as any)?.gender
+  );
 
   // Diagnosis
   const [diagnosisInput, setDiagnosisInput] = useState("");
   const [allDiseases, setAllDiseases] = useState<string[]>([]);
   const [filteredDiseases, setFilteredDiseases] = useState<string[]>([]);
-  const [showDiseaseSuggestions, setShowDiseaseSuggestions] = useState(false);
+  const [showDiseaseSuggestions, setShowDiseaseSuggestions] =
+    useState(false);
 
   // Symptoms
   const [symptoms, setSymptoms] = useState<string[]>([]);
   const [symptomInput, setSymptomInput] = useState("");
-
   const [allSymptoms, setAllSymptoms] = useState<string[]>([]);
-
   const [filteredSymptoms, setFilteredSymptoms] = useState<string[]>([]);
   const [showSymptoms, setShowSymptoms] = useState(false);
 
@@ -41,98 +45,123 @@ const PrescriptionForm = () => {
   const [tests, setTests] = useState<string[]>([]);
   const [testInput, setTestInput] = useState("");
 
-  // Medicine
+  // Medicines
   const [medicineName, setMedicineName] = useState("");
   const [medicineDosage, setMedicineDosage] = useState("");
   const [medicineQty, setMedicineQty] = useState("");
   const [medicines, setMedicines] = useState<Medicine[]>([]);
 
-  const [allMedicines, setAllMedicines] = useState<string[]>([]);
-  setAllMedicines([
-  "Paracetamol",
-  "Ibuprofen",
-  "Amoxicillin",
-  "Cetirizine",
-  "Azithromycin",
-  "Dolo 650"
-])
-  const [filteredMedicines, setFilteredMedicines] = useState<string[]>([]);
+  // Fixed/constant medicine list
+  const [allMedicines] = useState<string[]>([
+    "Paracetamol",
+    "Ibuprofen",
+    "Amoxicillin",
+    "Cetirizine",
+    "Azithromycin",
+    "Dolo 650",
+  ]);
+
+  const [filteredMedicines, setFilteredMedicines] = useState<string[]>(
+    []
+  );
   const [showSuggestions, setShowSuggestions] = useState(false);
 
   const [notes, setNotes] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Load all medicine names
-  // useEffect(() => {
-  //   const meds = Array.isArray(medicineData) ? medicineData : [];
-  //   const names = meds
-  //     .map((m: any) => m?.name)
-  //     .filter((n: any) => typeof n === "string" && n.trim() !== "");
-  //   setAllMedicines(names);
-  // }, []);
-
-  // Load all diseases
+  // Debugging: print params and incoming location.state once (helps confirm route matching)
   useEffect(() => {
-    if (!Array.isArray(diseaseData)) return;
-    const diseaseSet = new Set<string>();
+    console.log("PrescriptionForm params:", { bookingId, patientAadhar });
+    console.log("location.state:", location.state);
+  }, [bookingId, patientAadhar, location.state]);
 
-    diseaseData.forEach((item) => {
-      if (item.Disease) diseaseSet.add(item.Disease);
-    });
+  // Safely load all diseases from JSON once
+  useEffect(() => {
+    try {
+      if (!Array.isArray(diseaseData)) {
+        console.warn("diseaseData is not an array:", diseaseData);
+        setAllDiseases([]);
+        return;
+      }
 
-    setAllDiseases(Array.from(diseaseSet));
+      const diseaseSet = new Set<string>();
+      diseaseData.forEach((item: any) => {
+        if (item && item.Disease) diseaseSet.add(String(item.Disease));
+      });
+
+      setAllDiseases(Array.from(diseaseSet));
+    } catch (err) {
+      console.error("Error parsing diseaseData:", err);
+      setAllDiseases([]);
+    }
   }, []);
 
-  //Load all symptoms
+  // Safely load all symptoms from JSON once
   useEffect(() => {
-    if (!Array.isArray(symptomData)) return;
+    try {
+      if (!Array.isArray(symptomData) || symptomData.length === 0) {
+        console.warn("symptomData unexpected format:", symptomData);
+        setAllSymptoms([]);
+        return;
+      }
 
-    
-    const symptoms = Object.keys(symptomData[0]).filter(
-      (key) => key !== "prognosis"
-    );
+      const first = symptomData[0];
+      if (typeof first !== "object" || first === null) {
+        setAllSymptoms([]);
+        return;
+      }
 
-    setAllSymptoms(symptoms);
+      const symptomsList = Object.keys(first).filter(
+        (key) => key !== "prognosis"
+      );
+      setAllSymptoms(symptomsList);
+    } catch (err) {
+      console.error("Error parsing symptomData:", err);
+      setAllSymptoms([]);
+    }
   }, []);
 
-  //Symptoms Search
+  // Format label helper
+  const formatSymptomLabel = (symptom: string) =>
+    symptom.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+
+  // Symptom search (event-driven; does not cause render-loop)
   const handleSymptomSearch = (query: string) => {
     setSymptomInput(query);
 
-    if (!query.trim()) {
+    const trimmed = query.trim();
+    if (!trimmed) {
       setFilteredSymptoms([]);
+      setShowSymptoms(false);
       return;
     }
 
     const filtered = allSymptoms.filter((symptom) =>
-      symptom.toLowerCase().startsWith(query.toLowerCase())
+      symptom.toLowerCase().startsWith(trimmed.toLowerCase())
     );
 
     setFilteredSymptoms(filtered.slice(0, 10));
     setShowSymptoms(true);
-  };
-  const formatSymptomLabel = (symptom: string) => {
-    return symptom.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
   };
 
   // Medicine search
   const handleMedicineSearch = (query: string) => {
     setMedicineName(query);
 
-    if (!query) {
+    if (!query.trim()) {
       setFilteredMedicines([]);
+      setShowSuggestions(false);
       return;
     }
 
-    const filtered = allMedicines
-      .filter((m) => typeof m === "string")
-      .filter((m) => m.toLowerCase().startsWith(query.toLowerCase()));
+    const filtered = allMedicines.filter((m) =>
+      m.toLowerCase().startsWith(query.toLowerCase())
+    );
 
     setFilteredMedicines(filtered.slice(0, 10));
     setShowSuggestions(true);
   };
 
-  // Select medicine
   const selectMedicine = (name: string) => {
     setMedicineName(name);
     setFilteredMedicines([]);
@@ -143,66 +172,80 @@ const PrescriptionForm = () => {
   const handleDiagnosisSearch = (query: string) => {
     setDiagnosisInput(query);
 
-    if (!query) {
+    const trimmed = query.trim();
+    if (!trimmed) {
       setFilteredDiseases([]);
+      setShowDiseaseSuggestions(false);
       return;
     }
 
     const filtered = allDiseases.filter((d) =>
-      d.toLowerCase().startsWith(query.toLowerCase())
+      d.toLowerCase().startsWith(trimmed.toLowerCase())
     );
 
     setFilteredDiseases(filtered.slice(0, 10));
     setShowDiseaseSuggestions(true);
   };
 
-  // Add symptom
+  // Add / remove symptom
   const handleAddSymptom = () => {
-    if (!symptomInput.trim()) return;
-    setSymptoms([...symptoms, formatSymptomLabel(symptomInput.trim())]);
+    const val = symptomInput.trim();
+    if (!val) return;
+    setSymptoms((prev) => [...prev, formatSymptomLabel(val)]);
     setSymptomInput("");
+    setFilteredSymptoms([]);
+    setShowSymptoms(false);
   };
 
-  const removeSymptom = (index: number) => {
-    setSymptoms(symptoms.filter((_, i) => i !== index));
-  };
+  const removeSymptom = (index: number) =>
+    setSymptoms((prev) => prev.filter((_, i) => i !== index));
 
-  // Add test
+  // Add / remove test
   const handleAddTest = () => {
-    if (!testInput.trim()) return;
-    setTests([...tests, testInput.trim()]);
+    const val = testInput.trim();
+    if (!val) return;
+    setTests((prev) => [...prev, val]);
     setTestInput("");
   };
 
-  const removeTest = (index: number) => {
-    setTests(tests.filter((_, i) => i !== index));
-  };
+  const removeTest = (index: number) =>
+    setTests((prev) => prev.filter((_, i) => i !== index));
 
-  // Add medicine chip
+  // Add / remove medicine chip
   const addMedicineChip = () => {
-    if (!medicineName.trim() || !medicineDosage.trim()) return;
+    const name = medicineName.trim();
+    const dosage = medicineDosage.trim();
+    if (!name || !dosage) return;
 
-    setMedicines([
-      ...medicines,
-      {
-        name: medicineName.trim(),
-        dosage: medicineDosage.trim(),
-        quantity: medicineQty.trim(),
-      },
+    setMedicines((prev) => [
+      ...prev,
+      { name, dosage, quantity: medicineQty.trim() },
     ]);
 
     setMedicineName("");
     setMedicineDosage("");
     setMedicineQty("");
+    setFilteredMedicines([]);
+    setShowSuggestions(false);
   };
 
-  const removeMedicine = (index: number) => {
-    setMedicines(medicines.filter((_, i) => i !== index));
-  };
+  const removeMedicine = (index: number) =>
+    setMedicines((prev) => prev.filter((_, i) => i !== index));
 
   // Submit
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Basic validation
+    if (!bookingId) {
+      Swal.fire({
+        title: "Missing bookingId",
+        text: "Missing booking id in the URL. Cannot save prescription.",
+        icon: "error",
+      });
+      return;
+    }
+
     setLoading(true);
 
     const payload = {
@@ -213,35 +256,50 @@ const PrescriptionForm = () => {
       medicines,
       recommendedTests: tests,
       notes,
-      name,
-      gender,
+      name: patientName,
+      gender: patientGender,
     };
 
     try {
-      await api.post(`/api/prescription/addPrescription/${bookingId}`, payload);
+      const url = `/api/prescription/addPrescription/${bookingId}`;
+      console.log("Posting prescription to:", url, "payload:", payload);
+      await api.post(url, payload);
 
       Swal.fire({
         title: "Prescription Saved Successfully!",
         icon: "success",
-        showConfirmButton: true,
       });
 
-      // Reset all
+      // reset form
       setDiagnosisInput("");
       setSymptoms([]);
       setTests([]);
       setMedicines([]);
       setNotes("");
     } catch (error) {
-      console.error(error);
+      console.error("Error saving prescription:", error);
       Swal.fire({
         title: "Error Saving Prescription",
         icon: "error",
       });
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
+
+  // Optional: keep patientName/gender in sync if location.state changes (guarded to avoid loops)
+  useEffect(() => {
+    const s = (location.state as any) || {};
+    if (s.name && s.name !== patientName) setPatientName(s.name);
+    if (s.gender && s.gender !== patientGender) setPatientGender(s.gender);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.state]); // only when location.state changes
+
+  // Memoized formatted symptom suggestions (not required, but cheap)
+  const formattedFilteredSymptoms = useMemo(
+    () => filteredSymptoms.map((s) => formatSymptomLabel(s)),
+    [filteredSymptoms]
+  );
 
   return (
     <div className="max-w-5xl mx-auto p-6">
@@ -309,18 +367,19 @@ const PrescriptionForm = () => {
                 Add
               </button>
 
-              {showSymptoms && filteredSymptoms.length > 0 && (
+              {showSymptoms && formattedFilteredSymptoms.length > 0 && (
                 <div className="absolute left-0 top-14 bg-white border w-full rounded-lg shadow-lg max-h-60 overflow-y-auto z-50">
-                  {filteredSymptoms.map((sym, idx) => (
+                  {formattedFilteredSymptoms.map((sym, idx) => (
                     <div
                       key={idx}
                       className="p-3 cursor-pointer hover:bg-blue-100"
                       onClick={() => {
-                        setSymptomInput(formatSymptomLabel(sym));
+                        // When user clicks a suggestion, add as the input value (user still needs to press Add)
+                        setSymptomInput(sym);
                         setShowSymptoms(false);
                       }}
                     >
-                      {formatSymptomLabel(sym)}
+                      {sym}
                     </div>
                   ))}
                 </div>
@@ -333,7 +392,7 @@ const PrescriptionForm = () => {
                   key={i}
                   className="flex items-center gap-2 px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm"
                 >
-                  {formatSymptomLabel(s)}
+                  {s}
                   <button
                     type="button"
                     onClick={() => removeSymptom(i)}
@@ -463,7 +522,9 @@ const PrescriptionForm = () => {
 
           {/* Notes */}
           <div>
-            <h3 className="text-xl font-semibold text-gray-800 mb-4">Notes</h3>
+            <h3 className="text-xl font-semibold text-gray-800 mb-4">
+              Notes
+            </h3>
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}

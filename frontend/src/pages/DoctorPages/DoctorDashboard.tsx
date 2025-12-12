@@ -2,8 +2,7 @@ import { useEffect, useState } from "react";
 import {
   Link,
   Outlet,
-  // useLocation,
-  useMatch,
+  useLocation,
   useNavigate,
 } from "react-router-dom";
 import {
@@ -12,12 +11,19 @@ import {
   ClockIcon,
   CalendarIcon,
   UsersIcon,
-  KeyIcon,
-  Bars3Icon,
-  ArrowRightOnRectangleIcon,
   BellIcon,
   XMarkIcon,
+  ArrowRightOnRectangleIcon,
+  Bars3Icon,
 } from "@heroicons/react/24/outline";
+import {
+  HomeIcon as HomeIconSolid,
+  UserIcon as UserIconSolid,
+  ClockIcon as ClockIconSolid,
+  CalendarIcon as CalendarIconSolid,
+  UsersIcon as UsersIconSolid,
+  BellIcon as BellIconSolid,
+} from "@heroicons/react/24/solid";
 import api from "../../Services/mainApi";
 
 interface Notification {
@@ -28,8 +34,8 @@ interface Notification {
 }
 
 export default function DoctorDashboard() {
-  // const location = useLocation();
   const navigate = useNavigate();
+  const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 768);
   const [newNotifCount, setNewNotifCount] = useState(0);
@@ -37,7 +43,6 @@ export default function DoctorDashboard() {
   // Detect screen size
   useEffect(() => {
     const handleResize = () => setIsDesktop(window.innerWidth >= 768);
-
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
@@ -82,112 +87,109 @@ export default function DoctorDashboard() {
 
   const menuItems = [
     {
-      name: "Appointments",
-      path: "appointments",
-      icon: <CalendarIcon className="w-5 h-5" />,
-    },
-    {
       name: "Dashboard",
       path: "doctor-home-dashboard",
-      icon: <HomeIcon className="w-5 h-5" />,
+      icon: HomeIcon,
+      iconSolid: HomeIconSolid,
     },
     {
-      name: "Profile",
-      path: "doctorProfile",
-      icon: <UserIcon className="w-5 h-5" />,
-    },
-    {
-      name: "Add Availability",
-      path: "time-slots",
-      icon: <ClockIcon className="w-5 h-5" />,
+      name: "Appointments",
+      path: "appointments",
+      icon: CalendarIcon,
+      iconSolid: CalendarIconSolid,
     },
     {
       name: "My Patients",
       path: "patients",
-      icon: <UsersIcon className="w-5 h-5" />,
+      icon: UsersIcon,
+      iconSolid: UsersIconSolid,
+    },
+    {
+      name: "Availability",
+      path: "time-slots",
+      icon: ClockIcon,
+      iconSolid: ClockIconSolid,
     },
     {
       name: "Notifications",
       path: "notifications",
-      icon: <BellIcon className="w-5 h-5" />,
+      icon: BellIcon,
+      iconSolid: BellIconSolid,
+      badge: newNotifCount,
+    },
+    {
+      name: "Profile",
+      path: "doctorProfile",
+      icon: UserIcon,
+      iconSolid: UserIconSolid,
     },
   ];
-  
+
+  const basePath = `/doctordashboard/${doctorId}`;
 
   return (
-    <div className="flex h-screen bg-gray-100 relative">
-      {/* --- MOBILE TOP BAR --- */}
-      <div className="md:hidden fixed top-0 left-0 right-0 bg-[#0c213e] text-white flex items-center justify-between px-4 py-3 z-50 shadow-lg">
-        <h1 className="text-lg font-semibold">Doctor Dashboard</h1>
+    <div className="flex h-screen bg-gray-50">
+      {/* Mobile Header */}
+      <div className="md:hidden fixed top-0 left-0 right-0 bg-white border-b border-gray-200 flex items-center justify-between px-4 py-3 z-50 shadow-sm">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 bg-[#0c213e] rounded-lg flex items-center justify-center">
+            <div className="w-4 h-4 border-2 border-white rounded"></div>
+          </div>
+          <h1 className="text-lg font-semibold text-gray-900">Dashboard</h1>
+        </div>
 
         <button
           onClick={() => setSidebarOpen(true)}
-          className="p-2 rounded hover:bg-[#0a1a32] transition"
+          className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
         >
-          <Bars3Icon className="w-7 h-7 text-white" />
+          <Bars3Icon className="w-6 h-6 text-gray-700" />
         </button>
       </div>
 
-      {/* --- BACKDROP (CLICK OUTSIDE TO CLOSE SIDEBAR) --- */}
+      {/* Backdrop */}
       {!isDesktop && sidebarOpen && (
         <div
           onClick={() => setSidebarOpen(false)}
-          className="fixed inset-0 bg-black/40 z-30 md:hidden"
+          className="fixed inset-0 bg-black/50 z-30 md:hidden backdrop-blur-sm"
         />
       )}
 
-      {/* SIDEBAR */}
+      {/* Sidebar */}
       <aside
         className={`
-          bg-[#0c213e] text-white flex flex-col justify-between
+          bg-white border-r border-gray-200
           fixed md:relative 
           left-0
           z-40 
-          w-64 h-[calc(100vh-56px)] md:h-full
-          transform transition-transform duration-300
-
-          /* mobile top spacing (below topbar) */
-          top-[56px] md:top-0
-
-          /* sliding animation */
-          ${
-            sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
-          }
+          w-72 h-[calc(100vh-57px)] md:h-full
+          transform transition-all duration-300 ease-in-out
+          top-[57px] md:top-0
+          flex flex-col
+          ${sidebarOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full md:translate-x-0"}
         `}
       >
-        {/* Mobile Close Button */}
-        <button
-          onClick={() => setSidebarOpen(false)}
-          className="absolute top-4 right-4 p-2 bg-[#0c213e] rounded-md hover:bg-[#0a1a32] transition md:hidden"
-        >
-          <XMarkIcon className="w-5 h-5 text-white" />
-        </button>
-
-        <div className="flex-1 p-6 overflow-y-auto">
-          <div className="hidden md:flex items-center justify-center mb-10">
-            <h2 className="text-2xl font-bold">Doctor Dashboard</h2>
+        {/* Logo Section - Desktop Only */}
+        <div className="hidden md:flex items-center gap-3 px-6 py-5 border-b border-gray-200">
+          <div className="w-10 h-10 bg-[#0c213e] rounded-xl flex items-center justify-center shadow-md">
+            <div className="w-5 h-5 border-2 border-white rounded"></div>
           </div>
+          <div>
+            <h2 className="text-lg font-bold text-gray-900">MediCare</h2>
+            <p className="text-xs text-gray-500">Doctor Portal</p>
+          </div>
+        </div>
 
-          <nav className="space-y-2">
+        {/* Navigation */}
+        <nav className="flex-1 px-4 py-6 overflow-y-auto">
+          <div className="space-y-1">
             {menuItems.map((item) => {
-              const dashboardPath = `/doctordashboard/${doctorId}`;
-              // const to = item.path === "" ? dashboardPath : item.path;
-
-              // const isActive =
-              //   item.path === ""
-              //     ? !!useMatch(`/doctorDashboard/${doctorId}`)
-              //     : !!useMatch(`/doctorDashboard/${doctorId}/${item.path}`);
-              const basePath = `/doctordashboard/${doctorId}`;
-
               const isActive =
                 item.path === "appointments"
                   ? location.pathname === basePath ||
                     location.pathname.startsWith(`${basePath}/appointments`)
                   : location.pathname.startsWith(`${basePath}/${item.path}`);
 
-              // const handleMenuClick = () => {
-              //   if (!isDesktop) setSidebarOpen(false);
-              // };
+              const Icon = isActive ? item.iconSolid : item.icon;
 
               return (
                 <Link
@@ -198,50 +200,59 @@ export default function DoctorDashboard() {
                       : `${basePath}/${item.path}`
                   }
                   onClick={() => !isDesktop && setSidebarOpen(false)}
-                  className={`flex items-center gap-3 px-4 py-2 rounded-lg transition-all ${
-                    isActive
-                      ? "bg-gray-700 text-white"
-                      : "hover:bg-gray-800 text-gray-300"
-                  }`}
+                  className={`
+                    flex items-center gap-3 px-4 py-3 rounded-xl transition-all relative group
+                    ${
+                      isActive
+                        ? "bg-[#0c213e] text-white shadow-lg shadow-[#0c213e]/20"
+                        : "text-gray-700 hover:bg-gray-100"
+                    }
+                  `}
                 >
-                  {item.icon}
-                  <span className="font-medium text-sm md:text-base">
-                    {item.name}
-                  </span>
-
-                  {item.name === "Notifications" && newNotifCount > 0 && (
-                    <span className="ml-auto bg-red-600 text-white text-xs font-bold px-2 py-1 rounded-full">
-                      {newNotifCount}
+                  <Icon className={`w-5 h-5 ${isActive ? "text-white" : "text-gray-600"}`} />
+                  <span className="font-medium">{item.name}</span>
+                  
+                  {item.badge && item.badge > 0 && (
+                    <span className={`
+                      ml-auto px-2 py-0.5 text-xs font-bold rounded-full
+                      ${isActive ? "bg-white text-[#0c213e]" : "bg-red-500 text-white"}
+                    `}>
+                      {item.badge > 99 ? "99+" : item.badge}
                     </span>
+                  )}
+
+                  {isActive && (
+                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-white rounded-r-full"></div>
                   )}
                 </Link>
               );
             })}
-          </nav>
-        </div>
+          </div>
+        </nav>
 
-        {/* Logout */}
-        <div className="p-6 border-t border-[#0a1a32]">
+        {/* Logout Section */}
+        <div className="p-4 border-t border-gray-200">
           <button
             onClick={handleLogout}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-red-500 hover:bg-red-700 transition text-white w-full justify-center"
+            className="flex items-center gap-3 px-4 py-3 rounded-xl bg-red-50 hover:bg-red-100 transition-all text-red-600 w-full group"
           >
             <ArrowRightOnRectangleIcon className="w-5 h-5" />
-            <span>Logout</span>
+            <span className="font-medium">Logout</span>
           </button>
         </div>
+
+        {/* Mobile Close Button */}
+        <button
+          onClick={() => setSidebarOpen(false)}
+          className="absolute top-4 right-4 p-2 rounded-lg hover:bg-gray-100 transition-colors md:hidden"
+        >
+          <XMarkIcon className="w-5 h-5 text-gray-600" />
+        </button>
       </aside>
 
-      {/* MAIN CONTENT */}
-      <main
-        className="
-          flex-1 bg-gray-100 
-          p-8 overflow-y-auto 
-          pt-[56px] md:pt-8
-          
-        "
-      >
-        <div className="max-w-full mx-auto">
+      {/* Main Content */}
+      <main className="flex-1 overflow-y-auto pt-[57px] md:pt-0">
+        <div className="p-6 md:p-8">
           <Outlet />
         </div>
       </main>
