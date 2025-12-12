@@ -1,23 +1,18 @@
-
-
 import React, { useEffect, useState } from "react";
 import {
   UserIcon,
   CalendarIcon,
-  HeartIcon,
-  CurrencyRupeeIcon,
+  ClockIcon,
+  ChartBarIcon,
+} from "@heroicons/react/24/outline";
+import {
+  UserIcon as UserIconSolid,
+  CalendarIcon as CalendarIconSolid,
+  ClockIcon as ClockIconSolid,
 } from "@heroicons/react/24/solid";
 import api from "../../Services/mainApi";
 import { useNavigate } from "react-router-dom";
-import {
-  ResponsiveContainer,
-  XAxis,
-  YAxis,
-  Tooltip,
-  CartesianGrid,
-  AreaChart,
-  Area,
-} from "recharts";
+import Cookies from "js-cookie";
 
 interface Doctor {
   _id: string;
@@ -39,8 +34,6 @@ interface Appointment {
 interface TotalPatientsResponse {
   totalPatients: number;
 }
-import Cookies from "js-cookie";
-
 
 const DoctorDashboardHome: React.FC = () => {
   const [doctor, setDoctor] = useState<Doctor | null>(null);
@@ -50,7 +43,7 @@ const DoctorDashboardHome: React.FC = () => {
   const [todaysAppointments, setTodaysAppointments] = useState<number>(0);
 
   const navigate = useNavigate();
-const token = Cookies.get("doctorToken");
+  const token = Cookies.get("doctorToken");
   const doctorId = localStorage.getItem("doctorId");
 
   useEffect(() => {
@@ -132,171 +125,198 @@ const token = Cookies.get("doctorToken");
     fetchTotalPatients();
   }, [token, doctorId]);
 
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return "Good Morning";
+    if (hour < 17) return "Good Afternoon";
+    return "Good Evening";
+  };
+
   if (loading) {
-    return <p className="text-center mt-10 text-gray-500">Loading dashboard...</p>;
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-[#0c213e] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading dashboard...</p>
+        </div>
+      </div>
+    );
   }
 
-  const healthTrends = [
-    { day: "Mon", heartRate: 80, bp: 120 },
-    { day: "Tue", heartRate: 76, bp: 118 },
-    { day: "Wed", heartRate: 85, bp: 122 },
-    { day: "Thu", heartRate: 90, bp: 130 },
-    { day: "Fri", heartRate: 88, bp: 125 },
-    { day: "Sat", heartRate: 78, bp: 119 },
-    { day: "Sun", heartRate: 82, bp: 121 },
-  ];
-
   return (
-    <div className="min-h-screen ml-5 w-full p-4 sm:p-6 text-gray-800 ">
-      {/* Header */}
-      <div className="bg-[#0B1D3B] shadow rounded-xl p-4 sm:p-6 flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 text-white">
-        <div className="mb-3 sm:mb-0">
-          <h1 className="text-xl sm:text-2xl font-bold">
-            Welcome back, Dr. {doctor?.fullName}
-          </h1>
-          <p className="text-xs sm:text-sm text-gray-300">{dateTime}</p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <button className="px-3 sm:px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 transition text-xs sm:text-sm font-medium text-gray-800 bg-white">
-            Export Report
-          </button>
-          <button className="px-3 sm:px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-xs sm:text-sm font-medium shadow">
-            Quick Actions
-          </button>
+    <div className="max-w-7xl mx-auto">
+      {/* Welcome Header */}
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          {getGreeting()}, Dr. {doctor?.fullName}
+        </h1>
+        <div className="flex items-center gap-2 text-gray-600">
+          <ClockIcon className="w-5 h-5" />
+          <p className="text-sm">{dateTime}</p>
         </div>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-6 mb-6">
-        {[
-          {
-            title: "Total Patients",
-            value: totalPatients.toString(),
-            icon: <UserIcon className="text-cyan-600 w-6 h-6" />,
-            change: "+10%",
-            note: "since last month",
-          },
-          {
-            title: "Today's Appointments",
-            value: (todaysAppointments ?? 0).toString(),
-            icon: <CalendarIcon className="text-indigo-600 w-6 h-6" />,
-            change: "",
-            note: "scheduled today",
-          },
-          {
-            title: "Critical Patients",
-            value: "5",
-            icon: <HeartIcon className="text-red-500 w-6 h-6" />,
-            change: "Urgent",
-            note: "requires attention",
-          },
-          {
-            title: "Monthly Revenue",
-            value: "₹85,000",
-            icon: <CurrencyRupeeIcon className="text-green-600 w-6 h-6" />,
-            change: "+18%",
-            note: "growth this month",
-          },
-        ].map((item, i) => (
-          <div
-            key={i}
-            className="bg-gray-50 p-4 sm:p-5 rounded-xl shadow hover:shadow-md transition"
-          >
-            <div className="flex justify-between items-center">
-              {item.icon}
-              <span
-                className={`text-xs sm:text-sm font-medium ${
-                  item.title === "Critical Patients"
-                    ? "text-red-600"
-                    : "text-green-600"
-                }`}
-              >
-                {item.change}
-              </span>
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        {/* Total Patients Card */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+          <div className="flex items-start justify-between mb-4">
+            <div className="p-3 bg-blue-50 rounded-lg">
+              <UserIconSolid className="w-6 h-6 text-blue-600" />
             </div>
-            <h2 className="text-xl sm:text-2xl font-bold mt-3">{item.value}</h2>
-            <p className="text-gray-700 text-sm">{item.title}</p>
-            <p className="text-gray-400 text-xs">{item.note}</p>
           </div>
-        ))}
+          <h3 className="text-gray-600 text-sm font-medium mb-1">Total Patients</h3>
+          <p className="text-3xl font-bold text-gray-900 mb-2">{totalPatients}</p>
+          <p className="text-sm text-gray-500">All registered patients</p>
+        </div>
+
+        {/* Today's Appointments Card */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+          <div className="flex items-start justify-between mb-4">
+            <div className="p-3 bg-emerald-50 rounded-lg">
+              <CalendarIconSolid className="w-6 h-6 text-emerald-600" />
+            </div>
+            {todaysAppointments > 0 && (
+              <span className="px-2 py-1 bg-emerald-100 text-emerald-700 text-xs font-semibold rounded-full">
+                Active
+              </span>
+            )}
+          </div>
+          <h3 className="text-gray-600 text-sm font-medium mb-1">Today's Appointments</h3>
+          <p className="text-3xl font-bold text-gray-900 mb-2">{todaysAppointments}</p>
+          <p className="text-sm text-gray-500">Scheduled for today</p>
+        </div>
+
+        {/* Quick Access Card */}
+        <div className="bg-[#0c213e] rounded-xl shadow-sm p-6 hover:shadow-md transition-shadow text-white">
+          <div className="flex items-start justify-between mb-4">
+            <div className="p-3 bg-white/10 rounded-lg">
+              <ChartBarIcon className="w-6 h-6 text-white" />
+            </div>
+          </div>
+          <h3 className="text-white/80 text-sm font-medium mb-1">Quick Actions</h3>
+          <p className="text-2xl font-bold mb-4">Manage</p>
+          <button
+            onClick={() => navigate(`/doctordashboard/${doctorId}/appointments`)}
+            className="w-full bg-white text-[#0c213e] px-4 py-2 rounded-lg font-medium text-sm hover:bg-gray-100 transition-colors"
+          >
+            View Appointments
+          </button>
+        </div>
       </div>
 
       {/* Overview Section */}
-      <div className="bg-white p-4 sm:p-6 rounded-xl shadow">
-        <h2 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6 text-gray-800">
-          Patient System Overview
-        </h2>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Main Info Card */}
+        <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <h2 className="text-xl font-semibold text-gray-900 mb-6">Overview</h2>
+          
+          <div className="space-y-6">
+            {/* Summary Items */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="p-2 bg-blue-100 rounded-lg">
+                    <UserIcon className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <h4 className="font-semibold text-gray-900">Patient Records</h4>
+                </div>
+                <p className="text-sm text-gray-600 ml-11">
+                  Access and manage all patient information
+                </p>
+              </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Chart Section */}
-          <div className="bg-gray-50 p-4 rounded-lg border">
-            <h3 className="text-gray-700 mb-2 font-semibold text-sm sm:text-base">
-              Health Mapping Visualization
-            </h3>
-            <ResponsiveContainer width="100%" height={260}>
-              <AreaChart data={healthTrends}>
-                <defs>
-                  <linearGradient id="colorHeart" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#10B981" stopOpacity={0.8} />
-                    <stop offset="95%" stopColor="#10B981" stopOpacity={0} />
-                  </linearGradient>
-                  <linearGradient id="colorBP" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.8} />
-                    <stop offset="95%" stopColor="#3B82F6" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <XAxis dataKey="day" stroke="#888" />
-                <YAxis />
-                <CartesianGrid strokeDasharray="3 3" />
-                <Tooltip />
-                <Area
-                  type="monotone"
-                  dataKey="heartRate"
-                  stroke="#10B981"
-                  fillOpacity={1}
-                  fill="url(#colorHeart)"
-                />
-                <Area
-                  type="monotone"
-                  dataKey="bp"
-                  stroke="#3B82F6"
-                  fillOpacity={1}
-                  fill="url(#colorBP)"
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
+              <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="p-2 bg-emerald-100 rounded-lg">
+                    <CalendarIcon className="w-5 h-5 text-emerald-600" />
+                  </div>
+                  <h4 className="font-semibold text-gray-900">Appointments</h4>
+                </div>
+                <p className="text-sm text-gray-600 ml-11">
+                  View and manage your schedule
+                </p>
+              </div>
 
-          {/* System Summary */}
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {[
-                { name: "Cardiovascular", count: 456 },
-                { name: "Respiratory", count: 234 },
-                { name: "Neurological", count: 189 },
-                { name: "Gastrointestinal", count: 298 },
-              ].map((sys) => (
-                <div
-                  key={sys.name}
-                  className="bg-gray-100 p-3 rounded-md hover:bg-gray-200 transition text-center sm:text-left"
-                >
-                  <p className="font-semibold text-gray-700 text-sm sm:text-base">
-                    {sys.name}
-                  </p>
-                  <p className="text-xs sm:text-sm text-gray-500">
-                    {sys.count} patients
+              <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="p-2 bg-purple-100 rounded-lg">
+                    <ClockIcon className="w-5 h-5 text-purple-600" />
+                  </div>
+                  <h4 className="font-semibold text-gray-900">Availability</h4>
+                </div>
+                <p className="text-sm text-gray-600 ml-11">
+                  Set your available time slots
+                </p>
+              </div>
+
+              <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="p-2 bg-orange-100 rounded-lg">
+                    <ChartBarIcon className="w-5 h-5 text-orange-600" />
+                  </div>
+                  <h4 className="font-semibold text-gray-900">Analytics</h4>
+                </div>
+                <p className="text-sm text-gray-600 ml-11">
+                  Track your practice statistics
+                </p>
+              </div>
+            </div>
+
+            {/* Info Banner */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div className="flex items-start gap-3">
+                <div className="p-2 bg-blue-100 rounded-lg mt-0.5">
+                  <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <div className="flex-1">
+                  <h4 className="font-semibold text-blue-900 mb-1">Welcome to your dashboard</h4>
+                  <p className="text-sm text-blue-700">
+                    Manage your appointments, view patient records, and track your practice performance all in one place.
                   </p>
                 </div>
-              ))}
+              </div>
             </div>
-            <div className="bg-red-100 border border-red-300 rounded-md p-3 sm:p-4">
-              <p className="font-semibold text-red-600 text-sm sm:text-base">
-                Active Alert:
-              </p>
-              <p className="text-gray-700 text-xs sm:text-sm">
-                Robert Wilson – Atrial Fibrillation
-              </p>
+          </div>
+        </div>
+
+        {/* Profile Card */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <h2 className="text-xl font-semibold text-gray-900 mb-6">Profile</h2>
+          
+          <div className="text-center mb-6">
+            <div className="w-24 h-24 bg-[#0c213e] rounded-full flex items-center justify-center mx-auto mb-4">
+              <span className="text-3xl font-bold text-white">
+                {doctor?.fullName?.charAt(0).toUpperCase()}
+              </span>
             </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-1">
+              Dr. {doctor?.fullName}
+            </h3>
+            <p className="text-sm text-gray-600">{doctor?.email}</p>
+          </div>
+
+          <div className="space-y-3">
+            <div className="p-3 bg-gray-50 rounded-lg">
+              <p className="text-xs text-gray-500 mb-1">Doctor ID</p>
+              <p className="text-sm font-medium text-gray-900">{doctor?.doctorId}</p>
+            </div>
+
+            <button
+              onClick={() => navigate(`/doctordashboard/${doctorId}/doctorProfile`)}
+              className="w-full px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-900 rounded-lg font-medium text-sm transition-colors"
+            >
+              Edit Profile
+            </button>
+
+            <button
+              onClick={() => navigate(`/doctordashboard/${doctorId}/time-slots`)}
+              className="w-full px-4 py-2 bg-[#0c213e] hover:bg-[#0a1a32] text-white rounded-lg font-medium text-sm transition-colors"
+            >
+              Manage Availability
+            </button>
           </div>
         </div>
       </div>

@@ -132,7 +132,7 @@ export default function DoctorAppointments() {
         <div className="mb-4">
           <div className="flex items-center gap-2">
             <UserIcon className="text-gray-600 w-6 h-6" />
-            <h3 className="text-lg font-semibold text-gray-900">
+            <h3 className="text-lg font-semibold text-gray-900 capitalize">
               {b.patient?.name}
             </h3>
           </div>
