@@ -184,7 +184,7 @@ export default function DoctorAppointments() {
         {/* Prescription Button */}
         <button
           onClick={() =>
-            navigate(`addPrescription/${b._id}/${b?.patient.aadhar}`, {
+            navigate(`/doctordashboard/${doctorId}/appointments/addPrescription/${b._id}/${b.patient?.aadhar}`, {
               state: {
                 name: b.patient?.name,
                 gender: b.patient?.gender,

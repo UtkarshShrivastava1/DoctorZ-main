@@ -240,7 +240,7 @@ export default function LabTestDetails() {
               </div>
 
               {/* Date picker */}
-              <div className="mt-4 text-left">
+              <div className="mt-4 mb-3 text-left">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Choose booking date
                 </label>
