@@ -39,12 +39,8 @@ const TimeSlots: React.FC = () => {
 
   const [step, setStep] = useState<number>(1);
   const [selectionType, setSelectionType] = useState<SelectionType | "">("");
-  const [selectedSingleDate, setSelectedSingleDate] = useState<
-    Date | undefined
-  >(undefined);
-  const [selectedMultipleDates, setSelectedMultipleDates] = useState<Date[]>(
-    []
-  );
+  const [selectedSingleDate, setSelectedSingleDate] = useState<Date | undefined>(undefined);
+  const [selectedMultipleDates, setSelectedMultipleDates] = useState<Date[]>([]);
   const [workingHours, setWorkingHours] = useState<WorkingHours>({
     start: "",
     end: "",
@@ -78,7 +74,6 @@ const TimeSlots: React.FC = () => {
     setSelectedMultipleDates([]);
   };
 
-  // Remove the date being edited from disabledDates
   const disabledDatesForCalendar = selectedSingleDate
     ? savedSlots
         .map((s) => new Date(s.date))
@@ -122,16 +117,18 @@ const TimeSlots: React.FC = () => {
     if (!dates.length) {
       Swal.fire({
         icon: "warning",
-        title: "Oops...",
+        title: "No dates selected",
         text: "Please select at least one date",
+        confirmButtonColor: "#0c213e",
       });
       return;
     }
     if (!workingHours.start || !workingHours.end) {
       Swal.fire({
         icon: "warning",
-        title: "Oops...",
+        title: "Missing hours",
         text: "Please enter working hours",
+        confirmButtonColor: "#0c213e",
       });
       return;
     }
@@ -140,23 +137,22 @@ const TimeSlots: React.FC = () => {
 
     try {
       if (editingSlotId && selectedSingleDate) {
-        // --- EDITING EXISTING SLOT ---
         const payload = {
           doctorId,
           date: selectedSingleDate.toLocaleDateString("en-CA"),
           workingHours,
         };
 
-        const res = await api.put("/api/availability/editTimeSlot", payload);
-        // Swal.fire({
-        //   icon: "success",
-        //   title: "Success",
-        //   text: res.data.message,
-        // });
+        await api.put("/api/availability/editTimeSlot", payload);
+        Swal.fire({
+          icon: "success",
+          title: "Updated!",
+          text: "Time slots updated successfully",
+          confirmButtonColor: "#0c213e",
+        });
 
-        setEditingSlotId(null); // reset editing state
+        setEditingSlotId(null);
       } else {
-        // --- CREATING NEW SLOTS ---
         const payload = { doctorId, dates, workingHours };
         const res = await api.post<CreateSlotResponse>(
           "/api/availability/createTimeSlot",
@@ -168,9 +164,8 @@ const TimeSlots: React.FC = () => {
           Swal.fire({
             icon: "success",
             title: "Slots Created",
-            html: `Slots created for: <strong>${data.createdDates.join(
-              ", "
-            )}</strong>`,
+            html: `Successfully created slots for <strong>${data.createdDates.length}</strong> date(s)`,
+            confirmButtonColor: "#0c213e",
           });
         }
 
@@ -178,27 +173,26 @@ const TimeSlots: React.FC = () => {
           Swal.fire({
             icon: "info",
             title: "Already Exist",
-            html: `Slots already exist for: <strong>${data.alreadyExistDates.join(
-              ", "
-            )}</strong>`,
+            html: `Slots already exist for <strong>${data.alreadyExistDates.length}</strong> date(s)`,
+            confirmButtonColor: "#0c213e",
           });
         }
       }
 
-      // Reset form
       setStep(1);
       setSelectionType("");
       setSelectedSingleDate(undefined);
       setSelectedMultipleDates([]);
       setWorkingHours({ start: "", end: "" });
 
-      fetchSavedSlots(); // refresh calendar & slots
+      fetchSavedSlots();
     } catch (err: unknown) {
       console.error(err);
       Swal.fire({
         icon: "error",
-        title: "Server Error",
-        text: "Something went wrong. Please try again later.",
+        title: "Error",
+        text: "Something went wrong. Please try again.",
+        confirmButtonColor: "#0c213e",
       });
     } finally {
       setIsLoading(false);
@@ -207,14 +201,12 @@ const TimeSlots: React.FC = () => {
 
   const handleEditSlots = (slotItem: SavedSlot) => {
     setEditingSlotId(slotItem._id);
-
     setStep(2);
     setSelectionType("single");
     const slotDate = new Date(slotItem.date);
     setSelectedSingleDate(slotDate);
-    setCurrentMonth(slotDate); // Set calendar to the month of the selected date
+    setCurrentMonth(slotDate);
 
-    // Load working hour range
     setWorkingHours({
       start: slotItem.slots[0]?.time || "",
       end: slotItem.slots[slotItem.slots.length - 1]?.time || "",
@@ -224,11 +216,7 @@ const TimeSlots: React.FC = () => {
     }, 150);
   };
 
-  const toggleSlot = async (
-    slotId: string,
-    time: string,
-    isActive: boolean
-  ) => {
+  const toggleSlot = async (slotId: string, time: string, isActive: boolean) => {
     try {
       await api.patch(`/api/availability/updateSlot/${slotId}`, {
         time,
@@ -249,10 +237,10 @@ const TimeSlots: React.FC = () => {
   };
 
   return (
-    <div className="max-w-6xl mx-auto mt-8 p-6">
+    <div className="max-w-7xl mx-auto">
       {/* Header */}
-      <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-800 mb-2">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">
           Availability Management
         </h1>
         <p className="text-gray-600">
@@ -262,27 +250,22 @@ const TimeSlots: React.FC = () => {
 
       {/* Step 1 - Selection Type */}
       {step === 1 && (
-        <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
           <div className="text-center mb-8">
-            <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4">
-              <span className="text-2xl text-blue-600 font-bold">1</span>
-            </div>
-            <h2 className="text-2xl font-semibold text-gray-800 mb-2">
-              Select Availability Type
+            <h2 className="text-2xl font-semibold text-gray-900 mb-2">
+              How would you like to set availability?
             </h2>
-            <p className="text-gray-500">
-              Choose how you want to set your availability
-            </p>
+            <p className="text-gray-600">Choose your preferred method</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-2xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
             <button
-              className="group p-6 bg-white border-2 border-gray-200 rounded-xl hover:border-blue-500 hover:shadow-md transition-all duration-300 text-left"
+              className="group p-6 bg-gray-50 border-2 border-gray-200 rounded-xl hover:border-[#0c213e] hover:bg-[#0c213e]/5 transition-all duration-300"
               onClick={() => handleSelectionType("single")}
             >
-              <div className="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center mb-4 group-hover:bg-blue-100 transition-colors">
+              <div className="w-14 h-14 bg-blue-100 rounded-xl flex items-center justify-center mb-4 mx-auto group-hover:bg-blue-600 transition-colors">
                 <svg
-                  className="w-6 h-6 text-blue-600"
+                  className="w-7 h-7 text-blue-600 group-hover:text-white"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -295,20 +278,19 @@ const TimeSlots: React.FC = () => {
                   />
                 </svg>
               </div>
-              <h3 className="font-semibold text-gray-800 mb-2">Single Day</h3>
-
-              <p className="text-sm text-gray-500">
-                Set availability for a specific date
+              <h3 className="font-semibold text-gray-900 mb-2 text-center">Single Day</h3>
+              <p className="text-sm text-gray-600 text-center">
+                Set availability for one specific date
               </p>
             </button>
 
             <button
-              className="group p-6 bg-white border-2 border-gray-200 rounded-xl hover:border-green-500 hover:shadow-md transition-all duration-300 text-left"
+              className="group p-6 bg-gray-50 border-2 border-gray-200 rounded-xl hover:border-[#0c213e] hover:bg-[#0c213e]/5 transition-all duration-300"
               onClick={() => handleSelectionType("multiple")}
             >
-              <div className="w-12 h-12 bg-green-50 rounded-lg flex items-center justify-center mb-4 group-hover:bg-green-100 transition-colors">
+              <div className="w-14 h-14 bg-emerald-100 rounded-xl flex items-center justify-center mb-4 mx-auto group-hover:bg-emerald-600 transition-colors">
                 <svg
-                  className="w-6 h-6 text-green-600"
+                  className="w-7 h-7 text-emerald-600 group-hover:text-white"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -317,31 +299,23 @@ const TimeSlots: React.FC = () => {
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth={2}
-                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                  />
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M8 7V3m8 4V3m-9 8h10"
+                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
                   />
                 </svg>
               </div>
-              <h3 className="font-semibold text-gray-800 mb-2">
-                Multiple Days
-              </h3>
-              <p className="text-sm text-gray-500">
+              <h3 className="font-semibold text-gray-900 mb-2 text-center">Multiple Days</h3>
+              <p className="text-sm text-gray-600 text-center">
                 Select multiple specific dates
               </p>
             </button>
 
             <button
-              className="group p-6 bg-white border-2 border-gray-200 rounded-xl hover:border-purple-500 hover:shadow-md transition-all duration-300 text-left"
+              className="group p-6 bg-gray-50 border-2 border-gray-200 rounded-xl hover:border-[#0c213e] hover:bg-[#0c213e]/5 transition-all duration-300"
               onClick={() => handleSelectionType("month")}
             >
-              <div className="w-12 h-12 bg-purple-50 rounded-lg flex items-center justify-center mb-4 group-hover:bg-purple-100 transition-colors">
+              <div className="w-14 h-14 bg-purple-100 rounded-xl flex items-center justify-center mb-4 mx-auto group-hover:bg-purple-600 transition-colors">
                 <svg
-                  className="w-6 h-6 text-purple-600"
+                  className="w-7 h-7 text-purple-600 group-hover:text-white"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -352,17 +326,11 @@ const TimeSlots: React.FC = () => {
                     strokeWidth={2}
                     d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
                   />
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M8 7V3m8 4V3m-9 8h10"
-                  />
                 </svg>
               </div>
-              <h3 className="font-semibold text-gray-800 mb-2">Full Month</h3>
-              <p className="text-sm text-gray-500">
-                Set availability for entire month
+              <h3 className="font-semibold text-gray-900 mb-2 text-center">Full Month</h3>
+              <p className="text-sm text-gray-600 text-center">
+                Set availability for an entire month
               </p>
             </button>
           </div>
@@ -372,84 +340,64 @@ const TimeSlots: React.FC = () => {
       {/* Step 2 - Date Selection */}
       <div ref={step2Ref}>
         {step === 2 && (
-          <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
             <div className="flex items-center justify-between mb-8">
-              <div className="flex items-center space-x-4">
-                <button
-                  onClick={() => {
-                    setStep(1);
-                    setSelectionType("");
-                    setEditingSlotId(null);
-                  }}
-                  className="flex items-center text-gray-500 hover:text-gray-700 transition-colors"
+              <button
+                onClick={() => {
+                  setStep(1);
+                  setSelectionType("");
+                  setEditingSlotId(null);
+                }}
+                className="flex items-center text-gray-600 hover:text-[#0c213e] transition-colors"
+              >
+                <svg
+                  className="w-5 h-5 mr-2"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
                 >
-                  <svg
-                    className="w-5 h-5 mr-2"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M15 19l-7-7 7-7"
-                    />
-                  </svg>
-                  Back
-                </button>
-                <div className="flex items-center">
-                  <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center mr-3">
-                    <span className="text-white text-sm font-bold">2</span>
-                  </div>
-                  <h2 className="text-2xl font-semibold text-gray-800">
-                    Select Dates & Hours
-                  </h2>
-                </div>
-              </div>
-              <div className="text-sm text-gray-500 bg-gray-50 px-3 py-1 rounded-full">
-                {selectionType === "single" && "Single Day"}
-                {selectionType === "multiple" && "Multiple Days"}
-                {selectionType === "month" && "Full Month"}
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 19l-7-7 7-7"
+                  />
+                </svg>
+                Back
+              </button>
+              
+              <div className="flex items-center gap-2 px-3 py-1 bg-gray-100 rounded-full">
+                <span className="text-sm font-medium text-gray-700">
+                  {selectionType === "single" && "Single Day"}
+                  {selectionType === "multiple" && "Multiple Days"}
+                  {selectionType === "month" && "Full Month"}
+                </span>
               </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {/* Calendar Section */}
-              <div className="bg-gray-50 rounded-xl p-6">
-                <h3 className="font-semibold text-gray-700 mb-4">
-                  Date Selection
+              <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
+                <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                  <svg className="w-5 h-5 text-[#0c213e]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  Select Dates
                 </h3>
                 <div className="flex justify-center">
                   {selectionType === "single" && (
                     <DayPicker
                       mode="single"
-                      month={currentMonth} // <-- control displayed month
-                      onMonthChange={setCurrentMonth} // <-- allow user to change month
+                      month={currentMonth}
+                      onMonthChange={setCurrentMonth}
                       selected={selectedSingleDate}
                       onSelect={setSelectedSingleDate}
                       modifiersClassNames={{
-                        selected:
-                          "bg-blue-600 text-white rounded-full font-semibold",
-                        today: "border border-blue-200 bg-blue-50",
+                        selected: "bg-[#0c213e] text-white rounded-lg font-semibold",
+                        today: "border-2 border-[#0c213e] bg-blue-50 rounded-lg",
                       }}
                       showOutsideDays
-                      modifiers={{
-                        highlighted: selectedSingleDate
-                          ? [selectedSingleDate]
-                          : [],
-                      }}
-                      modifiersStyles={{
-                        highlighted: {
-                          backgroundColor: "#416FE3",
-                          color: "white",
-                          borderRadius: "6px",
-                        },
-                      }}
-                      disabled={[
-                        { before: new Date() },
-                        ...disabledDatesForCalendar,
-                      ]}
+                      disabled={[{ before: new Date() }, ...disabledDatesForCalendar]}
                       className="border-0"
                     />
                   )}
@@ -457,20 +405,13 @@ const TimeSlots: React.FC = () => {
                     <DayPicker
                       mode="multiple"
                       selected={selectedMultipleDates}
-                      onSelect={(dates) =>
-                        setSelectedMultipleDates(dates || [])
-                      }
+                      onSelect={(dates) => setSelectedMultipleDates(dates || [])}
                       modifiersClassNames={{
-                        selected:
-                          "bg-green-600 text-white rounded-full font-semibold",
-                        today: "border border-green-200 bg-green-50",
+                        selected: "bg-emerald-600 text-white rounded-lg font-semibold",
+                        today: "border-2 border-emerald-600 bg-emerald-50 rounded-lg",
                       }}
                       showOutsideDays
-                      // disabled={[{ before: new Date() }, ...disabledDates]}
-                      disabled={[
-                        { before: new Date() },
-                        ...disabledDatesForCalendar,
-                      ]}
+                      disabled={[{ before: new Date() }, ...disabledDatesForCalendar]}
                       className="border-0"
                     />
                   )}
@@ -480,15 +421,10 @@ const TimeSlots: React.FC = () => {
                       selected={selectedMultipleDates}
                       onSelect={handleMonthSelect}
                       captionLayout="dropdown"
-                      // disabled={[{ before: new Date() }, ...disabledDates]}
-                      disabled={[
-                        { before: new Date() },
-                        ...disabledDatesForCalendar,
-                      ]}
+                      disabled={[{ before: new Date() }, ...disabledDatesForCalendar]}
                       modifiersClassNames={{
-                        selected:
-                          "bg-purple-600 text-white rounded-full font-semibold",
-                        today: "border border-purple-200 bg-purple-50",
+                        selected: "bg-purple-600 text-white rounded-lg font-semibold",
+                        today: "border-2 border-purple-600 bg-purple-50 rounded-lg",
                       }}
                       className="border-0"
                     />
@@ -496,10 +432,14 @@ const TimeSlots: React.FC = () => {
                 </div>
               </div>
 
-              {/* Working Hours Section */}
+              {/* Working Hours & Preview Section */}
               <div className="space-y-6">
-                <div className="bg-gray-50 rounded-xl p-6">
-                  <h3 className="font-semibold text-gray-700 mb-4">
+                {/* Working Hours */}
+                <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
+                  <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                    <svg className="w-5 h-5 text-[#0c213e]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
                     Working Hours
                   </h3>
                   <div className="space-y-4">
@@ -509,13 +449,10 @@ const TimeSlots: React.FC = () => {
                       </label>
                       <input
                         type="time"
-                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0c213e] focus:border-[#0c213e] transition-colors"
                         value={workingHours.start}
                         onChange={(e) =>
-                          setWorkingHours({
-                            ...workingHours,
-                            start: e.target.value,
-                          })
+                          setWorkingHours({ ...workingHours, start: e.target.value })
                         }
                       />
                     </div>
@@ -525,13 +462,10 @@ const TimeSlots: React.FC = () => {
                       </label>
                       <input
                         type="time"
-                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0c213e] focus:border-[#0c213e] transition-colors"
                         value={workingHours.end}
                         onChange={(e) =>
-                          setWorkingHours({
-                            ...workingHours,
-                            end: e.target.value,
-                          })
+                          setWorkingHours({ ...workingHours, end: e.target.value })
                         }
                       />
                     </div>
@@ -539,44 +473,49 @@ const TimeSlots: React.FC = () => {
                 </div>
 
                 {/* Selected Dates Preview */}
-                <div className="bg-gray-50 rounded-xl p-6">
-                  <h3 className="font-semibold text-gray-700 mb-3">
-                    Selected Dates
-                  </h3>
-                  <div className="max-h-32 overflow-y-auto">
+                <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
+                  <h3 className="font-semibold text-gray-900 mb-3">Selected Dates</h3>
+                  <div className="max-h-40 overflow-y-auto space-y-2">
                     {selectionType === "single" && selectedSingleDate ? (
-                      <div className="text-sm text-gray-600 bg-white p-2 rounded border">
-                        {selectedSingleDate.toDateString()}
+                      <div className="text-sm text-gray-700 bg-white p-3 rounded-lg border border-gray-200">
+                        {selectedSingleDate.toLocaleDateString("en-US", {
+                          weekday: "long",
+                          year: "numeric",
+                          month: "long",
+                          day: "numeric",
+                        })}
                       </div>
-                    ) : selectionType !== "single" &&
-                      selectedMultipleDates.length > 0 ? (
-                      <div className="space-y-1">
-                        {selectedMultipleDates
-                          .slice(0, 5)
-                          .map((date, index) => (
-                            <div
-                              key={index}
-                              className="text-sm text-gray-600 bg-white p-2 rounded border"
-                            >
-                              {date.toDateString()}
-                            </div>
-                          ))}
+                    ) : selectionType !== "single" && selectedMultipleDates.length > 0 ? (
+                      <>
+                        {selectedMultipleDates.slice(0, 5).map((date, index) => (
+                          <div
+                            key={index}
+                            className="text-sm text-gray-700 bg-white p-3 rounded-lg border border-gray-200"
+                          >
+                            {date.toLocaleDateString("en-US", {
+                              weekday: "short",
+                              month: "short",
+                              day: "numeric",
+                            })}
+                          </div>
+                        ))}
                         {selectedMultipleDates.length > 5 && (
-                          <div className="text-sm text-gray-500 text-center">
+                          <div className="text-sm text-gray-500 text-center py-2">
                             +{selectedMultipleDates.length - 5} more dates
                           </div>
                         )}
-                      </div>
+                      </>
                     ) : (
-                      <div className="text-sm text-gray-400 text-center py-2">
-                        No dates selected
+                      <div className="text-sm text-gray-400 text-center py-4">
+                        No dates selected yet
                       </div>
                     )}
                   </div>
                 </div>
 
+                {/* Save Button */}
                 <button
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                  className="w-full bg-[#0c213e] hover:bg-[#0a1a32] text-white font-semibold py-3 px-6 rounded-xl transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center shadow-lg shadow-[#0c213e]/20"
                   onClick={handleSave}
                   disabled={isLoading}
                 >
@@ -602,10 +541,15 @@ const TimeSlots: React.FC = () => {
                           d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                         ></path>
                       </svg>
-                      Creating Slots...
+                      Saving...
                     </>
                   ) : (
-                    "Save Availability"
+                    <>
+                      <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      Save Availability
+                    </>
                   )}
                 </button>
               </div>
@@ -613,14 +557,15 @@ const TimeSlots: React.FC = () => {
           </div>
         )}
       </div>
+
       {/* Saved Slots */}
       {savedSlots.length > 0 && (
-        <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100 mt-8">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 mt-8">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-semibold text-gray-800">
-              Managed Availability
+            <h2 className="text-2xl font-semibold text-gray-900">
+              Your Availability Schedule
             </h2>
-            <span className="bg-blue-100 text-blue-800 text-sm font-medium px-3 py-1 rounded-full">
+            <span className="bg-[#0c213e] text-white text-sm font-medium px-4 py-2 rounded-full">
               {savedSlots.length} date{savedSlots.length !== 1 ? "s" : ""}
             </span>
           </div>
@@ -629,36 +574,39 @@ const TimeSlots: React.FC = () => {
             {savedSlots.map((slotItem) => (
               <div
                 key={slotItem._id}
-                className="border border-gray-200 rounded-xl p-4 hover:shadow-md transition-shadow"
+                className="border border-gray-200 rounded-xl p-5 hover:shadow-md hover:border-[#0c213e] transition-all"
               >
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="font-semibold text-gray-800">
-                    {new Date(slotItem.date).toLocaleDateString("en-US", {
-                      weekday: "short",
-                      year: "numeric",
-                      month: "short",
-                      day: "numeric",
-                    })}
-                  </h3>
-                  <span
-                    className={`text-xs font-medium px-2 py-1 rounded-full ${
-                      slotItem.slots.filter((s) => s.isActive).length > 0
-                        ? "bg-green-100 text-green-800"
-                        : "bg-gray-100 text-gray-800"
-                    }`}
-                  >
-                    {slotItem.slots.filter((s) => s.isActive).length} active
-                  </span>
-
-                  {/* Edit button */}
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h3 className="font-semibold text-gray-900 text-lg">
+                      {new Date(slotItem.date).toLocaleDateString("en-US", {
+                        weekday: "short",
+                        month: "short",
+                        day: "numeric",
+                      })}
+                    </h3>
+                    <p className="text-sm text-gray-500">
+                      {new Date(slotItem.date).getFullYear()}
+                    </p>
+                  </div>
                   <button
-                    onClick={() => {
-                      handleEditSlots(slotItem);
-                    }}
-                    className="text-gray-600 px-2 py-1  bg-blue-300 rounded-full text-xs font-medium cursor-pointer hover:bg-blue-400 hover:text-white "
+                    onClick={() => handleEditSlots(slotItem)}
+                    className="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg text-sm font-medium transition-colors"
                   >
                     Edit
                   </button>
+                </div>
+
+                <div className="flex items-center gap-2 mb-3 pb-3 border-b border-gray-200">
+                  <span
+                    className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                      slotItem.slots.filter((s) => s.isActive).length > 0
+                        ? "bg-emerald-100 text-emerald-700"
+                        : "bg-gray-100 text-gray-600"
+                    }`}
+                  >
+                    {slotItem.slots.filter((s) => s.isActive).length} / {slotItem.slots.length} active
+                  </span>
                 </div>
 
                 <div className="grid grid-cols-3 gap-2">
@@ -667,12 +615,10 @@ const TimeSlots: React.FC = () => {
                       key={s.time}
                       className={`p-2 rounded-lg text-xs font-medium transition-all duration-200 ${
                         s.isActive
-                          ? "bg-green-500 hover:bg-green-600 text-white shadow-sm"
+                          ? "bg-[#0c213e] hover:bg-[#0a1a32] text-white shadow-sm"
                           : "bg-gray-100 hover:bg-gray-200 text-gray-600"
                       }`}
-                      onClick={() =>
-                        toggleSlot(slotItem._id, s.time, !s.isActive)
-                      }
+                      onClick={() => toggleSlot(slotItem._id, s.time, !s.isActive)}
                     >
                       {formatTime(s.time)}
                     </button>
