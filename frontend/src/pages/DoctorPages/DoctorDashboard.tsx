@@ -174,8 +174,8 @@ export default function DoctorDashboard() {
             <div className="w-5 h-5 border-2 border-white rounded"></div>
           </div>
           <div>
-            <h2 className="text-lg font-bold text-gray-900">MediCare</h2>
-            <p className="text-xs text-gray-500">Doctor Portal</p>
+            <h2 className="text-lg font-bold text-gray-900">DOCTORZ</h2>
+            <p className="text-xs text-gray-500">Doctor Dashboard</p>
           </div>
         </div>
 
