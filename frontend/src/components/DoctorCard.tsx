@@ -18,7 +18,7 @@ export interface Doctor {
   language?: string;
   MedicalRegistrationNumber?: string;
   location?: string;
-  city?: string;
+  // City?: string;
   City?:string
   photo?: string;
   rating?: number;
@@ -152,10 +152,10 @@ const DoctorCard: React.FC<Props> = ({
   };
 
   const getLocationText = () => {
-    if (doctor.location && doctor.city)
-      return `${doctor.location}, ${doctor.city}`;
+    if (doctor.location && doctor.City)
+      return `${doctor.location}, ${doctor.City}`;
     if (doctor.location) return doctor.location;
-    if (doctor.city) return doctor.city;
+    if (doctor.City) return doctor.City;
     return "—";
   };
 

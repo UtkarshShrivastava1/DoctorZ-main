@@ -165,7 +165,7 @@ const DoctorSearchResults: React.FC = () => {
       const matchesLocation =
         !loc ||
         (d.location && d.location.toLowerCase().includes(loc)) ||
-        (d.city && d.city.toLowerCase().includes(loc));
+        (d.City && d.City.toLowerCase().includes(loc));
 
       const matchesDate = hasSlotForDate(d, dateVal);
 
