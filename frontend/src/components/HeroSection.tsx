@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Search,
   MapPin,
@@ -25,10 +25,12 @@ const HealthcareHero = () => {
   const navigate = useNavigate();
 
 
+  useEffect(() => {
     const savedLocation = localStorage.getItem("userLocation");
     if (savedLocation) {
       setLocation(savedLocation);
     }
+  }, []);
 
   const healthcareIcons = [
     { icon: Video, label: "Video Consult" },
