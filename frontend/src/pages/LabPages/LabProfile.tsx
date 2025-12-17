@@ -1,9 +1,7 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
 import { useOutletContext } from "react-router-dom";
 import { Helmet } from "react-helmet";
 import toast, { Toaster } from "react-hot-toast";
-
 import {
   Building2,
   Mail,
@@ -11,6 +9,8 @@ import {
   Save,
   Edit3,
   Lock,
+  MapPinned,
+  Hash,
 } from "lucide-react";
 import api from "../../Services/mainApi";
 
@@ -53,7 +53,6 @@ const LabProfile = () => {
     password: "",
   });
 
-  // Removed unused loading state
   const [saving, setSaving] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [passwordInput, setPasswordInput] = useState("");
@@ -87,9 +86,14 @@ const LabProfile = () => {
     setSaving(true);
 
     try {
+      const payload = {
+        ...lab,
+        ...(passwordInput ? { password: passwordInput } : {}),
+      };
+
       const res = await api.put<UpdateLabResponse>(
         `/api/lab/updateLabProfile/${contextLabId}`,
-        { ...lab, ...(passwordInput ? { password: passwordInput } : {}) }
+        payload
       );
 
       setLab(res.data.lab);
@@ -103,50 +107,51 @@ const LabProfile = () => {
     setSaving(false);
   };
 
-  // if (loading) {
-  //   return <p className="text-center p-10 font-medium">Loading...</p>;
-  // }
-
-  const inputClass =
-    "w-full rounded-xl border border-gray-300 p-3 focus:border-[#0C213E] focus:ring-2 focus:ring-blue-200 bg-white transition";
+  const inputBase =
+    "w-full rounded-lg border bg-white px-3 py-2.5 text-sm transition outline-none";
+  const inputActive =
+    inputBase +
+    " border-gray-300 focus:border-[#0C213E] focus:ring-2 focus:ring-[#0C213E]/15";
   const inputDisabled =
-    "w-full rounded-xl p-3 bg-gray-100 border border-gray-200 cursor-not-allowed";
+    inputBase + " border-gray-200 bg-gray-100 cursor-not-allowed";
+
+  const withIcon = (editing: boolean) =>
+    (editing ? inputActive : inputDisabled) + " pl-10";
+
+  const simple = (editing: boolean) => (editing ? inputActive : inputDisabled);
 
   return (
     <>
-      {/* Toaster Settings */}
       <Toaster
         position="top-right"
         toastOptions={{
           duration: 3400,
-          style: { borderRadius: "10px", background: "#333", color: "#fff" },
+          style: {
+            borderRadius: "10px",
+            background: "#333",
+            color: "#fff",
+          },
         }}
       />
 
-      {/* SEO */}
       <Helmet>
-        <title>Lab Profile | Dashboard</title>
+        <title>Lab Profile | Lab Dashboard</title>
       </Helmet>
 
-      <div className="min-h-screen bg-gray-100 px-4 py-6 md:px-10">
-        <div className="mx-auto max-w-6xl">
-
-          {/* HEADER */}
-          <div
-            className="rounded-2xl p-6 shadow-lg flex flex-col md:flex-row items-center justify-between gap-6"
-            style={{ backgroundColor: PRIMARY }}
-          >
-            <div className="flex items-center gap-5 text-white">
-              <div className="bg-white/20 p-4 rounded-xl">
-                <Building2 className="w-9 h-9 text-white" />
+      <div className="min-h-[calc(100vh-80px)] bg-gray-50">
+        <div className="mx-auto max-w-5xl space-y-6">
+          {/* Top header card matching dashboard theme */}
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 md:p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-[#0c213e] flex items-center justify-center shadow-md">
+                <Building2 className="w-6 h-6 text-white" />
               </div>
-
               <div>
-                <h1 className="text-2xl md:text-3xl font-bold">
+                <h1 className="text-xl md:text-2xl font-bold text-gray-900">
                   Laboratory Profile
                 </h1>
-                <p className="text-gray-300 text-sm">
-                  Manage your laboratory information
+                <p className="text-sm text-gray-500">
+                  View and manage your lab’s account details
                 </p>
               </div>
             </div>
@@ -154,130 +159,238 @@ const LabProfile = () => {
             {!isEditing && (
               <button
                 onClick={() => setIsEditing(true)}
-                className="bg-yellow-400 hover:bg-yellow-500 text-black px-5 py-2.5 rounded-lg shadow font-semibold transition flex items-center gap-2"
+                className="inline-flex items-center gap-2 rounded-xl bg-yellow-400 px-4 py-2.5 text-sm font-semibold text-black shadow-sm hover:bg-yellow-500 transition"
               >
-                <Edit3 className="w-5 h-5" />
-                Edit
+                <Edit3 className="w-4 h-4" />
+                Edit Profile
               </button>
             )}
           </div>
 
-          {/* MAIN FORM CARD */}
+          {/* Quick summary strip */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 flex items-center gap-3">
+              <div className="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center">
+                <Building2 className="w-5 h-5 text-blue-600" />
+              </div>
+              <div className="truncate">
+                <p className="text-xs font-medium text-gray-500">Lab Name</p>
+                <p className="text-sm font-semibold text-gray-900 truncate">
+                  {lab.name || "—"}
+                </p>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 flex items-center gap-3">
+              <div className="w-9 h-9 rounded-lg bg-emerald-50 flex items-center justify-center">
+                <Mail className="w-5 h-5 text-emerald-600" />
+              </div>
+              <div className="truncate">
+                <p className="text-xs font-medium text-gray-500">Contact Email</p>
+                <p className="text-sm font-semibold text-gray-900 truncate">
+                  {lab.email || "—"}
+                </p>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 flex items-center gap-3">
+              <div className="w-9 h-9 rounded-lg bg-indigo-50 flex items-center justify-center">
+                <MapPinned className="w-5 h-5 text-indigo-600" />
+              </div>
+              <div className="truncate">
+                <p className="text-xs font-medium text-gray-500">Location</p>
+                <p className="text-sm font-semibold text-gray-900 truncate">
+                  {lab.city && lab.state ? `${lab.city}, ${lab.state}` : "—"}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Main form card */}
           <form
             onSubmit={handleSubmit}
-            className="bg-white mt-10 rounded-2xl shadow-md p-6 border border-gray-200"
+            className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 md:p-6 space-y-6"
           >
-            {/* BASIC DETAILS */}
-            <h3
-              className="text-xl font-bold mb-5"
-              style={{ color: PRIMARY }}
-            >
-              Laboratory Details
-            </h3>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* NAME */}
+            {/* Section: Basic info */}
+            <div className="flex items-center justify-between">
               <div>
-                <label className="text-sm font-semibold text-gray-700">
+                <h2 className="text-base md:text-lg font-semibold text-gray-900">
+                  Basic Information
+                </h2>
+                <p className="text-xs md:text-sm text-gray-500">
+                  These details identify your lab in the system.
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              {/* Lab Name */}
+              <div>
+                <label className="text-xs font-semibold text-gray-700 mb-1.5 block">
                   Lab Name
                 </label>
-                <div className="relative mt-1">
-                  <Building2 className="absolute left-3 top-3 text-gray-400 h-5 w-5" />
+                <div className="relative">
+                  <Building2 className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
                   <input
                     name="name"
                     value={lab.name}
                     onChange={handleChange}
                     disabled={!isEditing}
-                    className={isEditing ? "pl-10 " + inputClass : "pl-10 " + inputDisabled}
+                    className={withIcon(isEditing)}
+                    placeholder="Enter lab name"
                   />
                 </div>
               </div>
 
-              {/* EMAIL */}
+              {/* Email */}
               <div>
-                <label className="text-sm font-semibold text-gray-700">
+                <label className="text-xs font-semibold text-gray-700 mb-1.5 block">
                   Email
                 </label>
-                <div className="relative mt-1">
-                  <Mail className="absolute left-3 top-3 text-gray-400 h-5 w-5" />
+                <div className="relative">
+                  <Mail className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
                   <input
                     type="email"
                     name="email"
                     value={lab.email}
                     onChange={handleChange}
                     disabled={!isEditing}
-                    className={isEditing ? "pl-10 " + inputClass : "pl-10 " + inputDisabled}
+                    className={withIcon(isEditing)}
+                    placeholder="contact@example.com"
                   />
                 </div>
               </div>
+            </div>
 
-              {/* ADDRESS */}
-              <div className="md:col-span-2">
-                <label className="text-sm font-semibold text-gray-700">
+            {/* Section: Address */}
+            <div className="pt-2 border-t border-gray-100" />
+
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-base md:text-lg font-semibold text-gray-900">
+                  Address Details
+                </h2>
+                <p className="text-xs md:text-sm text-gray-500">
+                  Used on reports and patient communications.
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              {/* Address line */}
+              <div>
+                <label className="text-xs font-semibold text-gray-700 mb-1.5 block">
                   Address
                 </label>
-                <div className="relative mt-1">
-                  <MapPin className="absolute left-3 top-3 text-gray-400 h-5 w-5" />
+                <div className="relative">
+                  <MapPin className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
                   <input
                     name="address"
                     value={lab.address}
                     onChange={handleChange}
                     disabled={!isEditing}
-                    className={isEditing ? "pl-10 " + inputClass : "pl-10 " + inputDisabled}
+                    className={withIcon(isEditing)}
+                    placeholder="Street, area, landmark"
                   />
                 </div>
               </div>
 
-              {/* CITY */}
-              <div>
-                <label className="text-sm font-semibold text-gray-700">
-                  City
-                </label>
-                <input
-                  name="city"
-                  value={lab.city}
-                  onChange={handleChange}
-                  disabled={!isEditing}
-                  className={isEditing ? inputClass : inputDisabled}
-                />
-              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* City */}
+                <div>
+                  <label className="text-xs font-semibold text-gray-700 mb-1.5 block">
+                    City
+                  </label>
+                  <input
+                    name="city"
+                    value={lab.city}
+                    onChange={handleChange}
+                    disabled={!isEditing}
+                    className={simple(isEditing)}
+                    placeholder="City"
+                  />
+                </div>
 
-              {/* STATE */}
-              <div>
-                <label className="text-sm font-semibold text-gray-700">
-                  State
-                </label>
-                <input
-                  name="state"
-                  value={lab.state}
-                  onChange={handleChange}
-                  disabled={!isEditing}
-                  className={isEditing ? inputClass : inputDisabled}
-                />
-              </div>
+                {/* State */}
+                <div>
+                  <label className="text-xs font-semibold text-gray-700 mb-1.5 block">
+                    State
+                  </label>
+                  <input
+                    name="state"
+                    value={lab.state}
+                    onChange={handleChange}
+                    disabled={!isEditing}
+                    className={simple(isEditing)}
+                    placeholder="State"
+                  />
+                </div>
 
-              {/* PINCODE */}
+                {/* Pincode */}
+                <div>
+                  <label className="text-xs font-semibold text-gray-700 mb-1.5 block">
+                    Pincode
+                  </label>
+                  <div className="relative">
+                    <Hash className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+                    <input
+                      name="pincode"
+                      value={lab.pincode}
+                      onChange={handleChange}
+                      disabled={!isEditing}
+                      className={withIcon(isEditing)}
+                      placeholder="e.g. 560001"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Section: Security (password change) */}
+            <div className="pt-2 border-t border-gray-100" />
+
+            <div className="flex items-center justify-between">
               <div>
-                <label className="text-sm font-semibold text-gray-700">
-                  Pincode
-                </label>
+                <h2 className="text-base md:text-lg font-semibold text-gray-900">
+                  Security
+                </h2>
+                <p className="text-xs md:text-sm text-gray-500">
+                  Set a new password only when you need to change it.
+                </p>
+              </div>
+            </div>
+
+            <div className="max-w-md">
+              <label className="text-xs font-semibold text-gray-700 mb-1.5 block">
+                New Password (optional)
+              </label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
                 <input
-                  name="pincode"
-                  value={lab.pincode}
-                  onChange={handleChange}
+                  type="password"
+                  value={passwordInput}
+                  onChange={(e) => setPasswordInput(e.target.value)}
                   disabled={!isEditing}
-                  className={isEditing ? inputClass : inputDisabled}
+                  className={withIcon(isEditing)}
+                  placeholder={
+                    isEditing
+                      ? "Leave empty to keep current password"
+                      : "Enable edit mode to change password"
+                  }
                 />
               </div>
             </div>
 
-            {/* BUTTONS */}
+            {/* Actions */}
             {isEditing && (
-              <div className="mt-8 flex gap-4">
+              <div className="pt-4 flex flex-col sm:flex-row gap-3 sm:justify-end">
                 <button
                   type="button"
-                  onClick={() => setIsEditing(false)}
-                  className="flex-1 bg-gray-200 py-3 rounded-xl font-semibold hover:bg-gray-300 transition"
+                  onClick={() => {
+                    setIsEditing(false);
+                    setPasswordInput("");
+                  }}
+                  className="w-full sm:w-auto rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-800 hover:bg-gray-50 transition"
                 >
                   Cancel
                 </button>
@@ -285,14 +398,14 @@ const LabProfile = () => {
                 <button
                   type="submit"
                   disabled={saving}
-                  className="flex-1 bg-[#0C213E] text-white py-3 rounded-xl font-semibold transition flex items-center justify-center gap-2 hover:opacity-90"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-[#0C213E] px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:opacity-90 disabled:opacity-70 transition"
                 >
                   {saving ? (
-                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                   ) : (
                     <>
-                      <Save className="w-5 h-5" />
-                      Save Changes
+                      <Save className="w-4 h-4" />
+                      Save changes
                     </>
                   )}
                 </button>
