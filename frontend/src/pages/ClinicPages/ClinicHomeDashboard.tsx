@@ -1,59 +1,41 @@
-
-
-
 import React, { useEffect, useState } from "react";
 import {
   UserGroupIcon,
   CalendarDaysIcon,
   CurrencyRupeeIcon,
   UserIcon,
+  PlusCircleIcon,
+  ArrowTrendingUpIcon,
+  ClockIcon,
+  CheckCircleIcon,
 } from "@heroicons/react/24/solid";
-import api from "../../Services/mainApi";
-import { useNavigate } from "react-router-dom";
 import {
-  ResponsiveContainer,
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-} from "recharts";
+  ChartBarIcon,
+  UserPlusIcon,
+  UsersIcon,
+  ArrowRightIcon,
+} from "@heroicons/react/24/outline";
 
-interface Clinic {
-  _id: string;
-  clinicId: string;
-  clinicName: string;
-  email: string;
-}
+const ClinicHomeDashboard = () => {
+  const [dateTime, setDateTime] = useState("");
+  // const [hoveredCard, setHoveredCard] = useState(null);
+  const [hoveredCard, setHoveredCard] = useState<number | null>(null);
+  const [hoveredCTA, setHoveredCTA] = useState<number | null>(null);
 
-interface ClinicStats {
-  totalDoctors: number;
-  totalDepartments: number;
-}
+  // Mock data
+  const clinic = {
+    clinicName: "HealthCare Plus Clinic",
+    email: "contact@healthcareplus.com",
+  };
 
-interface ClinicResponse {
-  clinic: Clinic;
-  message: string;
-}
-
-interface StatsResponse {
-  stats: ClinicStats;
-  message: string;
-}
-
-const ClinicHomeDashboard: React.FC = () => {
-  const [clinic, setClinic] = useState<Clinic | null>(null);
-  const [clinicStats, setClinicStats] = useState<ClinicStats>({
-    totalDoctors: 0,
-    totalDepartments: 0,
-  });
-  const [dateTime, setDateTime] = useState<string>("");
-  const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
-
-  const token = localStorage.getItem("clinicToken");
-  const clinicId = localStorage.getItem("clinicId");
+  const clinicStats = {
+    totalDoctors: 12,
+    totalDepartments: 8,
+    activePatients: 247,
+    weeklyRevenue: "₹1,45,000",
+    todayAppointments: 18,
+    completedToday: 12,
+  };
 
   useEffect(() => {
     const updateDateTime = () => {
@@ -73,214 +55,277 @@ const ClinicHomeDashboard: React.FC = () => {
     return () => clearInterval(timer);
   }, []);
 
-  useEffect(() => {
-    if (!token || !clinicId) {
-      navigate(`/clinicDashboard/${clinicId}`);
-      return;
-    }
+  const statsCards = [
+    {
+      title: "Total Doctors",
+      value: clinicStats.totalDoctors,
+      icon: <UserGroupIcon className="w-8 h-8" />,
+      color: "#00D09C",
+      bgColor: "bg-emerald-50",
+      change: "+2 this month",
+    },
+    {
+      title: "Active Patients",
+      value: clinicStats.activePatients,
+      icon: <UsersIcon className="w-8 h-8" />,
+      color: "#3B82F6",
+      bgColor: "bg-blue-50",
+      change: "+15 this week",
+    },
+    {
+      title: "Departments",
+      value: clinicStats.totalDepartments,
+      icon: <ChartBarIcon className="w-8 h-8" />,
+      color: "#8B5CF6",
+      bgColor: "bg-purple-50",
+      change: "All active",
+    },
+    {
+      title: "Weekly Revenue",
+      value: clinicStats.weeklyRevenue,
+      icon: <CurrencyRupeeIcon className="w-8 h-8" />,
+      color: "#F59E0B",
+      bgColor: "bg-amber-50",
+      change: "+12% from last week",
+    },
+  ];
 
-    const fetchClinic = async () => {
-      try {
-        const res = await api.get<ClinicResponse>(
-          `/api/clinic/getClinicById/${clinicId}`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
-        setClinic(res.data.clinic);
-      } catch (err) {
-        console.error("Error fetching clinic:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const quickActions = [
+    {
+      title: "Add New Doctor",
+      description: "Register a new doctor to your clinic",
+      icon: <UserPlusIcon className="w-6 h-6" />,
+      color: "#00D09C",
+      path: "/add-doctor",
+    },
+    {
+      title: "View All Patients",
+      description: "Access complete patient records",
+      icon: <UsersIcon className="w-6 h-6" />,
+      color: "#3B82F6",
+      path: "/all-clinic-patients",
+    },
+    {
+      title: "Doctor Profiles",
+      description: "Manage your doctor team",
+      icon: <UserGroupIcon className="w-6 h-6" />,
+      color: "#8B5CF6",
+      path: "/all-clinic-doctors",
+    },
+  ];
 
-    fetchClinic();
-  }, [token, clinicId, navigate]);
-
-  useEffect(() => {
-    if (!token || !clinicId) return;
-
-    const fetchClinicStats = async () => {
-      try {
-        const res = await api.get<StatsResponse>(
-          `/api/clinic/getClinicStats/${clinicId}`,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-        setClinicStats(res.data.stats);
-      } catch (err) {
-        console.error("Error fetching clinic stats:", err);
-      }
-    };
-
-    fetchClinicStats();
-  }, [token, clinicId]);
-
-  if (loading) {
-    return <p className="text-center mt-10 text-gray-500">Loading dashboard...</p>;
-  }
-
-  const weeklyData = [
-    { day: "Mon", patients: 40, revenue: 15000 },
-    { day: "Tue", patients: 60, revenue: 22000 },
-    { day: "Wed", patients: 45, revenue: 18500 },
-    { day: "Thu", patients: 70, revenue: 25000 },
-    { day: "Fri", patients: 55, revenue: 21000 },
-    { day: "Sat", patients: 90, revenue: 28000 },
-    { day: "Sun", patients: 30, revenue: 10000 },
+  const todayStats = [
+    {
+      label: "Today's Appointments",
+      value: clinicStats.todayAppointments,
+      icon: <CalendarDaysIcon className="w-5 h-5 text-blue-600" />,
+    },
+    {
+      label: "Completed",
+      value: clinicStats.completedToday,
+      icon: <CheckCircleIcon className="w-5 h-5 text-green-600" />,
+    },
+    {
+      label: "Remaining",
+      value: clinicStats.todayAppointments - clinicStats.completedToday,
+      icon: <ClockIcon className="w-5 h-5 text-amber-600" />,
+    },
   ];
 
   return (
-    <div className="p-4 sm:p-6 md:p-8 bg-[#F9FAFB] min-h-screen space-y-6 md:space-y-8">
-      {/* Header */}
-      <div className="bg-[#0c213e] text-white p-5 sm:p-6 rounded-2xl shadow-md flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-semibold">
-            Welcome, {clinic?.clinicName}
-          </h1>
-          <p className="text-sm opacity-80">{dateTime}</p>
-        </div>
-        <button className="bg-[#00D09C] hover:bg-[#00b58a] text-white px-4 py-2 rounded-lg transition w-full sm:w-auto">
-          Edit Clinic Info
-        </button>
-      </div>
-
-      {/* Action Buttons */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-  {[
-    {
-      label: "Add Doctor",
-      color: "bg-[#00D09C]",
-      onclick: () => navigate(`/clinicDashboard/${clinicId}/add-doctor`)
-    },
-    {
-      label: "View Patients",
-      color: "bg-indigo-600",
-      onclick: () => navigate(`/clinicDashboard/${clinicId}/all-clinic-patients`)
-    },
-    { label: "Manage Slots", color: "bg-amber-500" },
-    { label: "Export Report", color: "bg-gray-700" },
-  ].map((btn, i) => (
-    <button
-      key={i}
-      onClick={btn.onclick}
-      className={`${btn.color} hover:opacity-90 text-white py-2 sm:py-3 rounded-lg font-semibold text-sm sm:text-base transition`}
-    >
-      {btn.label}
-    </button>
-  ))}
-</div>
-
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-        {[
-          {
-            title: "Total Doctors",
-            value: clinicStats.totalDoctors,
-            icon: <UserGroupIcon className="w-6 h-6 sm:w-7 sm:h-7 text-[#00D09C]" />,
-          },
-          {
-            title: "Weekly Revenue",
-            value: "₹1.3L",
-            icon: <CurrencyRupeeIcon className="w-6 h-6 sm:w-7 sm:h-7 text-green-500" />,
-          },
-          {
-            title: "Active Patients",
-            value: 210,
-            icon: <UserIcon className="w-6 h-6 sm:w-7 sm:h-7 text-rose-500" />,
-          },
-          {
-            title: "Departments",
-            value: clinicStats.totalDepartments,
-            icon: <CalendarDaysIcon className="w-6 h-6 sm:w-7 sm:h-7 text-indigo-500" />,
-          },
-        ].map((item, idx) => (
-          <div
-            key={idx}
-            className="bg-white p-4 sm:p-5 rounded-xl shadow hover:shadow-md transition"
-          >
-            <div className="flex justify-between items-center">
-              <div className="text-gray-700 text-xs sm:text-sm">{item.title}</div>
-              {item.icon}
-            </div>
-            <div className="text-xl sm:text-2xl font-bold mt-2 text-gray-900">
-              {item.value}
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-4 sm:p-6 lg:p-8">
+      <div className="max-w-7xl mx-auto space-y-6">
+        {/* Header Section */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+          <div className="bg-[#0c213e] px-6 sm:px-8 py-6 sm:py-8">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <div>
+                <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2">
+                  Welcome back, {clinic.clinicName}
+                </h1>
+                <div className="flex items-center gap-2 text-gray-300">
+                  <ClockIcon className="w-4 h-4" />
+                  <p className="text-sm">{dateTime}</p>
+                </div>
+              </div>
             </div>
           </div>
-        ))}
-      </div>
 
-      {/* Chart + Notices */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6 mt-6">
-        {/* Chart Section */}
-        <div className="bg-white rounded-xl p-4 sm:p-6 shadow-lg lg:col-span-2">
-          <h2 className="font-semibold text-gray-800 mb-4 text-base sm:text-lg">
-            📈 Weekly Patients & Revenue
-          </h2>
-          <ResponsiveContainer width="100%" height={250}>
-            <AreaChart data={weeklyData}>
-              <defs>
-                <linearGradient id="colorPatients" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#00D09C" stopOpacity={0.8} />
-                  <stop offset="95%" stopColor="#00D09C" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <XAxis dataKey="day" stroke="#888" />
-              <YAxis />
-              <CartesianGrid strokeDasharray="3 3" />
-              <Tooltip />
-              <Area
-                type="monotone"
-                dataKey="patients"
-                stroke="#00D09C"
-                fillOpacity={1}
-                fill="url(#colorPatients)"
-              />
-            </AreaChart>
-          </ResponsiveContainer>
+          {/* Today's Quick Stats */}
+          <div className="px-6 sm:px-8 py-4 bg-gray-50 border-t border-gray-200">
+            <div className="grid grid-cols-3 gap-4">
+              {todayStats.map((stat, idx) => (
+                <div key={idx} className="flex items-center gap-3">
+                  <div className="p-2 bg-white rounded-lg shadow-sm">
+                    {stat.icon}
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-600">{stat.label}</p>
+                    <p className="text-lg font-bold text-gray-900">{stat.value}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
 
-        {/* Right Sidebar Section */}
-        <div className="space-y-4 sm:space-y-6">
-          <div className="bg-white p-4 sm:p-5 rounded-xl shadow">
-            <h3 className="font-semibold text-gray-800 mb-2 text-base sm:text-lg">
-              Top Active Doctors
-            </h3>
-            {[
-              { name: "Dr. Meena Sharma", status: "Online" },
-              { name: "Dr. Rajiv Singh", status: "Busy" },
-              { name: "Dr. Asha Nair", status: "Offline" },
-            ].map((doc, i) => (
-              <div
-                key={i}
-                className="flex justify-between py-2 border-b last:border-none text-xs sm:text-sm"
-              >
-                <span>{doc.name}</span>
-                <span
-                  className={`${
-                    doc.status === "Online"
-                      ? "text-green-600"
-                      : doc.status === "Busy"
-                      ? "text-yellow-600"
-                      : "text-gray-500"
-                  } font-medium`}
+        {/* Stats Cards Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+          {statsCards.map((card, idx) => (
+            <div
+              key={idx}
+              onMouseEnter={() => setHoveredCard(idx)}
+              onMouseLeave={() => setHoveredCard(null)}
+              className={`bg-white rounded-xl p-6 shadow-sm border border-gray-100 transition-all duration-300 cursor-pointer ${
+                hoveredCard === idx ? "shadow-lg scale-105 -translate-y-1" : ""
+              }`}
+            >
+              <div className="flex items-start justify-between mb-4">
+                <div
+                  className={`${card.bgColor} p-3 rounded-xl transition-transform duration-300 ${
+                    hoveredCard === idx ? "scale-110 rotate-3" : ""
+                  }`}
                 >
-                  {doc.status}
-                </span>
+                  <div style={{ color: card.color }}>{card.icon}</div>
+                </div>
+                <ArrowTrendingUpIcon 
+                  className="w-5 h-5 text-green-500"
+                  style={{
+                    opacity: hoveredCard === idx ? 1 : 0,
+                    transition: "opacity 0.3s"
+                  }}
+                />
+              </div>
+              <h3 className="text-sm font-medium text-gray-600 mb-1">
+                {card.title}
+              </h3>
+              <p className="text-3xl font-bold text-gray-900 mb-2">
+                {card.value}
+              </p>
+              <p className="text-xs text-gray-500">{card.change}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* Quick Actions */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-bold text-gray-900">Quick Actions</h2>
+            <div className="h-1 flex-1 bg-gradient-to-r from-[#0c213e] to-transparent ml-4 rounded-full"></div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+            {quickActions.map((action, idx) => (
+              <div
+                key={idx}
+                onMouseEnter={() => setHoveredCTA(idx)}
+                onMouseLeave={() => setHoveredCTA(null)}
+                className={`group relative bg-gradient-to-br from-gray-50 to-white rounded-xl p-6 border-2 border-gray-100 transition-all duration-300 cursor-pointer ${
+                  hoveredCTA === idx ? "border-[#0c213e] shadow-lg scale-105" : ""
+                }`}
+              >
+                <div
+                  className="absolute top-0 left-0 w-full h-1 rounded-t-xl transition-all duration-300"
+                  style={{
+                    backgroundColor: hoveredCTA === idx ? action.color : "transparent"
+                  }}
+                ></div>
+                
+                <div className="flex items-start gap-4">
+                  <div
+                    className={`p-3 rounded-xl transition-all duration-300 ${
+                      hoveredCTA === idx ? "scale-110" : ""
+                    }`}
+                    style={{
+                      backgroundColor: hoveredCTA === idx ? action.color : "#f3f4f6",
+                      color: hoveredCTA === idx ? "white" : action.color,
+                    }}
+                  >
+                    {action.icon}
+                  </div>
+                  
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-gray-900 mb-1 flex items-center justify-between">
+                      {action.title}
+                      <ArrowRightIcon 
+                        className={`w-5 h-5 transition-all duration-300 ${
+                          hoveredCTA === idx ? "translate-x-1 opacity-100" : "opacity-0"
+                        }`}
+                        style={{ color: action.color }}
+                      />
+                    </h3>
+                    <p className="text-sm text-gray-600">{action.description}</p>
+                  </div>
+                </div>
               </div>
             ))}
           </div>
+        </div>
 
-          <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 sm:p-5 rounded-xl shadow">
-            <h4 className="font-semibold text-yellow-800 text-sm sm:text-base">
-              Clinic Notices
-            </h4>
-            <ul className="list-disc ml-5 text-yellow-700 text-xs sm:text-sm mt-2 space-y-1">
-              <li>🛠 Power backup maintenance on Friday</li>
-              <li>💸 Lab pricing updates from next week</li>
-              <li>📋 Staff review on Monday</li>
-            </ul>
+        {/* Recent Activity & System Status */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* System Status */}
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+              System Status
+            </h3>
+            <div className="space-y-3">
+              {[
+                { label: "Server Status", status: "Operational", color: "green" },
+                { label: "Database", status: "Healthy", color: "green" },
+                { label: "API Services", status: "Running", color: "green" },
+              ].map((item, idx) => (
+                <div
+                  key={idx}
+                  className="flex items-center justify-between p-3 bg-gray-50 rounded-lg transition-all duration-200 hover:bg-gray-100"
+                >
+                  <span className="text-sm font-medium text-gray-700">
+                    {item.label}
+                  </span>
+                  <span
+                    className={`text-xs font-semibold px-3 py-1 rounded-full ${
+                      item.color === "green"
+                        ? "bg-green-100 text-green-700"
+                        : "bg-yellow-100 text-yellow-700"
+                    }`}
+                  >
+                    {item.status}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Important Notices */}
+          <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl shadow-sm border border-amber-200 p-6">
+            <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <span className="text-xl">📌</span>
+              Important Notices
+            </h3>
+            <div className="space-y-3">
+              {[
+                { text: "System maintenance scheduled for Friday 10 PM", priority: "medium" },
+                { text: "New patient portal features launched", priority: "low" },
+                { text: "Staff training session on Monday 3 PM", priority: "high" },
+              ].map((notice, idx) => (
+                <div
+                  key={idx}
+                  className="flex items-start gap-3 p-3 bg-white rounded-lg shadow-sm transition-all duration-200 hover:shadow-md"
+                >
+                  <div
+                    className={`w-2 h-2 rounded-full mt-1.5 ${
+                      notice.priority === "high"
+                        ? "bg-red-500"
+                        : notice.priority === "medium"
+                        ? "bg-amber-500"
+                        : "bg-blue-500"
+                    }`}
+                  ></div>
+                  <p className="text-sm text-gray-700 flex-1">{notice.text}</p>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>

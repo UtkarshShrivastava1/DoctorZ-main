@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { Home, User, UserPlus, Users, LogOut, Menu } from "lucide-react";
+import { Home, User, UserPlus, Users, LogOut, Menu, X, Building2 } from "lucide-react";
 
 interface MenuItem {
   name: string;
@@ -36,38 +36,38 @@ const ClinicSidebar: React.FC = () => {
     {
       name: "Dashboard",
       path: "clinic-home-dashboard",
-      icon: <Home size={18} />,
+      icon: <Home className="w-5 h-5" />,
     },
     {
       name: "All Doctor Profiles",
       path: "all-clinic-doctors",
-      icon: <User size={18} />,
+      icon: <User className="w-5 h-5" />,
     },
-    { name: "Add Doctor", path: "add-doctor", icon: <UserPlus size={18} /> },
-    { name: "My Profile", path: "clinic-profile", icon: <User size={18} /> },
+    { name: "Add Doctor", path: "add-doctor", icon: <UserPlus className="w-5 h-5" /> },
+    { name: "My Profile", path: "clinic-profile", icon: <User className="w-5 h-5" /> },
     {
       name: "Patients",
       path: "all-clinic-patients",
-      icon: <Users size={18} />,
+      icon: <Users className="w-5 h-5" />,
     },
   ];
 
   return (
     <>
-      {/* ---------- MOBILE TOP BAR ---------- */}
-      <div
-        className="md:hidden fixed top-0 left-0 right-0 bg-[#0c213e] text-white 
-        flex items-center justify-between px-4 py-3 z-50 shadow-lg"
-      >
-        <h1 className="text-lg font-semibold tracking-wide">
-          Clinic Dashboard
-        </h1>
+      {/* ---------- MOBILE TOP BAR (similar to LabDashboard) ---------- */}
+      <div className="md:hidden fixed top-0 left-0 right-0 bg-white border-b border-gray-200 flex items-center justify-between px-4 py-3 z-50 shadow-sm">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 bg-[#0c213e] rounded-lg flex items-center justify-center">
+            <Building2 className="w-4 h-4 text-white" />
+          </div>
+          <h1 className="text-lg font-semibold text-gray-900">Clinic Dashboard</h1>
+        </div>
 
         <button
           onClick={() => setSidebarOpen(true)}
-          className="p-2 rounded hover:bg-[#0a1a32] active:scale-95 transition"
+          className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
         >
-          <Menu size={26} className="text-white" />
+          <Menu className="w-6 h-6 text-gray-700" />
         </button>
       </div>
 
@@ -75,65 +75,50 @@ const ClinicSidebar: React.FC = () => {
       {!isDesktop && sidebarOpen && (
         <div
           onClick={() => setSidebarOpen(false)}
-          className="fixed inset-0 bg-black/40 z-40 md:hidden"
+          className="fixed inset-0 bg-black/50 z-30 md:hidden backdrop-blur-sm"
         />
       )}
 
-      {/* ---------- SIDEBAR ---------- */}
+      {/* ---------- SIDEBAR (styled like LabDashboard) ---------- */}
       <aside
         className={`
-          bg-[#0c213e] text-white
-          fixed md:fixed
-          top-[56px] md:top-0
+          bg-white border-r border-gray-200
+          fixed md:relative
           left-0
-          h-[calc(100vh-56px)] md:h-screen
-          w-64
+          z-40
+          w-72 h-[calc(100vh-57px)] md:h-full
+          transform transition-all duration-300 ease-in-out
+          top-[57px] md:top-0
           flex flex-col
-          z-50
-          transform transition-transform duration-300 ease-in-out shadow-xl
-          ${
-            sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
-          }
+          ${sidebarOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full md:translate-x-0"}
         `}
       >
-        <div className="flex-1 p-6 overflow-y-auto">
-          {/* Desktop Title */}
-          <div className="hidden md:flex items-center justify-center mb-10">
-            <h2 className="text-2xl font-bold">Clinic Dashboard</h2>
+        {/* Desktop Title / Logo */}
+        <div className="hidden md:flex items-center gap-3 px-6 py-5 border-b border-gray-200">
+          <div className="w-10 h-10 bg-[#0c213e] rounded-xl flex items-center justify-center shadow-md">
+            <Building2 className="w-5 h-5 text-white" />
           </div>
+          <div>
+            <h2 className="text-lg font-bold text-gray-900">DoctorZ</h2>
+            <p className="text-xs text-gray-700">Clinic Dashboard</p>
+          </div>
+        </div>
 
-          {/* Navigation */}
-          <nav className="space-y-3">
+        {/* Navigation */}
+        <nav className="flex-1 px-4 py-6 overflow-y-auto">
+          <div className="space-y-1">
             {menuItems.map((item: MenuItem) => {
-              // let isActive = false;
-
-              // if (item.path === "clinic-home-dashboard") {
-              //   // Dashboard special case
-              //   isActive = location.pathname === location.pathname.split("/").slice(0, 3).join("/");
-              // } else {
-              //   // Normal route matching
-              //   isActive = location.pathname.endsWith(item.path);
-              // }
-
+              // keep your existing active logic
               const isActive = (() => {
-                // FULL CURRENT PATH
                 const fullPath = location.pathname;
-
-                // BASE DASHBOARD URL => /clinicDashboard/:id
                 const baseDashboard = fullPath.split("/").slice(0, 3).join("/");
 
-                // -------- DASHBOARD LOGIC --------
                 if (item.path === "clinic-home-dashboard") {
-                  // Case 1: Direct dashboard load
                   if (fullPath === baseDashboard) return true;
-
-                  // Case 2: Dashboard clicked -> /clinic-home-dashboard
                   if (fullPath.endsWith("clinic-home-dashboard")) return true;
-
                   return false;
                 }
 
-                // -------- OTHER MENU ITEMS --------
                 return fullPath.endsWith(item.path);
               })();
 
@@ -142,34 +127,51 @@ const ClinicSidebar: React.FC = () => {
                   key={item.path}
                   to={item.path}
                   onClick={() => !isDesktop && setSidebarOpen(false)}
-                  className={`flex items-center gap-3 px-4 py-2 rounded-lg transition-all
+                  className={`
+                    flex items-center gap-3 px-4 py-3 rounded-xl transition-all relative group
                     ${
                       isActive
-                        ? "bg-white/20 shadow-md text-white scale-[1.02]"
-                        : "hover:bg-white/10 text-gray-300"
+                        ? "bg-[#0c213e] text-white shadow-lg shadow-[#0c213e]/20"
+                        : "text-gray-700 hover:bg-gray-100"
                     }
                   `}
                 >
-                  {item.icon}
+                  <span
+                    className={`${
+                      isActive ? "text-white" : "text-gray-600"
+                    } flex items-center justify-center`}
+                  >
+                    {item.icon}
+                  </span>
                   <span className="font-medium">{item.name}</span>
+
+                  {isActive && (
+                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-white rounded-r-full"></div>
+                  )}
                 </Link>
               );
             })}
-          </nav>
-        </div>
+          </div>
+        </nav>
 
-        {/* Logout Button */}
-        <div className="p-6 border-t border-[#0a1a32] bg-[#0c213e]">
+        {/* Logout Button (styled like LabDashboard) */}
+        <div className="p-4 border-t border-gray-200">
           <button
             onClick={handleLogout}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg 
-              bg-red-500 hover:bg-red-600 active:scale-95 transition 
-              text-white w-full justify-center font-medium shadow-md"
+            className="flex items-center gap-3 px-4 py-3 rounded-xl bg-red-50 hover:bg-red-100 transition-all text-red-600 w-full group"
           >
-            <LogOut size={18} />
-            <span>Logout</span>
+            <LogOut className="w-5 h-5" />
+            <span className="font-medium">Logout</span>
           </button>
         </div>
+
+        {/* Mobile Close Button */}
+        <button
+          onClick={() => setSidebarOpen(false)}
+          className="absolute top-4 right-4 p-2 rounded-lg hover:bg-gray-100 transition-colors md:hidden"
+        >
+          <X className="w-5 h-5 text-gray-600" />
+        </button>
       </aside>
     </>
   );
