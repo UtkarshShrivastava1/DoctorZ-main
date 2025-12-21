@@ -7,25 +7,16 @@ export const ClinicDashboard = () => {
   console.log("Clinic ID from URL:", clinicId);
 
   return (
-    <div className="min-h-screen bg-gray-100 flex">
-
-      {/* Sidebar */}
+    <div className="flex h-screen bg-gray-50">
+      {/* Main layout is controlled similar to LabDashboard */}
       <ClinicSidebar />
 
       {/* Main Content */}
-      <main
-        className="
-          flex-1
-          p-4 sm:p-6 md:p-8
-          overflow-y-auto
-          pt-[56px]           /* FIX for mobile → pushes content below mobile topbar */
-          md:pt-8             /* Desktop normal padding */
-          md:ml-64            /* FIX for desktop → shifts page right of sidebar */
-        "
-      >
-        <Outlet context={{ clinicId }} />
+      <main className="flex-1 overflow-y-auto pt-[57px] md:pt-0">
+        <div className="p-6 md:p-8">
+          <Outlet context={{ clinicId }} />
+        </div>
       </main>
-
     </div>
   );
 };
