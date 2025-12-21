@@ -56,9 +56,13 @@ export default function AllClinicPatients() {
 
   if (error)
     return (
-      <div className="text-center text-red-600 font-semibold mt-8 font-poppins">
-        {error}
-      </div>
+  <div className="text-center mt-8 font-poppins">
+  <p className="text-blue-600 font-semibold">No patients found</p>
+  <p className="text-sm text-gray-500 mt-1">
+       {/* {error} */}
+    Please check back later or update your filters.
+  </p>
+</div>
     );
 
   if (patients.length === 0)
