@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, {  useState } from "react";
 import { useForm } from "react-hook-form";
 import { Helmet } from "react-helmet";
 import { useOutletContext } from "react-router-dom";
+// import { useWatch } from "react-hook-form";
 
 import { registerDoctor } from "../../Services/doctorApi";
 import { FileText, Upload } from "lucide-react";
@@ -40,7 +41,17 @@ const RegisterDoctor: React.FC = () => {
     handleSubmit,
     formState: { errors },
     reset,
+    // watch,
+    // control
   } = useForm<DoctorFormInputs>();
+
+    // const password = watch("password","");
+
+//     const password = useWatch({
+//   control,
+//   name: "password",
+//   defaultValue: ""
+// });
 
 
   const context = useOutletContext<ClinicContext | null>();
@@ -55,6 +66,26 @@ const RegisterDoctor: React.FC = () => {
   const [sigPreview, setSigPreview] = useState<string | null>(null);
 
   const [loading, setLoading] = useState(false);
+
+  //for password
+
+
+  const getPasswordStrength = (password: string) => {
+  if (!password) return { label: "", score: 0 };
+
+  let score = 0;
+  if (password.length >= 8) score++;
+  if (/[A-Z]/.test(password)) score++;
+  if (/[0-9]/.test(password)) score++;
+  if (/[^A-Za-z0-9]/.test(password)) score++;
+
+  if (score <= 1) return { label: "Weak", score };
+  if (score === 2 || score === 3) return { label: "Medium", score };
+  return { label: "Strong", score };
+};
+
+  // const strength = getPasswordStrength(password);
+
 
   const onSubmit = async (data: DoctorFormInputs) => {
     setLoading(true);
@@ -110,8 +141,9 @@ const RegisterDoctor: React.FC = () => {
         htmlFor={id}
         className="block text-sm font-semibold text-gray-700 mb-1"
       >
-        {label}
+        {label} <span className="text-red-500">*</span>
       </label>
+      
       <input
         id={id}
         type={type}
@@ -177,23 +209,32 @@ const RegisterDoctor: React.FC = () => {
             encType="multipart/form-data"
           >
             {/* --- Doctor Info Title --- */}
-            <h2 className="md:col-span-2 text-lg font-semibold text-[#0c213e] border-b border-[#0c213e]/20 pb-2">
-              Doctor Information
+
+            <h2 className="md:col-span-2 text-lg font-semibold text-[#0c213e] border-b border-[#0c213e]/20 pb-2 inline-block">
+              Doctor Information <span className="text-red-500 font-normal text-sm">( <span className="text-red-500">*</span> Shows required field )</span>
             </h2>
 
-            <InputField
+            {/* <InputField
               id="fullName"
               label="Full Name"
-              placeholder="Dr. John Doe"
+              placeholder="John Doe"
               registerField={register("fullName", {
                 required: "Full name is required",
               })}
               error={errors.fullName?.message}
-            />
+            /> */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1" htmlFor="fullName">Full Name</label>
+              <div className="flex items-center gap-1">
+
+              <span className="font-bold">Dr.</span>
+              <input id="fullName" type="text" placeholder="John Doe" className="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-800 shadow-sm focus:ring-2 focus:ring-[#0c213e] focus:border-[#0c213e] transition-all"/>
+              </div>
+            </div>
 
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1">
-                Gender
+                Gender <span className="text-red-500">*</span>
               </label>
               <select
                 {...register("gender", { required: "Gender is required" })}
@@ -211,7 +252,7 @@ const RegisterDoctor: React.FC = () => {
               )}
             </div>
 
-            <InputField id="dob" label="Date of Birth" type="date" registerField={register("dob")} />
+            <InputField id="dob" label="Date of Birth" type="date" registerField={register("dob")}  />
             <InputField id="email" label="Email" type="email" placeholder="doctor@example.com" registerField={register("email")} />
 
             <InputField
@@ -283,6 +324,38 @@ const RegisterDoctor: React.FC = () => {
               })}
               error={errors.password?.message}
             />
+            {/* {password && (
+  <div className="mt-2">
+    <div className="flex gap-1 mb-1">
+      {[1, 2, 3, 4].map((level) => (
+        <div
+          key={level}
+          className={`h-1 w-full rounded ${
+            strength.score >= level
+              ? strength.label === "Weak"
+                ? "bg-red-500"
+                : strength.label === "Medium"
+                ? "bg-yellow-500"
+                : "bg-green-500"
+              : "bg-gray-200"
+          }`}
+        />
+      ))}
+    </div>
+
+    <p
+      className={`text-sm font-medium ${
+        strength.label === "Weak"
+          ? "text-red-500"
+          : strength.label === "Medium"
+          ? "text-yellow-600"
+          : "text-green-600"
+      }`}
+    >
+      {strength.label}
+    </p>
+  </div>
+)} */}
 
             {/* --- Upload Documents --- */}
             <h2 className="md:col-span-2 text-lg font-semibold text-[#0c213e] border-b border-[#0c213e]/20 pt-4 pb-2">
@@ -317,7 +390,7 @@ const RegisterDoctor: React.FC = () => {
             ].map((fileInput, idx) => (
               <div key={idx} className="md:col-span-1">
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  {fileInput.label}
+                  {fileInput.label} <span className="text-red-500">*</span>
                 </label>
 
                 <div className="flex items-center gap-4">

@@ -22,6 +22,8 @@ import {
 import BookingDrawer from "../components/BookingDrawer";
 import api from "../Services/mainApi";
 import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
+
 // import toast from "react-hot-toast";
 
 interface Doctor {
@@ -34,6 +36,7 @@ interface Doctor {
   language: string;
   MedicalRegistrationNumber?: string;
   photo?: string;
+  clinic?:string;
 }
 interface FavouriteStatusResponse {
   isFavourite: boolean;
@@ -51,6 +54,13 @@ const ViewDoctorProfile: React.FC = () => {
   const [isBookingDrawerOpen, setIsBookingDrawerOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { drId } = useParams<{ drId: string }>();
+    const navigate = useNavigate();
+  
+
+    const [toast, setToast] = useState<{
+      message: string;
+      type: "error" | "success";
+    } | null>(null);
 
   const faqs = [
     {
@@ -92,7 +102,7 @@ const ViewDoctorProfile: React.FC = () => {
   //     console.error("Error fetching favourite status:", error);
   //   }
   // };
-  console.log(api);
+  // console.log(api);
 
   useEffect(() => {
     if (!drId) return;
@@ -100,10 +110,9 @@ const ViewDoctorProfile: React.FC = () => {
     const fetchDoctor = async () => {
       try {
         const token = Cookies.get("patientToken");
-        const res = await api.get<{ doctor: Doctor }>(
-          `/api/doctor/${drId}`,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
+        const res = await api.get<{ doctor: Doctor }>(`/api/doctor/${drId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
         setDoctor(res.data.doctor);
         if (token) {
           const decoded: any = jwtDecode(token);
@@ -122,6 +131,22 @@ const ViewDoctorProfile: React.FC = () => {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
+
+  const handleContactClinic = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    // alert("click")
+    console.log(doctor?.clinic?.length)
+
+    if (!doctor?.clinic || doctor?.clinic.length === 0) {
+      setToast({
+        message: "Clinic details not available for this doctor.",
+        type: "error",
+      });
+      return;
+    }
+
+    navigate(`/clinic/${doctor?.clinic[0]}`);
+  };
 
   if (loading) {
     return (
@@ -149,7 +174,7 @@ const ViewDoctorProfile: React.FC = () => {
     // ✅ Login check first
     if (!token) {
       // alert("Please login to mark favourite doctors.");
-            toast.info("Please login to mark favourite doctors.");
+      toast?.info("Please login to mark favourite doctors.");
       return;
     }
 
@@ -170,7 +195,19 @@ const ViewDoctorProfile: React.FC = () => {
   };
 
   return (
+
+    
     <div className="min-h-screen bg-gray-50">
+      {toast && (
+        <div
+          className={`
+          fixed top-5 right-5 px-4 py-3 rounded-lg shadow-lg text-white z-50 transition-all duration-300
+          ${toast.type === "error" ? "bg-red-600" : "bg-green-600"}
+        `}
+        >
+          {toast.message}
+        </div>
+      )}
       {/* Enhanced Hero Section */}
       <div className="relative bg-[#0c213e] text-white">
         <div className="absolute inset-0 bg-black/10"></div>
@@ -273,10 +310,21 @@ const ViewDoctorProfile: React.FC = () => {
                       : "border-white text-white hover:bg-white/10"
                   }`}
                 >
-                  <Star size={18} fill={isFavourite ? "currentColor" : "none"} /> {isFavourite ? "Favourite" : "Add to Favourite"}
+                  <Star
+                    size={18}
+                    fill={isFavourite ? "currentColor" : "none"}
+                  />{" "}
+                  {isFavourite ? "Favourite" : "Add to Favourite"}
                 </button>
-                <button className="border-2 border-white text-white px-4 sm:px-6 py-3 rounded-lg font-semibold flex items-center justify-center gap-2 hover:bg-white/10 transition-all duration-200 text-sm sm:text-base">
+                {/* <button className="border-2 border-white text-white px-4 sm:px-6 py-3 rounded-lg font-semibold flex items-center justify-center gap-2 hover:bg-white/10 transition-all duration-200 text-sm sm:text-base">
                   <MapPin size={18} /> Clinic Location
+                </button> */}
+                <button
+                  onClick={handleContactClinic}
+                  className="border-2 border-white text-white px-4 sm:px-6 py-3 rounded-lg font-semibold flex items-center justify-center gap-2 hover:bg-white/10 transition-all duration-200 text-sm sm:text-base cursor-pointer"
+                >
+                  <Phone className="w-4 h-4" />
+                  <span>Contact Clinic</span>
                 </button>
               </div>
             </div>
@@ -385,7 +433,7 @@ const ViewDoctorProfile: React.FC = () => {
                   <div className="prose prose-sm sm:prose-lg max-w-none text-gray-700 leading-relaxed">
                     <p className="text-base sm:text-lg mb-4 sm:mb-6">
                       {doctor.fullName} is a distinguished{" "}
-                      <strong>{doctor.specialization}</strong>
+                      <strong>{doctor.specialization} </strong>
                       with over <strong>{doctor.experience} years</strong> of
                       comprehensive clinical experience. Fluent in{" "}
                       <strong>{doctor.language}</strong>, Dr.{" "}
@@ -645,9 +693,11 @@ const ViewDoctorProfile: React.FC = () => {
                     <Phone size={14} />
                     Call Clinic
                   </button>
-                  <button className="w-full border border-gray-300 text-gray-700 hover:bg-gray-50 py-2 px-4 rounded-lg font-medium text-xs sm:text-sm transition-all duration-200 flex items-center justify-center gap-2">
+                  <button onClick={handleContactClinic} className="w-full border border-gray-300 text-gray-700 hover:bg-gray-50 py-2 px-4 rounded-lg font-medium text-xs sm:text-sm transition-all duration-200 flex items-center justify-center gap-2">
                     <MapPin size={14} />
-                    View Location
+                    {/* View Location */}
+                    {/* <Phone className="w-4 h-4" /> */}
+                    <span>View  Clinic</span>
                   </button>
                 </div>
 
