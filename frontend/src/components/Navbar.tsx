@@ -55,6 +55,7 @@ export default function Navbar() {
   const [locationError, setLocationError] = useState<string>("");
   const [locationDropdownOpen, setLocationDropdownOpen] =
     useState<boolean>(false);
+    const [manualLocation, setManualLocation] = useState("");
 
   const popularCities = [
     "Delhi, India",
@@ -112,12 +113,12 @@ export default function Navbar() {
   }, []);
 
 
-  const handleManualLocationSelect = (city: string) => {
-    setUserLocation(city);
-    localStorage.setItem("userLocation", city);
-    setShowLocationPopup(false);
-    setLocationDropdownOpen(false);
-  };
+const handleManualLocationSelect = (city: string) => {
+  setUserLocation(city);
+  localStorage.setItem("userLocation", city);
+  setShowLocationPopup(false);
+  setLocationDropdownOpen(false);
+};
 
   const handleUseCurrentLocation = async () => {
     setIsLocating(true);
@@ -250,22 +251,31 @@ export default function Navbar() {
                   </div>
 
                   <div>
-                    <DropdownMenu.Item asChild>
-                      <button
-                        onClick={() => {
-                          const userInput = prompt("Enter your location:");
-                          if (userInput && userInput.trim()) {
-                            handleManualLocationSelect(userInput.trim());
-                          }
-                        }}
-                        className="w-full flex items-center gap-3 p-3 rounded-lg border-2 border-green-200 bg-green-50 hover:bg-green-100 text-left transition-colors mb-3"
-                      >
-                        <MapPin size={20} className="text-green-600" />
-                        <span className="flex-1 font-medium">
-                          Choose a different location
-                        </span>
-                      </button>
-                    </DropdownMenu.Item>
+                    {/* <DropdownMenu.Item asChild> */}
+                      <div 
+                       onClick={(e) => e.stopPropagation()}
+                      className="flex items-center justify-center gap-1">
+  <input
+    type="text"
+    className="w-full border rounded-lg p-2"
+    placeholder="Enter your location"
+    value={manualLocation}
+    onChange={(e) => setManualLocation(e.target.value)}
+  />
+
+  <button
+    onClick={(e) => {
+       e.stopPropagation();
+      if (manualLocation.trim()) {
+        handleManualLocationSelect(manualLocation.trim());
+      }
+    }}
+    className="flex items-center p-2 rounded-lg border-2 border-green-200 bg-green-50 hover:bg-green-100 text-left transition-colors"
+  >
+    Ok
+  </button>
+</div>
+                    {/* </DropdownMenu.Item> */}
                   </div>
 
                   {/* Popular Cities Section */}

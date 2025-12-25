@@ -1,8 +1,9 @@
 import React, {  useState } from "react";
 import { useForm } from "react-hook-form";
 import { Helmet } from "react-helmet";
-import { useOutletContext } from "react-router-dom";
+import { useNavigate, useOutletContext } from "react-router-dom";
 // import { useWatch } from "react-hook-form";
+
 
 import { registerDoctor } from "../../Services/doctorApi";
 import { FileText, Upload } from "lucide-react";
@@ -66,6 +67,7 @@ const RegisterDoctor: React.FC = () => {
   const [sigPreview, setSigPreview] = useState<string | null>(null);
 
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate()
 
   //for password
 
@@ -118,6 +120,7 @@ const RegisterDoctor: React.FC = () => {
       );
     } finally {
       setLoading(false);
+      navigate("/doctor-login")
     }
   };
 
