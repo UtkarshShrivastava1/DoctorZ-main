@@ -131,6 +131,7 @@ const RegisterDoctor: React.FC = () => {
     placeholder,
     registerField,
     error,
+    require,
   }: {
     id: string;
     label: string;
@@ -138,13 +139,17 @@ const RegisterDoctor: React.FC = () => {
     placeholder?: string;
     registerField: any;
     error?: string;
+    require:string;
   }) => (
     <div className="relative">
       <label
         htmlFor={id}
         className="block text-sm font-semibold text-gray-700 mb-1"
       >
-        {label} <span className="text-red-500">*</span>
+        {label} 
+        {require ? (
+          <span className="text-red-500"> *</span>
+        ):""}
       </label>
       
       <input
@@ -152,6 +157,7 @@ const RegisterDoctor: React.FC = () => {
         type={type}
         placeholder={placeholder}
         {...registerField}
+        required={require}
         className="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-800 shadow-sm focus:ring-2 focus:ring-[#0c213e] focus:border-[#0c213e] transition-all"
       />
       {error && <p className="text-red-500 text-xs mt-1">{error}</p>}
@@ -231,7 +237,7 @@ const RegisterDoctor: React.FC = () => {
               <div className="flex items-center gap-1">
 
               <span className="font-bold">Dr.</span>
-              <input id="fullName" type="text" placeholder="John Doe" className="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-800 shadow-sm focus:ring-2 focus:ring-[#0c213e] focus:border-[#0c213e] transition-all"/>
+              <input id="fullName" type="text" placeholder="John Doe" className="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-800 shadow-sm focus:ring-2 focus:ring-[#0c213e] focus:border-[#0c213e] transition-all" required/>
               </div>
             </div>
 
@@ -255,8 +261,8 @@ const RegisterDoctor: React.FC = () => {
               )}
             </div>
 
-            <InputField id="dob" label="Date of Birth" type="date" registerField={register("dob")}  />
-            <InputField id="email" label="Email" type="email" placeholder="doctor@example.com" registerField={register("email")} />
+            <InputField id="dob" label="Date of Birth" type="date" registerField={register("dob")} require="true" />
+            <InputField id="email" label="Email" type="email" placeholder="doctor@example.com" registerField={register("email")} require="true"/>
 
             <InputField
               id="mobileNo"
@@ -270,14 +276,15 @@ const RegisterDoctor: React.FC = () => {
                 },
               })}
               error={errors.mobileNo?.message}
+              require="true"
             />
 
-            <InputField id="regNumber" label="Medical Registration Number" placeholder="MED123456" registerField={register("regNumber")} />
-            <InputField id="qualification" label="Qualification" placeholder="MBBS, MD" registerField={register("qualification")} />
-            <InputField id="specialization" label="Specialization" placeholder="Dermatology" registerField={register("specialization")} />
-            <InputField id="experience" label="Experience (Years)" placeholder="5" type="number" registerField={register("experience")} />
-            <InputField id="fees" label="Consultation Fees" placeholder="500" type="number" registerField={register("fees")} />
-            <InputField id="languages" label="Languages Known" placeholder="English, Hindi" registerField={register("languages")} />
+            <InputField id="regNumber" label="Medical Registration Number" placeholder="MED123456" registerField={register("regNumber")} require="true"/>
+            <InputField id="qualification" label="Qualification" placeholder="MBBS, MD" registerField={register("qualification")} require="true"/>
+            <InputField id="specialization" label="Specialization" placeholder="Dermatology" registerField={register("specialization")} require="true"/>
+            <InputField id="experience" label="Experience (Years)" placeholder="5" type="number" registerField={register("experience")} require="true"/>
+            <InputField id="fees" label="Consultation Fees" placeholder="500" type="number" registerField={register("fees")} require="true"/>
+            <InputField id="languages" label="Languages Known" placeholder="English, Hindi" registerField={register("languages")} require="true"/>
 
             {/* --- Personal Details Title --- */}
             <h2 className="md:col-span-2 text-lg font-semibold text-[#0c213e] border-b border-[#0c213e]/20 pt-4 pb-2">
@@ -297,6 +304,7 @@ const RegisterDoctor: React.FC = () => {
                 },
               })}
               error={errors.aadhar?.message}
+              require="true"
             />
 
             <InputField
@@ -311,11 +319,12 @@ const RegisterDoctor: React.FC = () => {
                 },
               })}
               error={errors.pan?.message}
+              require="true"
             />
 
-            <InputField id="address" label="Address" placeholder="123 Main Street" registerField={register("address")} />
-            <InputField id="city" label="City" placeholder="Bhilai" registerField={register("city")} />
-            <InputField id="state" label="State" placeholder="Chhattisgarh" registerField={register("state")} />
+            <InputField id="address" label="Address" placeholder="123 Main Street" registerField={register("address")} require="true"/>
+            <InputField id="city" label="City" placeholder="Bhilai" registerField={register("city")} require="true"/>
+            <InputField id="state" label="State" placeholder="Chhattisgarh" registerField={register("state")} require="true"/>
 
             <InputField
               id="password"
@@ -326,6 +335,7 @@ const RegisterDoctor: React.FC = () => {
                 required: "Password is required",
               })}
               error={errors.password?.message}
+              require="true"
             />
             {/* {password && (
   <div className="mt-2">

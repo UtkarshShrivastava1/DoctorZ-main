@@ -105,17 +105,21 @@ const RegisterPatient: React.FC = () => {
     }
   };
 
-  const InputField = ({ id, label, type = "text", placeholder, registerField }: any) => (
+  const InputField = ({ id, label, type = "text", placeholder, registerField,require }: any) => (
     <div className="relative">
       <label className="block text-sm font-semibold text-gray-700 mb-1">
         {label}
+        {require==="true" ?(
+          <span className="text-red-500"> *</span>
+        ):""}
       </label>
       <input
         id={id}
         type={type}
         placeholder={placeholder}
         {...registerField}
-        className="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-800 shadow-sm focus:ring-2 focus:ring-[#0c213e] focus:border-[#0c213e] transition-all"
+        required={Boolean(require)}
+        className={`w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-800 shadow-sm focus:ring-2 focus:ring-[#0c213e] focus:border-[#0c213e] transition-all ${id=="password"? ` border-gray-300 rounded-md p-3 focus:border-red-500 focus:ring-2 focus:ring-red-500 transition duration-200`:" " }`}
       />
     </div>
   );
@@ -156,7 +160,7 @@ const RegisterPatient: React.FC = () => {
           >
             {/* PERSONAL INFO */}
             <h2 className="md:col-span-2 text-lg font-semibold text-[#0c213e] border-b border-[#0c213e]/20 pb-2">
-              Personal Information
+              Personal Information <span className="text-red-500 font-normal text-sm">( <span className="text-red-500">*</span> Shows required field )</span>
             </h2>
 
             <InputField
@@ -164,14 +168,16 @@ const RegisterPatient: React.FC = () => {
               label="Full Name"
               placeholder="Ritika Sharma"
               registerField={register("fullName")}
+              require="true"
             />
 
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1">
-                Gender
+                Gender <span className="text-red-500">*</span>
               </label>
               <select
                 {...register("gender")}
+                required
                 className="w-full rounded-lg border border-gray-300 bg-white p-2.5 shadow-sm focus:ring-2 focus:ring-[#0c213e]"
               >
                 <option value="">Select Gender</option>
@@ -186,6 +192,7 @@ const RegisterPatient: React.FC = () => {
               label="Date of Birth"
               type="date"
               registerField={register("dob")}
+              require="true"
             />
 
             <InputField
@@ -194,21 +201,34 @@ const RegisterPatient: React.FC = () => {
               type="email"
               placeholder="example@gmail.com"
               registerField={register("email")}
+              require="true"
             />
 
+            <div className="relative">
+  
             <InputField
               id="password"
               label="Password"
               type="password"
               placeholder="••••••••"
               registerField={register("password")}
+              require="true"
             />
-
+            {/* <span className="absolute left-20 top-0 text-gray-500">
+    🔒
+  </span> */}
+  <p className="text-red-600 text-sm mt-1">
+                Keep your password strong
+                </p>
+            </div>
+            
+            
             <div>
               <InputField
                 id="mobileNumber"
                 label="Mobile Number"
                 placeholder="9876543210"
+                require="true"
                 registerField={register("mobileNumber", {
                   required: "Mobile number is required",
                   pattern: {
@@ -229,6 +249,7 @@ const RegisterPatient: React.FC = () => {
                 id="aadhar"
                 label="Aadhar"
                 placeholder="123456789012"
+                require="true"
                 registerField={register("aadhar", {
                   required: "Aadhar number is required",
                   pattern: {
@@ -249,6 +270,7 @@ const RegisterPatient: React.FC = () => {
               label="City"
               placeholder="Bhilai"
               registerField={register("city")}
+              require="true"
             />
 
             <div>
@@ -256,6 +278,7 @@ const RegisterPatient: React.FC = () => {
                 id="pincode"
                 label="Pincode"
                 placeholder="490001"
+                require="true"
                 registerField={register("pincode", {
                   required: "Pincode is required",
                   pattern: {
@@ -276,13 +299,15 @@ const RegisterPatient: React.FC = () => {
                 id="abhaId"
                 label="ABHA ID"
                 placeholder="ABHA123456"
-                registerField={register("abhaId", {
-                  required: "ABHA ID is required",
-                  pattern: {
-                    value: /^[0-9]{14}$/,
-                    message: "ABHA ID must be exactly 14 digits",
-                  },
-                })}
+                registerField={register("abhaId", 
+                //   {
+                //   required: "ABHA ID is required",
+                //   pattern: {
+                //     value: /^[0-9]{14}$/,
+                //     message: "ABHA ID must be exactly 14 digits",
+                //   },
+                // }
+              )}
               />
               {errors.abhaId && (
                 <p className="text-red-600 text-sm mt-1">
