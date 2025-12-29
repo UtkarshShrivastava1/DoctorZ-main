@@ -1,21 +1,23 @@
-import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
+import { useState, useEffect, useMemo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import api from "../Services/mainApi";
 import {
-  Search as SearchIcon,
-  Sparkles,
+  Search,
+  Filter,
+  ChevronRight,
+  Building2,
   Shield,
-  Heart,
-  Star,
-  TrendingUp,
-  Zap,
   Clock,
   Award,
-  ChevronRight,
+  FlaskConical,
+  Package,
+  X,
+  CheckCircle2,
   ArrowRight,
+  Star,
 } from "lucide-react";
 
-// 🧩 PNG icons
+// Import icons
 import fullbody from "../assets/icons/fullbody.png";
 import diabetes from "../assets/icons/Diabetes.png";
 import womens from "../assets/icons/womens.png";
@@ -33,10 +35,9 @@ import packageIcon from "../assets/icons/package.png";
 import pcod from "../assets/icons/pcod.png";
 import pregnancy from "../assets/icons/pregnancy.png";
 import iron from "../assets/icons/iron.png";
-import pill from "../assets/icons/pill.png";
-import { useState, useEffect, useMemo } from "react";
+// import pill from "../assets/icons/pill.png";
 
-// 🧠 Interfaces
+// Interfaces
 interface Lab {
   name?: string;
 }
@@ -65,17 +66,19 @@ interface LabPackage {
   lab?: Lab;
   labName?: string;
   tests?: LabTest[];
+  certified?: boolean;
 }
 
 export default function LabTestsPage() {
   const [tests, setTests] = useState<LabTest[]>([]);
   const [packages, setPackages] = useState<LabPackage[]>([]);
   const [query, setQuery] = useState("");
-  const [selectedHealthCheck, setSelectedHealthCheck] = useState<string | null>(null);
+  // CHANGED: multiple categories instead of single
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [showFilterModal, setShowFilterModal] = useState(false);
   const [showAllTests, setShowAllTests] = useState(false);
   const [showAllPackages, setShowAllPackages] = useState(false);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
 
   const iconMap: Record<string, string> = {
     heart,
@@ -95,12 +98,34 @@ export default function LabTestsPage() {
     full: fullbody,
   };
 
+  const categories = [
+    { key: "Full Body", icon: fullbody, color: "from-blue-500 to-cyan-500" },
+    { key: "Diabetes", icon: diabetes, color: "from-green-500 to-emerald-500" },
+    { key: "Women's Health", icon: womens, color: "from-pink-500 to-rose-500" },
+    { key: "Thyroid", icon: thyroid, color: "from-purple-500 to-violet-500" },
+    { key: "Vitamin", icon: vitamin, color: "from-amber-500 to-orange-500" },
+    { key: "Heart", icon: heart, color: "from-rose-500 to-red-500" },
+    { key: "Kidney", icon: kidney, color: "from-indigo-500 to-blue-500" },
+    { key: "Liver", icon: liver, color: "from-teal-500 to-cyan-500" },
+    { key: "PCOD", icon: pcod, color: "from-pink-500 to-purple-500" },
+    { key: "Pregnancy", icon: pregnancy, color: "from-rose-400 to-pink-500" },
+    { key: "Fever", icon: fever, color: "from-orange-500 to-amber-500" },
+    { key: "Senior", icon: senior, color: "from-slate-600 to-gray-700" },
+  ];
+
   const getIconForTest = (test: LabTest): string => {
     const name = `${test.testName || ""} ${test.category || ""}`.toLowerCase();
     for (const key of Object.keys(iconMap)) {
       if (name.includes(key)) return iconMap[key];
     }
     return testIcon;
+  };
+
+  // NEW: toggle helper for multi-select categories
+  const toggleCategory = (catKey: string) => {
+    setSelectedCategories((prev) =>
+      prev.includes(catKey) ? prev.filter((c) => c !== catKey) : [...prev, catKey]
+    );
   };
 
   useEffect(() => {
@@ -124,8 +149,9 @@ export default function LabTestsPage() {
         const packageRes = await api.get("/api/lab/packages");
         const packageData = Array.isArray(packageRes.data)
           ? packageRes.data
-          : "packages" in (packageRes.data as Record<string, unknown>) && Array.isArray((packageRes.data as Record<string, unknown>).packages)
-          ? (packageRes.data as Record<string, unknown>).packages as LabPackage[]
+          : "packages" in (packageRes.data as Record<string, unknown>) &&
+            Array.isArray((packageRes.data as Record<string, unknown>).packages)
+          ? ((packageRes.data as Record<string, unknown>).packages as LabPackage[])
           : [];
 
         const normalizedPackages: LabPackage[] = packageData.map((p: any) => ({
@@ -142,236 +168,204 @@ export default function LabTestsPage() {
     fetchData();
   }, []);
 
-  useEffect(() => {
-    if (selectedHealthCheck) {
-      window.scrollTo({ top: 600, behavior: "smooth" });
-    }
-  }, [selectedHealthCheck]);
-
   const filteredTests = useMemo(() => {
     const q = query.trim().toLowerCase();
+    const hasCategoryFilters = selectedCategories.length > 0;
+
     return tests.filter((t) => {
       const matchesQuery =
         q === "" ||
         t.testName?.toLowerCase().includes(q) ||
         t.shortDescription?.toLowerCase().includes(q);
-      const matchesHealth =
-        !selectedHealthCheck ||
-        t.category?.toLowerCase().includes(selectedHealthCheck.toLowerCase()) ||
-        t.customCategory?.toLowerCase().includes(selectedHealthCheck.toLowerCase()) ||
-        t.testName?.toLowerCase().includes(selectedHealthCheck.toLowerCase());
-      return matchesQuery && matchesHealth;
+
+      if (!hasCategoryFilters) return matchesQuery;
+
+      const nameBlob = `${t.testName || ""} ${t.category || ""} ${
+        t.customCategory || ""
+      }`.toLowerCase();
+
+      const matchesAnyCategory = selectedCategories.some((cat) =>
+        nameBlob.includes(cat.toLowerCase())
+      );
+
+      return matchesQuery && matchesAnyCategory;
     });
-  }, [tests, query, selectedHealthCheck]);
+  }, [tests, query, selectedCategories]);
 
   const filteredPackages = useMemo(() => {
     const q = query.trim().toLowerCase();
+    const hasCategoryFilters = selectedCategories.length > 0;
+
     return packages.filter((p) => {
-      const name = p.packageName || p.name || p.title || "";
-      const desc = p.description || p.shortDescription || "";
-      const matchesQuery =
-        q === "" || name.toLowerCase().includes(q) || desc.toLowerCase().includes(q);
-      const matchesHealth =
-        !selectedHealthCheck ||
-        name.toLowerCase().includes(selectedHealthCheck.toLowerCase()) ||
-        desc.toLowerCase().includes(selectedHealthCheck.toLowerCase());
-      return matchesQuery && matchesHealth;
+      const name = (p.packageName || p.name || p.title || "").toLowerCase();
+      const desc = (p.description || p.shortDescription || "").toLowerCase();
+
+      const matchesQuery = q === "" || name.includes(q) || desc.includes(q);
+
+      if (!hasCategoryFilters) return matchesQuery;
+
+      const matchesAnyCategory = selectedCategories.some((cat) => {
+        const c = cat.toLowerCase();
+        return name.includes(c) || desc.includes(c);
+      });
+
+      return matchesQuery && matchesAnyCategory;
     });
-  }, [packages, query, selectedHealthCheck]);
-
-  const healthChecks = [
-    { key: "Full Body Checkup", icon: fullbody, color: "from-blue-500 to-cyan-500" },
-    { key: "Diabetes", icon: diabetes, color: "from-green-500 to-emerald-500" },
-    { key: "Women's Health", icon: womens, color: "from-pink-500 to-rose-500" },
-    { key: "Thyroid", icon: thyroid, color: "from-purple-500 to-violet-500" },
-    { key: "Vitamin", icon: vitamin, color: "from-amber-500 to-orange-500" },
-    { key: "Blood Studies", icon: blood, color: "from-red-500 to-rose-600" },
-    { key: "Heart", icon: heart, color: "from-rose-500 to-red-500" },
-    { key: "Kidney", icon: kidney, color: "from-indigo-500 to-blue-500" },
-    { key: "Liver", icon: liver, color: "from-teal-500 to-cyan-500" },
-    { key: "Hairfall", icon: hairfall, color: "from-gray-600 to-gray-700" },
-    { key: "Fever", icon: fever, color: "from-orange-500 to-amber-500" },
-    { key: "Senior Citizen", icon: senior, color: "from-slate-600 to-gray-700" },
-  ];
-
-  const womenCare = [
-    { key: "PCOD Screening", icon: pcod, color: "from-pink-500 to-purple-500" },
-    { key: "Blood Studies", icon: blood, color: "from-red-500 to-rose-600" },
-    { key: "Pregnancy", icon: pregnancy, color: "from-rose-400 to-pink-500" },
-    { key: "Iron Studies", icon: iron, color: "from-amber-600 to-orange-500" },
-    { key: "Vitamin", icon: pill, color: "from-cyan-500 to-blue-500" },
-  ];
+  }, [packages, query, selectedCategories]);
 
   return (
     <div
-      className="relative min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/20 overflow-hidden"
+      className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/20"
       style={{ fontFamily: "var(--font-primary, Inter, system-ui, sans-serif)" }}
     >
-      {/* Animated Background */}
-      {/* <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 right-20 w-96 h-96 bg-blue-200/20 rounded-full blur-3xl animate-pulse"></div>
-        <div
-          className="absolute bottom-20 left-20 w-96 h-96 bg-purple-200/20 rounded-full blur-3xl animate-pulse"
-          style={{ animationDelay: "1s" }}
-        ></div>
-        <div
-          className="absolute top-1/2 left-1/2 w-96 h-96 bg-pink-200/10 rounded-full blur-3xl animate-pulse"
-          style={{ animationDelay: "2s" }}
-        ></div>
-      </div> */}
-
-      {/* Hero Section */}
-      <section className="relative pt-16 pb-12">
-        <div className="max-w-7xl mx-auto px-4">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-center mb-8"
-          >
-            {/* Trust Badge */}
-            <div className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200/50 px-5 py-2.5 rounded-full text-sm font-semibold text-[#0c213e] mb-6 shadow-sm">
-              <Sparkles className="w-4 h-4 text-blue-500" />
-              Trusted by 50,000+ Patients Across India
-            </div>
-
-            {/* Main Heading */}
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
-              <span className="bg-gradient-to-r from-[#0c213e] via-[#326ec3] to-[#081528] bg-clip-text text-transparent">
-                Comprehensive Health Tests
-              </span>
-              <span className="block text-2xl md:text-3xl text-gray-600 font-semibold mt-3">
-                Certified Labs • Accurate Results • Expert Care
-              </span>
-            </h1>
-
-            <p className="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-              Book diagnostic tests and health packages from certified labs. Get reports delivered
-              digitally with free doctor consultation.
-            </p>
-          </motion.div>
-
-          {/* Premium Search Bar */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="max-w-4xl mx-auto"
-          >
-            <div className="relative flex items-center bg-white rounded-2xl shadow-2xl border-2 border-gray-100 overflow-hidden hover:shadow-blue-500/20 transition-all duration-300">
-              <div className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-400">
-                <SearchIcon className="w-6 h-6" />
-              </div>
+      {/* Compact Header with Search */}
+      <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-200 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 py-4">
+          <div className="flex items-center gap-4">
+            {/* Search Bar */}
+            <div className="flex-1 relative">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
               <input
                 type="text"
+                placeholder="Search for tests, packages, or conditions..."
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search for tests, packages, or health conditions..."
-                className="w-full pl-16 pr-36 py-6 text-lg text-gray-800 placeholder-gray-400 bg-transparent focus:outline-none"
+                className="w-full pl-12 pr-4 py-3 rounded-xl border-2 border-gray-200 focus:border-[#0c213e] focus:outline-none text-gray-800 transition-all"
               />
+            </div>
+
+            {/* Filter Button */}
+            <button
+              onClick={() => setShowFilterModal(true)}
+              className="flex items-center gap-2 px-5 py-3 bg-[#0c213e] text-white rounded-xl font-semibold hover:bg-[#1a3557] transition-colors shadow-md"
+            >
+              <Filter className="w-5 h-5" />
+              <span className="hidden sm:inline">Filter</span>
+            </button>
+          </div>
+
+          {/* Active Filter Badge(s) */}
+          {selectedCategories.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mt-3 flex items-center gap-2 flex-wrap"
+            >
+              <span className="text-sm text-gray-600">Active filters:</span>
+              {selectedCategories.map((cat) => (
+                <div
+                  key={cat}
+                  className="flex items-center gap-2 bg-[#0c213e] text-white px-4 py-1.5 rounded-full text-sm font-medium"
+                >
+                  {cat}
+                  <button
+                    onClick={() => toggleCategory(cat)}
+                    className="hover:bg-white/20 rounded-full p-0.5"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
               <button
-                onClick={() => window.scrollTo({ top: 900, behavior: "smooth" })}
-                className="absolute right-3 top-1/2 -translate-y-1/2 bg-gradient-to-r from-[#0c213e] to-[#275ba4] text-white font-bold px-8 py-4 rounded-xl hover:shadow-xl hover:scale-105 active:scale-95 transition-all duration-300 flex items-center gap-2"
+                onClick={() => setSelectedCategories([])}
+                className="text-xs text-[#0c213e] hover:underline font-medium"
               >
-                <SearchIcon className="w-5 h-5" />
-                Search
+                Clear all
               </button>
-            </div>
-
-            {/* Trust Indicators */}
-            <div className="flex flex-wrap justify-center gap-6 mt-6 text-sm text-gray-600">
-              <div className="flex items-center gap-2">
-                <Shield className="w-5 h-5 text-green-500" />
-                <span className="font-medium">NABL Certified Labs</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Award className="w-5 h-5 text-blue-500" />
-                <span className="font-medium">100% Accurate Results</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Clock className="w-5 h-5 text-purple-500" />
-                <span className="font-medium">24-48 Hour Reports</span>
-              </div>
-            </div>
-          </motion.div>
+            </motion.div>
+          )}
         </div>
-      </section>
+      </header>
 
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 pb-20 relative z-10">
-        {/* Health Checks Section */}
-        <section className="mb-16">
-          <div className="flex items-center justify-between mb-8">
-            <div className="flex items-center gap-3">
-              <div className="p-3 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl shadow-lg">
-                <Heart className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <h2 className="text-2xl md:text-3xl font-bold text-gray-900">
-                  Popular Health Checks
-                </h2>
-                <p className="text-sm text-gray-500">
-                  Curated by expert doctors for comprehensive screening
-                </p>
-              </div>
+      {/* Trust Indicators Bar */}
+      <div className="bg-gradient-to-r from-[#0c213e] to-[#1a3557] text-white py-3">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="flex flex-wrap items-center justify-center gap-6 text-sm">
+            <div className="flex items-center gap-2">
+              <Shield className="w-4 h-4 text-green-400" />
+              <span className="font-medium">NABL Certified Labs</span>
             </div>
-            {selectedHealthCheck && (
+            <div className="hidden sm:block w-px h-4 bg-white/20"></div>
+            <div className="flex items-center gap-2">
+              <Award className="w-4 h-4 text-blue-400" />
+              <span className="font-medium">100% Accurate Reports</span>
+            </div>
+            <div className="hidden sm:block w-px h-4 bg-white/20"></div>
+            <div className="flex items-center gap-2">
+              <Clock className="w-4 h-4 text-purple-400" />
+              <span className="font-medium">24-48 Hour Results</span>
+            </div>
+            <div className="hidden sm:block w-px h-4 bg-white/20"></div>
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-green-400" />
+              <span className="font-medium">50,000+ Happy Patients</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Categories Navigation */}
+      <section className="bg-white border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 py-6">
+          <div className="flex items-center gap-3 mb-4">
+            <h2 className="text-lg font-bold text-gray-900">Browse by Category</h2>
+            {selectedCategories.length > 0 && (
               <button
-                onClick={() => setSelectedHealthCheck(null)}
-                className="text-sm font-semibold text-[#0c213e] hover:underline"
+                onClick={() => setSelectedCategories([])}
+                className="text-sm text-[#0c213e] hover:underline font-medium"
               >
-                Clear Filter
+                Clear
               </button>
             )}
           </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-            {healthChecks.map((hc) => {
-              const active = selectedHealthCheck === hc.key;
+          <div className="flex overflow-x-auto gap-3 pb-2 scrollbar-hide">
+            {categories.map((cat) => {
+              const isActive = selectedCategories.includes(cat.key);
               return (
                 <motion.button
-                  key={hc.key}
-                  whileHover={{ scale: 1.05, y: -5 }}
+                  key={cat.key}
+                  whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  onClick={() => setSelectedHealthCheck(active ? null : hc.key)}
-                  className={`group relative flex flex-col items-center justify-center p-5 rounded-2xl border-2 transition-all duration-300 ${
-                    active
-                      ? "border-[#0c213e] bg-gradient-to-br from-blue-50 to-purple-50 shadow-xl"
-                      : "border-gray-200 bg-white hover:border-blue-300 hover:shadow-lg"
+                  onClick={() => toggleCategory(cat.key)}
+                  className={`flex flex-col items-center min-w-[90px] p-3 rounded-xl border-2 transition-all ${
+                    isActive
+                      ? "border-[#0c213e] bg-blue-50 shadow-md"
+                      : "border-gray-200 bg-white hover:border-blue-300 hover:shadow-sm"
                   }`}
                 >
-                  {active && (
-                    <div className="absolute -top-2 -right-2 w-6 h-6 bg-[#0c213e] rounded-full flex items-center justify-center shadow-lg">
-                      <TrendingUp className="w-4 h-4 text-white" />
-                    </div>
-                  )}
                   <div
-                    className={`p-4 rounded-xl bg-gradient-to-br ${hc.color} shadow-lg mb-3 transform group-hover:scale-110 transition-transform duration-300`}
+                    className={`w-12 h-12 rounded-lg bg-gradient-to-br ${cat.color} flex items-center justify-center mb-2 shadow-md`}
                   >
                     <img
-                      src={hc.icon}
-                      alt={hc.key}
-                      className="w-8 h-8 object-contain filter brightness-0 invert"
+                      src={cat.icon}
+                      alt={cat.key}
+                      className="w-6 h-6 object-contain filter brightness-0 invert"
                     />
                   </div>
-                  <span className="text-sm font-bold text-gray-800 text-center leading-tight">
-                    {hc.key}
+                  <span className="text-xs font-semibold text-gray-800 text-center leading-tight">
+                    {cat.key}
                   </span>
                 </motion.button>
               );
             })}
           </div>
-        </section>
+        </div>
+      </section>
 
+      {/* Main Content */}
+      <main className="max-w-7xl mx-auto px-4 py-8">
         {/* Available Tests Section */}
-        <section className="mb-16">
-          <div className="flex items-center justify-between mb-8">
+        <section className="mb-12">
+          <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
-              <div className="p-3 bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl shadow-lg">
+              <div className="p-3 bg-[#0c213e] rounded-xl shadow-lg">
                 <Star className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h2 className="text-2xl md:text-3xl font-bold text-gray-900">Available Tests</h2>
-                <p className="text-sm text-gray-500">{filteredTests.length} tests available</p>
+                <h2 className="text-2xl font-bold text-gray-900">Available Tests</h2>
+                <p className="text-sm text-gray-600 mt-1">
+                  {filteredTests.length} {filteredTests.length === 1 ? "test" : "tests"} available
+                </p>
               </div>
             </div>
             {filteredTests.length > 8 && (
@@ -388,7 +382,10 @@ export default function LabTestsPage() {
           {loading ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {[...Array(8)].map((_, i) => (
-                <div key={i} className="bg-white rounded-2xl shadow-lg p-6 animate-pulse">
+                <div
+                  key={i}
+                  className="bg-white rounded-xl shadow-sm p-6 animate-pulse border border-gray-200"
+                >
                   <div className="flex gap-4 mb-4">
                     <div className="w-14 h-14 bg-gray-200 rounded-xl"></div>
                     <div className="flex-1 space-y-3">
@@ -396,23 +393,23 @@ export default function LabTestsPage() {
                       <div className="h-4 bg-gray-200 rounded w-full"></div>
                     </div>
                   </div>
-                  <div className="h-10 bg-gray-200 rounded-xl"></div>
+                  <div className="h-10 bg-gray-200 rounded-xl mt-4"></div>
                 </div>
               ))}
             </div>
           ) : filteredTests.length === 0 ? (
             <div className="text-center py-20 bg-white rounded-3xl border-2 border-dashed border-gray-300">
               <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <SearchIcon className="w-10 h-10 text-gray-400" />
+                <Search className="w-10 h-10 text-gray-400" />
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-2">No Tests Found</h3>
               <p className="text-gray-500 mb-6">Try adjusting your search or filter</p>
               <button
                 onClick={() => {
                   setQuery("");
-                  setSelectedHealthCheck(null);
+                  setSelectedCategories([]);
                 }}
-                className="bg-[#0c213e] text-white px-6 py-3 rounded-xl font-semibold hover:bg-blue-700 transition-colors"
+                className="bg-[#0c213e] text-white px-6 py-3 rounded-xl font-semibold hover:bg-[#1a3557] transition-colors"
               >
                 Clear All Filters
               </button>
@@ -422,46 +419,62 @@ export default function LabTestsPage() {
               {filteredTests.slice(0, showAllTests ? filteredTests.length : 8).map((t) => (
                 <motion.div
                   key={t._id}
-                  whileHover={{ y: -8, scale: 1.02 }}
+                  whileHover={{ y: -4 }}
                   transition={{ duration: 0.2 }}
-                  className="group bg-white rounded-2xl shadow-lg hover:shadow-2xl border-2 border-gray-100 hover:border-blue-200 p-6 flex flex-col transition-all duration-300"
+                  className="group bg-white rounded-xl shadow-sm hover:shadow-md border border-gray-200 hover:border-[#0c213e]/20 flex flex-col transition-all duration-300"
                 >
-                  <div className="flex gap-4 mb-4">
-                    <div className="p-4 rounded-xl bg-gradient-to-br from-blue-50 to-cyan-50 group-hover:from-blue-100 group-hover:to-cyan-100 transition-colors shadow-md">
-                      <img
-                        src={getIconForTest(t)}
-                        alt={t.testName}
-                        className="w-10 h-10 object-contain"
-                      />
+                  <div className="p-6 flex flex-col flex-1">
+                    <div className="flex gap-4 mb-4">
+                      <div className="p-3 rounded-xl bg-[#0c213e]/5 group-hover:bg-[#0c213e]/10 transition-colors flex items-center justify-center text-2xl min-w-[56px] h-14">
+                        <img
+                          src={getIconForTest(t)}
+                          alt={t.testName}
+                          className="w-10 h-10 object-contain"
+                        />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-lg font-bold text-gray-900 mb-1.5 line-clamp-2 leading-tight">
+                          {t.testName}
+                        </h3>
+                        <p className="text-xs text-gray-600 line-clamp-2 leading-relaxed">
+                          {t.shortDescription || "Comprehensive diagnostic test"}
+                        </p>
+                      </div>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="text-lg font-bold text-gray-900 mb-2 line-clamp-2 leading-tight group-hover:text-[#0c213e] transition-colors">
-                        {t.testName}
-                      </h3>
-                      <p className="text-sm text-gray-600 line-clamp-2 leading-relaxed">
-                        {t.shortDescription || "Comprehensive diagnostic test"}
-                      </p>
-                    </div>
-                  </div>
 
-                  <div className="flex items-center justify-between mb-4 mt-auto">
-                    <div className="text-2xl font-bold text-gray-900">₹{t.price ?? "N/A"}</div>
                     {(t.lab?.name || t.labName) && (
-                      <span className="text-xs font-bold text-blue-600 bg-blue-50 px-3 py-1.5 rounded-full border border-blue-200">
-                        {t.lab?.name || t.labName}
-                      </span>
+                      <div className="flex items-center gap-2 mb-4">
+                        <div className="flex items-center gap-1.5 text-md text-gray-600">
+                          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                          <Building2 className="w-3.5 h-3.5" />
+                          <span className="font-medium">{t.lab?.name || t.labName}</span>
+                        </div>
+                      </div>
                     )}
-                  </div>
 
-                  <button
-                    onClick={() =>
-                      navigate(`/lab-test-details/${t._id}`, { state: { test: t } })
-                    }
-                    className="w-full bg-gradient-to-r from-[#0c213e] to-blue-600 text-white font-bold py-3.5 px-6 rounded-xl hover:shadow-xl hover:scale-105 active:scale-95 transition-all duration-300 flex items-center justify-center gap-2"
-                  >
-                    View Details
-                    <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                  </button>
+                    <div className="flex-1"></div>
+
+                    <div className="pt-4 border-t border-gray-100 mt-2">
+                      <div className="flex items-end justify-between mb-4">
+                        <div>
+                          <div className="text-2xl font-bold text-[#0c213e]">
+                            ₹{t.price ?? "N/A"}
+                          </div>
+                          <div className="text-xs text-gray-500 mt-0.5">Per Test</div>
+                        </div>
+                      </div>
+
+                      <button
+                        onClick={() => {
+                          window.location.href = `/lab-test-details/${t._id}`;
+                        }}
+                        className="w-full bg-[#0c213e] text-white font-semibold py-3 px-4 rounded-xl hover:bg-[#1a3557] active:scale-95 transition-all duration-300 flex items-center justify-center gap-2 text-sm cursor-pointer"
+                      >
+                        View Details
+                        <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                      </button>
+                    </div>
+                  </div>
                 </motion.div>
               ))}
             </div>
@@ -469,15 +482,15 @@ export default function LabTestsPage() {
         </section>
 
         {/* Health Packages Section */}
-        <section className="mb-16">
-          <div className="flex items-center justify-between mb-8">
+        <section>
+          <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
-              <div className="p-3 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl shadow-lg">
-                <Zap className="w-6 h-6 text-white" />
+              <div className="p-3 bg-[#1a3557] rounded-xl shadow-lg">
+                <Package className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h2 className="text-2xl md:text-3xl font-bold text-gray-900">Health Packages</h2>
-                <p className="text-sm text-gray-500">
+                <h2 className="text-2xl font-bold text-gray-900">Health Packages</h2>
+                <p className="text-sm text-gray-600 mt-1">
                   Complete checkup packages at best prices
                 </p>
               </div>
@@ -485,7 +498,7 @@ export default function LabTestsPage() {
             {filteredPackages.length > 8 && (
               <button
                 onClick={() => setShowAllPackages(!showAllPackages)}
-                className="group flex items-center gap-2 bg-white border-2 border-purple-500 text-purple-600 px-6 py-3 rounded-xl font-semibold hover:bg-purple-500 hover:text-white transition-all duration-300"
+                className="group flex items-center gap-2 bg-white border-2 border-[#1a3557] text-[#1a3557] px-6 py-3 rounded-xl font-semibold hover:bg-[#1a3557] hover:text-white transition-all duration-300"
               >
                 {showAllPackages ? "Show Less" : "View All"}
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
@@ -494,11 +507,27 @@ export default function LabTestsPage() {
           </div>
 
           {loading ? (
-            <div className="text-center py-10 text-gray-500">Loading packages...</div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {[...Array(6)].map((_, i) => (
+                <div
+                  key={i}
+                  className="bg-white rounded-xl shadow-sm p-6 animate-pulse border border-gray-200"
+                >
+                  <div className="flex gap-4 mb-4">
+                    <div className="w-14 h-14 bg-gray-200 rounded-xl"></div>
+                    <div className="flex-1 space-y-3">
+                      <div className="h-5 bg-gray-200 rounded w-3/4"></div>
+                      <div className="h-4 bg-gray-200 rounded w-full"></div>
+                    </div>
+                  </div>
+                  <div className="h-10 bg-gray-200 rounded-xl mt-4"></div>
+                </div>
+              ))}
+            </div>
           ) : filteredPackages.length === 0 ? (
             <div className="text-center py-20 bg-white rounded-3xl border-2 border-dashed border-gray-300">
               <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <SearchIcon className="w-10 h-10 text-gray-400" />
+                <Search className="w-10 h-10 text-gray-400" />
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-2">No Packages Found</h3>
               <p className="text-gray-500">Try adjusting your search criteria</p>
@@ -517,120 +546,175 @@ export default function LabTestsPage() {
                   return (
                     <motion.div
                       key={p._id || packageName}
-                      whileHover={{ y: -8, scale: 1.02 }}
+                      whileHover={{ y: -4 }}
                       transition={{ duration: 0.2 }}
-                      className="group bg-gradient-to-br from-white to-purple-50/30 rounded-2xl shadow-lg hover:shadow-2xl border-2 border-purple-100 hover:border-purple-300 p-6 flex flex-col transition-all duration-300"
+                      className="group bg-white rounded-xl shadow-sm hover:shadow-md border border-gray-200 hover:border-[#1a3557]/20 flex flex-col transition-all duration-300"
                     >
-                      <div className="flex gap-4 mb-4">
-                        <div className="p-4 rounded-xl bg-gradient-to-br from-purple-100 to-pink-100 group-hover:from-purple-200 group-hover:to-pink-200 transition-colors shadow-md">
-                          <img
-                            src={packageIcon}
-                            alt="Package"
-                            className="w-10 h-10 object-contain"
-                          />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <h3 className="text-lg font-bold text-gray-900 mb-2 line-clamp-2 leading-tight group-hover:text-purple-700 transition-colors">
-                            {packageName}
-                          </h3>
-                          <p className="text-sm text-gray-600 line-clamp-2 leading-relaxed">
-                            {description}
-                          </p>
-                        </div>
-                      </div>
-
-                      {Array.isArray(included) && included.length > 0 && (
-                        <div className="mb-4 bg-purple-50/50 rounded-lg p-3 border border-purple-100">
-                          <div className="text-xs font-bold text-purple-700 mb-1">
-                            Includes {included.length} tests:
+                      <div className="p-6 flex flex-col flex-1">
+                        <div className="flex gap-4 mb-4">
+                          <div className="p-3 rounded-xl bg-[#1a3557]/5 group-hover:bg-[#1a3557]/10 transition-colors flex items-center justify-center text-2xl min-w-[56px] h-14">
+                            <img
+                              src={packageIcon}
+                              alt="Package"
+                              className="w-10 h-10 object-contain"
+                            />
                           </div>
-                          <div className="text-xs text-gray-600 line-clamp-2">
-                            {included
-                              .slice(0, 2)
-                              .map((t: LabTest) => t.testName || t.name)
-                              .join(", ")}
-                            {included.length > 2 && ` +${included.length - 2} more`}
+                          <div className="flex-1 min-w-0">
+                            <h3 className="text-xl font-bold text-gray-900 mb-1.5 line-clamp-2 leading-tight">
+                              {packageName}
+                            </h3>
+                            <p className="text-md text-gray-600 line-clamp-2 leading-tight">
+                              {description}
+                            </p>
                           </div>
                         </div>
-                      )}
 
-                      <div className="flex items-center justify-between mb-4 mt-auto">
-                        <div className="text-2xl font-bold text-gray-900">₹{price}</div>
-                        {(p.lab?.name || p.labName) && (
-                          <span className="text-xs font-bold text-purple-600 bg-purple-50 px-3 py-1.5 rounded-full border border-purple-200">
-                            {p.lab?.name || p.labName}
-                          </span>
+                        {Array.isArray(included) && included.length > 0 && (
+                          <div className="mb-4">
+                            <div className="inline-flex items-center gap-1.5 bg-[#1a3557]/10 text-[#1a3557] px-3 py-1.5 rounded-lg text-xs font-semibold">
+                              <FlaskConical className="w-3.5 h-3.5" />
+                              <span>{included.length} Tests Included</span>
+                            </div>
+                          </div>
                         )}
-                      </div>
 
-                      <button
-                        onClick={() =>
-                          navigate(`/lab-package-details/${p._id}`, { state: { pkg: p } })
-                        }
-                        className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold py-3.5 px-6 rounded-xl hover:shadow-xl hover:scale-105 active:scale-95 transition-all duration-300 flex items-center justify-center gap-2"
-                      >
-                        View Package
-                        <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                      </button>
+                        {Array.isArray(included) && included.length > 0 && (
+                          <div className="mb-4 bg-blue-50/50 rounded-lg p-3 border border-blue-100">
+                            <div className="text-xs font-semibold text-gray-700 mb-1.5">
+                              Complete Package:
+                            </div>
+                            <div className="text-xs text-gray-600 line-clamp-2 leading-relaxed">
+                              {included
+                                .slice(0, 2)
+                                .map((t) => t.testName || t.name)
+                                .join(", ")}
+                              {included.length > 2 && ` +${included.length - 2} more`}
+                            </div>
+                          </div>
+                        )}
+
+                        {p.certified && (
+                          <div className="flex items-center gap-1.5 text-xs text-gray-600 mb-4">
+                            <Shield className="w-3.5 h-3.5 text-green-600" />
+                            <span className="font-medium">Lab Certified</span>
+                          </div>
+                        )}
+
+                        <div className="flex-1"></div>
+
+                        <div className="pt-4 border-t border-gray-100 mt-2">
+                          <div className="flex items-end justify-between mb-4">
+                            <div>
+                              <div className="text-2xl font-bold text-[#1a3557]">₹{price}</div>
+                              <div className="text-xs text-gray-500 mt-0.5">
+                                Complete Package
+                              </div>
+                            </div>
+                            {(p.lab?.name || p.labName) && (
+                              <span className="text-xs font-semibold text-[#1a3557] bg-[#1a3557]/10 px-3 py-1.5 rounded-lg flex items-center gap-1 justify-between">
+                                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                                {p.lab?.name || p.labName}
+                              </span>
+                            )}
+                          </div>
+
+                          <button
+                            onClick={() => {
+                              window.location.href = `/lab-package-details/${p._id}`;
+                            }}
+                            className="w-full bg-[#1a3557] text-white font-semibold py-3 px-4 rounded-xl hover:bg-[#0c213e] active:scale-95 transition-all duration-300 flex items-center justify-center gap-2 text-sm"
+                          >
+                            View Package
+                            <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                          </button>
+                        </div>
+                      </div>
                     </motion.div>
                   );
                 })}
             </div>
           )}
         </section>
+      </main>
 
-        {/* Women Care Section */}
-        <section>
-          <div className="flex items-center gap-3 mb-8">
-            <div className="p-3 bg-gradient-to-br from-pink-500 to-rose-500 rounded-xl shadow-lg">
-              <Heart className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <h2 className="text-2xl md:text-3xl font-bold text-gray-900">
-                Women&apos;s Health Care
-              </h2>
-              <p className="text-sm text-gray-500">Specialized tests for women&apos;s wellness</p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-            {womenCare.map((w) => {
-              const active = selectedHealthCheck === w.key;
-              return (
-                <motion.button
-                  key={w.key}
-                  whileHover={{ scale: 1.05, y: -5 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => setSelectedHealthCheck(active ? null : w.key)}
-                  className={`group relative flex flex-col items-center justify-center p-5 rounded-2xl border-2 transition-all duration-300 ${
-                    active
-                      ? "border-pink-500 bg-gradient-to-br from-pink-50 to-rose-50 shadow-xl"
-                      : "border-gray-200 bg-white hover:border-pink-300 hover:shadow-lg"
-                  }`}
+      {/* Filter Modal */}
+      <AnimatePresence>
+        {showFilterModal && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowFilterModal(false)}
+              className="fixed inset-0 bg-black/50 z-50"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="fixed inset-x-4 top-1/2 -translate-y-1/2 md:inset-x-auto md:left-1/2 md:-translate-x-1/2 md:w-full md:max-w-lg bg-white rounded-2xl shadow-2xl z-50 p-6"
+            >
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-bold text-gray-900">Filter by Category</h3>
+                <button
+                  onClick={() => setShowFilterModal(false)}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                 >
-                  {active && (
-                    <div className="absolute -top-2 -right-2 w-6 h-6 bg-pink-500 rounded-full flex items-center justify-center shadow-lg">
-                      <TrendingUp className="w-4 h-4 text-white" />
-                    </div>
-                  )}
-                  <div
-                    className={`p-4 rounded-xl bg-gradient-to-br ${w.color} shadow-lg mb-3 transform group-hover:scale-110 transition-transform duration-300`}
-                  >
-                    <img
-                      src={w.icon}
-                      alt={w.key}
-                      className="w-8 h-8 object-contain filter brightness-0 invert"
-                    />
-                  </div>
-                  <span className="text-sm font-bold text-gray-800 text-center leading-tight">
-                    {w.key}
-                  </span>
-                </motion.button>
-              );
-            })}
-          </div>
-        </section>
-      </div>
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 mb-6">
+                {categories.map((cat) => {
+                  const isActive = selectedCategories.includes(cat.key);
+                  return (
+                    <button
+                      key={cat.key}
+                      onClick={() => toggleCategory(cat.key)}
+                      className={`flex items-center gap-3 p-3 rounded-xl border-2 transition-all ${
+                        isActive
+                          ? "border-[#0c213e] bg-blue-50 shadow-md"
+                          : "border-gray-200 bg-white hover:border-blue-300 hover:shadow-sm"
+                      }`}
+                    >
+                      <div
+                        className={`w-10 h-10 rounded-lg bg-gradient-to-br ${cat.color} flex items-center justify-center shadow-md`}
+                      >
+                        <img
+                          src={cat.icon}
+                          alt={cat.key}
+                          className="w-5 h-5 object-contain filter brightness-0 invert"
+                        />
+                      </div>
+                      <span className="text-sm font-semibold text-gray-800">
+                        {cat.key}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="flex items-center justify-between gap-3">
+                <button
+                  onClick={() => {
+                    setSelectedCategories([]);
+                    setShowFilterModal(false);
+                  }}
+                  className="flex-1 border-2 border-gray-200 text-gray-700 font-semibold py-2.5 rounded-xl hover:bg-gray-50 transition-colors"
+                >
+                  Clear
+                </button>
+                <button
+                  onClick={() => setShowFilterModal(false)}
+                  className="flex-1 bg-[#0c213e] text-white font-semibold py-2.5 rounded-xl hover:bg-[#1a3557] transition-colors"
+                >
+                  Apply
+                </button>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

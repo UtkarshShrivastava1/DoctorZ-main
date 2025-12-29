@@ -17,6 +17,7 @@ import {
   Hospital,
   FlaskConical,
   LocateFixed,
+  Check,
 } from "lucide-react";
 import Cookies from "js-cookie";
 import { jwtDecode, type JwtPayload } from "jwt-decode";
@@ -29,10 +30,9 @@ export default function Navbar() {
   }
 
   interface LocationData {
-  city?: string;
-  countryName?: string;
-}
-
+    city?: string;
+    countryName?: string;
+  }
 
   const [mobileOpen, setMobileOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -44,7 +44,6 @@ export default function Navbar() {
   const token = Cookies.get("patientToken") || "";
   const decoded = token ? jwtDecode<MyTokenPayload>(token) : null;
 
-  // Get patientId from decoded token
   const patientId = decoded?.id || "";
 
   // ---------------- LOCATION ----------------
@@ -55,17 +54,42 @@ export default function Navbar() {
   const [locationError, setLocationError] = useState<string>("");
   const [locationDropdownOpen, setLocationDropdownOpen] =
     useState<boolean>(false);
-    const [manualLocation, setManualLocation] = useState("");
+  const [manualLocation, setManualLocation] = useState("");
+  const [selectedCity, setSelectedCity] = useState<string>("");
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [filteredCities, setFilteredCities] = useState<string[]>([]);
+
+  const cities = [
+    "Delhi",
+    "Mumbai",
+    "Bangalore",
+    "Hyderabad",
+    "Chennai",
+    "Kolkata",
+    "Pune",
+  ]
 
   const popularCities = [
-    "Delhi, India",
-    "Mumbai, India",
-    "Bangalore, India",
-    "Hyderabad, India",
-    "Chennai, India",
-    "Kolkata, India",
-    "Pune, India",
-    "Ahmedabad, India",
+    "Delhi",
+    "Mumbai",
+    "Bangalore",
+    "Hyderabad",
+    "Chennai",
+    "Kolkata",
+    "Pune",
+    "Ahmedabad",
+    "Jaipur",
+    "Surat",
+    "Lucknow",
+    "Kanpur",
+    "Nagpur",
+    "Indore",
+    "Thane",
+    "Bhopal",
+    "Visakhapatnam",
+    "Patna",
+    "Vadodara",
+    "Ghaziabad",
   ];
 
   useEffect(() => {
@@ -95,7 +119,7 @@ export default function Navbar() {
         const res = await fetch(
           `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`
         );
-        const data:LocationData = await res.json();
+        const data: LocationData = await res.json();
         const locationText = `${data.city || "Unknown"}, ${
           data.countryName || ""
         }`;
@@ -112,17 +136,31 @@ export default function Navbar() {
     fetchLocation();
   }, []);
 
+  const handleManualLocationSelect = (city: string) => {
+    setUserLocation(city);
+    localStorage.setItem("userLocation", city);
+    setShowLocationPopup(false);
+    setLocationDropdownOpen(false);
+    setSelectedCity("");
+    setManualLocation("");
+    setShowSuggestions(false);
+  };
 
-const handleManualLocationSelect = (city: string) => {
-  setUserLocation(city);
-  localStorage.setItem("userLocation", city);
-  setShowLocationPopup(false);
-  setLocationDropdownOpen(false);
-};
+  const handleCityClick = (city: string) => {
+    if (selectedCity === city) {
+      setSelectedCity("");
+    } else {
+      setSelectedCity(city);
+      setManualLocation("");
+      // Auto-confirm when city is clicked
+      handleManualLocationSelect(city);
+    }
+  };
 
   const handleUseCurrentLocation = async () => {
     setIsLocating(true);
     setLocationError("");
+    setShowSuggestions(false);
     try {
       const pos = await new Promise<GeolocationPosition>((resolve, reject) =>
         navigator.geolocation.getCurrentPosition(resolve, reject, {
@@ -141,11 +179,43 @@ const handleManualLocationSelect = (city: string) => {
       setUserLocation(locationText);
       localStorage.setItem("userLocation", locationText);
       setLocationDropdownOpen(false);
+      setSelectedCity("");
+      setManualLocation("");
     } catch {
       setLocationError("Failed to fetch location");
     } finally {
       setIsLocating(false);
     }
+  };
+
+  const handleConfirmLocation = () => {
+    if (selectedCity) {
+      handleManualLocationSelect(selectedCity);
+    } else if (manualLocation.trim()) {
+      handleManualLocationSelect(manualLocation.trim());
+    }
+  };
+
+  const handleInputChange = (value: string) => {
+    setManualLocation(value);
+    setSelectedCity("");
+    
+    if (value.trim().length > 0) {
+      const filtered = popularCities.filter(city =>
+        city.toLowerCase().includes(value.toLowerCase())
+      );
+      setFilteredCities(filtered);
+      setShowSuggestions(filtered.length > 0);
+    } else {
+      setShowSuggestions(false);
+      setFilteredCities([]);
+    }
+  };
+
+  const handleSuggestionClick = (city: string) => {
+    setManualLocation(city);
+    setShowSuggestions(false);
+    handleManualLocationSelect(city);
   };
 
   // ---------------- NAV ITEMS ----------------
@@ -220,11 +290,11 @@ const handleManualLocationSelect = (city: string) => {
               </DropdownMenu.Trigger>
 
               <DropdownMenu.Content
-                className="bg-white rounded-xl shadow-2xl border border-gray-100 w-80 z-[60]"
+                className="bg-white rounded-xl shadow-2xl border border-gray-100 w-76 z-[60]"
                 align="start"
                 sideOffset={5}
               >
-                <div className="p-4 space-y-4 max-h-[300px] overflow-y-auto">
+                <div className="p-4 space-y-4 max-h-[400px] overflow-y-auto">
                   {/* Current Location Button */}
                   <DropdownMenu.Item asChild>
                     <button
@@ -250,53 +320,80 @@ const handleManualLocationSelect = (city: string) => {
                     <div className="flex-1 h-px bg-gray-200"></div>
                   </div>
 
-                  <div>
-                    {/* <DropdownMenu.Item asChild> */}
-                      <div 
-                       onClick={(e) => e.stopPropagation()}
-                      className="flex items-center justify-center gap-1">
-  <input
-    type="text"
-    className="w-full border rounded-lg p-2"
-    placeholder="Enter your location"
-    value={manualLocation}
-    onChange={(e) => setManualLocation(e.target.value)}
-  />
+                  {/* Manual Input with Tick Icon */}
+                  <div className="relative">
+                    <div
+                      onClick={(e) => e.stopPropagation()}
+                      className="flex items-center gap-2"
+                    >
+                      <input
+                        type="text"
+                        className="flex-1 border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Enter your location"
+                        value={manualLocation}
+                        onChange={(e) => handleInputChange(e.target.value)}
+                        onFocus={() => {
+                          if (manualLocation.trim().length > 0 && filteredCities.length > 0) {
+                            setShowSuggestions(true);
+                          }
+                        }}
+                      />
 
-  <button
-    onClick={(e) => {
-       e.stopPropagation();
-      if (manualLocation.trim()) {
-        handleManualLocationSelect(manualLocation.trim());
-      }
-    }}
-    className="flex items-center p-2 rounded-lg border-2 border-green-200 bg-green-50 hover:bg-green-100 text-left transition-colors"
-  >
-    Ok
-  </button>
-</div>
-                    {/* </DropdownMenu.Item> */}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (manualLocation.trim()) {
+                            handleManualLocationSelect(manualLocation.trim());
+                          }
+                        }}
+                        disabled={!manualLocation.trim()}
+                        className={`flex items-center justify-center w-10 h-10 rounded-lg transition-colors ${
+                          manualLocation.trim()
+                            ? "bg-green-500 hover:bg-green-600 text-white"
+                            : "bg-gray-200 text-gray-400 cursor-not-allowed"
+                        }`}
+                      >
+                        <Check size={20} />
+                      </button>
+                    </div>
+
+                    {/* Suggestions Dropdown */}
+                    {showSuggestions && filteredCities.length > 0 && (
+                      <div className="absolute top-full left-0 right-12 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-[70] max-h-48 overflow-y-auto">
+                        {filteredCities.map((city) => (
+                          <button
+                            key={city}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleSuggestionClick(city);
+                            }}
+                            className="w-full text-left px-4 py-2.5 hover:bg-blue-50 hover:text-blue-600 transition-colors flex items-center gap-2 border-b border-gray-100 last:border-b-0"
+                          >
+                            <MapPin size={14} className="text-gray-400" />
+                            <span className="text-sm font-medium">{city}</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
 
-                  {/* Popular Cities Section */}
+                  {/* Popular Cities as Capsules */}
                   <div>
                     <div className="text-sm font-semibold mb-3 text-gray-700">
                       Popular Cities
                     </div>
-                    <div className="grid gap-2">
-                      {popularCities.map((city) => (
-                        <DropdownMenu.Item asChild key={city}>
-                          <button
-                            onClick={() => handleManualLocationSelect(city)}
-                            className="w-full text-left p-3 rounded-lg border hover:bg-blue-50 transition-colors"
-                          >
-                            <MapPin
-                              size={16}
-                              className="inline mr-2 text-gray-500"
-                            />
-                            {city}
-                          </button>
-                        </DropdownMenu.Item>
+                    <div className="flex flex-wrap gap-2">
+                      {cities.map((city) => (
+                        <button
+                          key={city}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleCityClick(city);
+                          }}
+                          className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all bg-gray-100 text-gray-700 hover:bg-blue-100 hover:text-blue-600 cursor-pointer"
+                        >
+                          {city}
+                        </button>
                       ))}
                     </div>
                   </div>
@@ -314,34 +411,30 @@ const handleManualLocationSelect = (city: string) => {
           </div>
 
           {/* Desktop Menu */}
-          {/* DESKTOP NAV */}
-    <div className="hidden md:flex items-center gap-8">
-      {navItems.map((item) => {
-        const active = location.pathname === item.path;
-        return (
-          <Link
-            key={item.path}
-            to={item.path}
-            className={`relative py-2 font-medium transition-all ${
-              active
-                ? "text-[#0C213E]"
-                : "text-gray-600 hover:text-[#0C213E]"
-            }`}
-          >
-            {item.label}
+          <div className="hidden md:flex items-center gap-8">
+            {navItems.map((item) => {
+              const active = location.pathname === item.path;
+              return (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  className={`relative py-2 font-medium transition-all ${
+                    active
+                      ? "text-[#0C213E]"
+                      : "text-gray-600 hover:text-[#0C213E]"
+                  }`}
+                >
+                  {item.label}
 
-            {/* SLIDING UNDERLINE */}
-            <span
-              className={`absolute left-0 bottom-0 h-[2px] bg-[#0C213E] transition-all duration-300 ${
-                active
-                  ? "w-full"
-                  : "w-0 group-hover:w-full"
-              }`}
-            />
-          </Link>
-        );
-      })}
-
+                  {/* SLIDING UNDERLINE */}
+                  <span
+                    className={`absolute left-0 bottom-0 h-[2px] bg-[#0C213E] transition-all duration-300 ${
+                      active ? "w-full" : "w-0 group-hover:w-full"
+                    }`}
+                  />
+                </Link>
+              );
+            })}
 
             {/* Register Dropdown */}
             {!isLoggedIn && (
@@ -539,14 +632,14 @@ const handleManualLocationSelect = (city: string) => {
               </button>
               <div>
                 <div className="text-sm font-semibold mb-3">Popular Cities</div>
-                <div className="grid gap-2">
+                <div className="flex flex-wrap gap-2">
                   {popularCities.map((city) => (
                     <button
                       key={city}
                       onClick={() => handleManualLocationSelect(city)}
-                      className="w-full text-left p-3 rounded-lg border hover:bg-blue-50 transition-colors"
+                      className="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium bg-gray-100 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
                     >
-                      <MapPin size={16} className="inline mr-2 text-gray-500" />
+                      <MapPin size={14} className="inline mr-1" />
                       {city}
                     </button>
                   ))}
