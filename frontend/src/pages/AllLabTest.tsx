@@ -309,16 +309,16 @@ export default function LabTestsPage() {
         <div className="max-w-7xl mx-auto px-4 py-6">
           <div className="flex items-center gap-3 mb-4">
             <h2 className="text-lg font-bold text-gray-900">Browse by Category</h2>
-            {selectedCategories.length > 0 && (
+            {/* {selectedCategories.length > 0 && (
               <button
                 onClick={() => setSelectedCategories([])}
                 className="text-sm text-[#0c213e] hover:underline font-medium"
               >
                 Clear
               </button>
-            )}
+            )} */}
           </div>
-          <div className="flex overflow-x-auto gap-3 pb-2 scrollbar-hide">
+          <div className="flex overflow-x-auto gap-3 pb-1 px-1 scrollbar-hide pt-2">
             {categories.map((cat) => {
               const isActive = selectedCategories.includes(cat.key);
               return (
