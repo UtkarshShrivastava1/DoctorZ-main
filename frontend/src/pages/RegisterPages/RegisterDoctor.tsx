@@ -1,9 +1,7 @@
-import React, {  useState } from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Helmet } from "react-helmet";
 import { useNavigate, useOutletContext } from "react-router-dom";
-// import { useWatch } from "react-hook-form";
-
 
 import { registerDoctor } from "../../Services/doctorApi";
 import { FileText, Upload } from "lucide-react";
@@ -35,25 +33,13 @@ interface ClinicContext {
   clinicId?: string;
 }
 
-
 const RegisterDoctor: React.FC = () => {
   const {
     register,
     handleSubmit,
     formState: { errors },
     reset,
-    // watch,
-    // control
   } = useForm<DoctorFormInputs>();
-
-    // const password = watch("password","");
-
-//     const password = useWatch({
-//   control,
-//   name: "password",
-//   defaultValue: ""
-// });
-
 
   const context = useOutletContext<ClinicContext | null>();
   const clinicId = context?.clinicId || null;
@@ -67,27 +53,7 @@ const RegisterDoctor: React.FC = () => {
   const [sigPreview, setSigPreview] = useState<string | null>(null);
 
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate()
-
-  //for password
-
-
-  const getPasswordStrength = (password: string) => {
-  if (!password) return { label: "", score: 0 };
-
-  let score = 0;
-  if (password.length >= 8) score++;
-  if (/[A-Z]/.test(password)) score++;
-  if (/[0-9]/.test(password)) score++;
-  if (/[^A-Za-z0-9]/.test(password)) score++;
-
-  if (score <= 1) return { label: "Weak", score };
-  if (score === 2 || score === 3) return { label: "Medium", score };
-  return { label: "Strong", score };
-};
-
-  // const strength = getPasswordStrength(password);
-
+  const navigate = useNavigate();
 
   const onSubmit = async (data: DoctorFormInputs) => {
     setLoading(true);
@@ -102,7 +68,7 @@ const RegisterDoctor: React.FC = () => {
     try {
       await registerDoctor(formData);
 
-      toast.success("Your details have been submitted for verification !", {
+      toast.success("Your details have been submitted for verification!", {
         duration: 3500,
       });
 
@@ -131,7 +97,7 @@ const RegisterDoctor: React.FC = () => {
     placeholder,
     registerField,
     error,
-    require,
+    required,
   }: {
     id: string;
     label: string;
@@ -139,25 +105,22 @@ const RegisterDoctor: React.FC = () => {
     placeholder?: string;
     registerField: any;
     error?: string;
-    require:string;
+    required?: boolean;
   }) => (
     <div className="relative">
       <label
         htmlFor={id}
         className="block text-sm font-semibold text-gray-700 mb-1"
       >
-        {label} 
-        {require ? (
-          <span className="text-red-500"> *</span>
-        ):""}
+        {label}
+        {required && <span className="text-red-500"> *</span>}
       </label>
-      
+
       <input
         id={id}
         type={type}
         placeholder={placeholder}
         {...registerField}
-        required={require}
         className="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-800 shadow-sm focus:ring-2 focus:ring-[#0c213e] focus:border-[#0c213e] transition-all"
       />
       {error && <p className="text-red-500 text-xs mt-1">{error}</p>}
@@ -218,27 +181,38 @@ const RegisterDoctor: React.FC = () => {
             encType="multipart/form-data"
           >
             {/* --- Doctor Info Title --- */}
-
             <h2 className="md:col-span-2 text-lg font-semibold text-[#0c213e] border-b border-[#0c213e]/20 pb-2 inline-block">
-              Doctor Information <span className="text-red-500 font-normal text-sm">( <span className="text-red-500">*</span> Shows required field )</span>
+              Doctor Information{" "}
+              <span className="text-red-500 font-normal text-sm">
+                ( <span className="text-red-500">*</span> Shows required field )
+              </span>
             </h2>
 
-            {/* <InputField
-              id="fullName"
-              label="Full Name"
-              placeholder="John Doe"
-              registerField={register("fullName", {
-                required: "Full name is required",
-              })}
-              error={errors.fullName?.message}
-            /> */}
+            {/* Full Name with Dr. prefix */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1" htmlFor="fullName">Full Name</label>
+              <label
+                className="block text-sm font-semibold text-gray-700 mb-1"
+                htmlFor="fullName"
+              >
+                Full Name <span className="text-red-500">*</span>
+              </label>
               <div className="flex items-center gap-1">
-
-              <span className="font-bold">Dr.</span>
-              <input id="fullName" type="text" placeholder="John Doe" className="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-800 shadow-sm focus:ring-2 focus:ring-[#0c213e] focus:border-[#0c213e] transition-all" required/>
+                <span className="font-bold">Dr.</span>
+                <input
+                  id="fullName"
+                  type="text"
+                  placeholder="John Doe"
+                  {...register("fullName", {
+                    required: "Full name is required",
+                  })}
+                  className="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-800 shadow-sm focus:ring-2 focus:ring-[#0c213e] focus:border-[#0c213e] transition-all"
+                />
               </div>
+              {errors.fullName && (
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.fullName.message}
+                </p>
+              )}
             </div>
 
             <div>
@@ -261,8 +235,27 @@ const RegisterDoctor: React.FC = () => {
               )}
             </div>
 
-            <InputField id="dob" label="Date of Birth" type="date" registerField={register("dob")} require="true" />
-            <InputField id="email" label="Email" type="email" placeholder="doctor@example.com" registerField={register("email")} require="true"/>
+            <InputField
+              id="dob"
+              label="Date of Birth"
+              type="date"
+              registerField={register("dob", {
+                required: "Date of birth is required",
+              })}
+              error={errors.dob?.message}
+              required
+            />
+            <InputField
+              id="email"
+              label="Email"
+              type="email"
+              placeholder="doctor@example.com"
+              registerField={register("email", {
+                required: "Email is required",
+              })}
+              error={errors.email?.message}
+              required
+            />
 
             <InputField
               id="mobileNo"
@@ -276,15 +269,71 @@ const RegisterDoctor: React.FC = () => {
                 },
               })}
               error={errors.mobileNo?.message}
-              require="true"
+              required
             />
 
-            <InputField id="regNumber" label="Medical Registration Number" placeholder="MED123456" registerField={register("regNumber")} require="true"/>
-            <InputField id="qualification" label="Qualification" placeholder="MBBS, MD" registerField={register("qualification")} require="true"/>
-            <InputField id="specialization" label="Specialization" placeholder="Dermatology" registerField={register("specialization")} require="true"/>
-            <InputField id="experience" label="Experience (Years)" placeholder="5" type="number" registerField={register("experience")} require="true"/>
-            <InputField id="fees" label="Consultation Fees" placeholder="500" type="number" registerField={register("fees")} require="true"/>
-            <InputField id="languages" label="Languages Known" placeholder="English, Hindi" registerField={register("languages")} require="true"/>
+            <InputField
+              id="regNumber"
+              label="Medical Registration Number"
+              placeholder="MED123456"
+              registerField={register("regNumber", {
+                required: "Registration number is required",
+              })}
+              error={errors.regNumber?.message}
+              required
+            />
+            <InputField
+              id="qualification"
+              label="Qualification"
+              placeholder="MBBS, MD"
+              registerField={register("qualification", {
+                required: "Qualification is required",
+              })}
+              error={errors.qualification?.message}
+              required
+            />
+            <InputField
+              id="specialization"
+              label="Specialization"
+              placeholder="Dermatology"
+              registerField={register("specialization", {
+                required: "Specialization is required",
+              })}
+              error={errors.specialization?.message}
+              required
+            />
+            <InputField
+              id="experience"
+              label="Experience (Years)"
+              placeholder="5"
+              type="number"
+              registerField={register("experience", {
+                required: "Experience is required",
+              })}
+              error={errors.experience?.message}
+              required
+            />
+            <InputField
+              id="fees"
+              label="Consultation Fees"
+              placeholder="500"
+              type="number"
+              registerField={register("fees", {
+                required: "Consultation fees is required",
+              })}
+              error={errors.fees?.message}
+              required
+            />
+            <InputField
+              id="languages"
+              label="Languages Known"
+              placeholder="English, Hindi"
+              registerField={register("languages", {
+                required: "Languages is required",
+              })}
+              error={errors.languages?.message}
+              required
+            />
 
             {/* --- Personal Details Title --- */}
             <h2 className="md:col-span-2 text-lg font-semibold text-[#0c213e] border-b border-[#0c213e]/20 pt-4 pb-2">
@@ -295,7 +344,7 @@ const RegisterDoctor: React.FC = () => {
               id="aadhar"
               label="Aadhar Number"
               placeholder="123456789012"
-              type="number"
+              type="text"
               registerField={register("aadhar", {
                 required: "Aadhar number is required",
                 pattern: {
@@ -304,7 +353,7 @@ const RegisterDoctor: React.FC = () => {
                 },
               })}
               error={errors.aadhar?.message}
-              require="true"
+              required
             />
 
             <InputField
@@ -319,12 +368,39 @@ const RegisterDoctor: React.FC = () => {
                 },
               })}
               error={errors.pan?.message}
-              require="true"
+              required
             />
 
-            <InputField id="address" label="Address" placeholder="123 Main Street" registerField={register("address")} require="true"/>
-            <InputField id="city" label="City" placeholder="Bhilai" registerField={register("city")} require="true"/>
-            <InputField id="state" label="State" placeholder="Chhattisgarh" registerField={register("state")} require="true"/>
+            <InputField
+              id="address"
+              label="Address"
+              placeholder="123 Main Street"
+              registerField={register("address", {
+                required: "Address is required",
+              })}
+              error={errors.address?.message}
+              required
+            />
+            <InputField
+              id="city"
+              label="City"
+              placeholder="Bhilai"
+              registerField={register("city", {
+                required: "City is required",
+              })}
+              error={errors.city?.message}
+              required
+            />
+            <InputField
+              id="state"
+              label="State"
+              placeholder="Chhattisgarh"
+              registerField={register("state", {
+                required: "State is required",
+              })}
+              error={errors.state?.message}
+              required
+            />
 
             <InputField
               id="password"
@@ -333,42 +409,14 @@ const RegisterDoctor: React.FC = () => {
               placeholder="••••••••"
               registerField={register("password", {
                 required: "Password is required",
+                minLength: {
+                  value: 6,
+                  message: "Password must be at least 6 characters",
+                },
               })}
               error={errors.password?.message}
-              require="true"
+              required
             />
-            {/* {password && (
-  <div className="mt-2">
-    <div className="flex gap-1 mb-1">
-      {[1, 2, 3, 4].map((level) => (
-        <div
-          key={level}
-          className={`h-1 w-full rounded ${
-            strength.score >= level
-              ? strength.label === "Weak"
-                ? "bg-red-500"
-                : strength.label === "Medium"
-                ? "bg-yellow-500"
-                : "bg-green-500"
-              : "bg-gray-200"
-          }`}
-        />
-      ))}
-    </div>
-
-    <p
-      className={`text-sm font-medium ${
-        strength.label === "Weak"
-          ? "text-red-500"
-          : strength.label === "Medium"
-          ? "text-yellow-600"
-          : "text-green-600"
-      }`}
-    >
-      {strength.label}
-    </p>
-  </div>
-)} */}
 
             {/* --- Upload Documents --- */}
             <h2 className="md:col-span-2 text-lg font-semibold text-[#0c213e] border-b border-[#0c213e]/20 pt-4 pb-2">
@@ -417,7 +465,11 @@ const RegisterDoctor: React.FC = () => {
                       accept={fileInput.accept}
                       className="hidden"
                       onChange={(e) =>
-                        handleFileChange(e, fileInput.setFile, fileInput.setPreview)
+                        handleFileChange(
+                          e,
+                          fileInput.setFile,
+                          fileInput.setPreview
+                        )
                       }
                     />
                   </label>
@@ -433,7 +485,9 @@ const RegisterDoctor: React.FC = () => {
                       ) : (
                         <div className="flex flex-col items-center text-gray-600 text-xs text-center">
                           <FileText size={20} />
-                          <p className="mt-1 truncate">{fileInput.file.name}</p>
+                          <p className="mt-1 truncate max-w-full">
+                            {fileInput.file.name}
+                          </p>
                         </div>
                       )}
                     </div>
