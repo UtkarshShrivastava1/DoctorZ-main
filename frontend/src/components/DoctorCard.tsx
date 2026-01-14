@@ -24,6 +24,9 @@ export interface Doctor {
   rating?: number;
   gender?: string;
   clinicId?: string;
+  totalRating:number;
+  ratingCount:number;
+
 }
 
 interface Props {
@@ -228,6 +231,41 @@ const DoctorCard: React.FC<Props> = ({
                 <span>{doctor.City}</span>
               </div>
             </div>
+
+            <div className="flex items-center gap-2 mt-2">
+  {/* {[1, 2, 3, 4, 5].map((star) => (
+    <span
+      key={star}
+      className={`text-lg 
+        ${
+        star <= Math.round({`${(doctor.totalrating)/(doctor.ratingCount)}`})
+          ? "text-yellow-400"
+          : "text-gray-300"
+      }`}
+    >
+      ★
+    </span>
+  ))} */}
+
+
+  {[1].map((star) => (
+    <span
+      key={star}
+      className={`text-lg 
+        ${
+        star <= Math.round(1.2)
+          ? "text-yellow-400"
+          : "text-gray-300"
+      }`}
+    >
+      ★
+    </span>
+  ))}
+  <span className="text-sm text-gray-600">
+    {(doctor.totalRating)/(doctor.ratingCount)} ({doctor.ratingCount} reviews)
+  </span>
+</div>
+
 
             <div className="flex flex-col md:flex-row justify-between items-center mt-4 gap-3 w-full">
               <div className="text-left w-full md:w-auto">
