@@ -32,6 +32,8 @@ const PatientAppointments: React.FC = () => {
   const [showModal, setShowModal] = useState(false);
   const [selectedDoctorId, setSelectedDoctorId] = useState<string | null>(null);
   const [feedback, setFeedback] = useState("");
+  const [rating, setRating] = useState(0);
+const [hoverRating, setHoverRating] = useState(0);
 
   useEffect(() => {
     const fetchDoctors = async () => {
@@ -48,12 +50,17 @@ const PatientAppointments: React.FC = () => {
 
   // 🔥 Submit review
   const handleSubmitReview = async () => {
-    if (!feedback.trim()) return alert("Please enter feedback!");
-
+     if (rating === 0) {
+    alert('Please select a rating');
+    return;
+  }
+    // if (!feedback.trim()) return alert("Please enter feedback!");
+    console.log({ rating, feedback });
     try {
       await api.post(`/api/doctor/review/${selectedDoctorId}`, {
         userId: patientId,
         comment: feedback,
+        rating:rating,
       });
 
       alert("Review Added Successfully!");
@@ -132,39 +139,88 @@ const PatientAppointments: React.FC = () => {
         <div 
           className="fixed inset-0 flex justify-center items-center z-50 animate-fadeIn"
           style={{
-            backdropFilter: 'blur(8px)',
-            backgroundColor: 'rgba(255, 255, 255, 0.3)'
+            backdropFilter: 'blur(4px)',
+            backgroundColor: 'rgba(0, 0, 0, 0.4)'
           }}
           onClick={() => setShowModal(false)}
         >
           <div 
-            className="bg-white p-6 rounded-2xl w-96 shadow-2xl animate-scaleIn"
+            className="bg-white p-8 rounded-xl w-[480px] shadow-xl animate-scaleIn"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center gap-2 mb-4">
-              {/* <div className="bg-gradient-to-r from-purple-500 to-pink-500 p-2 rounded-lg">
-                <Star className="text-white" size={24} />
-              </div> */}
-              <h3 className="text-xl font-bold">Write a Review</h3>
+            {/* Header */}
+            <div className="mb-6 pb-4 border-b border-gray-200">
+              <h3 className="text-2xl font-semibold text-[#0c213e]">Share Your Experience</h3>
+              <p className="text-sm text-gray-500 mt-1">Your feedback helps us improve our services</p>
             </div>
 
-            <textarea
-              className="w-full h-32 border-2 border-gray-200 p-3 rounded-lg focus:border-purple-500 focus:outline-none transition-colors resize-none"
-              value={feedback}
-              onChange={(e) => setFeedback(e.target.value)}
-              placeholder="Share your experience with the doctor..."
-            />
+            {/* Star Rating */}
+            <div className="mb-6">
+              <label className="text-sm font-semibold text-[#0c213e] mb-3 block">
+                Rate Your Experience
+              </label>
+              <div className="flex gap-3 justify-center py-2">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <button
+                    key={star}
+                    type="button"
+                    onClick={() => setRating(star)}
+                    onMouseEnter={() => setHoverRating(star)}
+                    onMouseLeave={() => setHoverRating(0)}
+                    className="transition-transform hover:scale-125 focus:outline-none cursor-pointer"
+                  >
+                    <Star
+                      size={36}
+                      className={`${
+                        star <= (hoverRating || rating)
+                          ? 'fill-[#0c213e] text-[#0c213e]'
+                          : 'text-gray-300'
+                      } transition-all duration-200`}
+                      strokeWidth={1.5}
+                    />
+                  </button>
+                ))}
+              </div>
+              {rating > 0 && (
+                <p className="text-center text-sm text-gray-600 mt-2">
+                  {rating === 1 && "Poor"}
+                  {rating === 2 && "Fair"}
+                  {rating === 3 && "Good"}
+                  {rating === 4 && "Very Good"}
+                  {rating === 5 && "Excellent"}
+                </p>
+              )}
+            </div>
 
-            <div className="flex justify-end gap-3 mt-4">
+            {/* Feedback */}
+            <div className="mb-6">
+              <label className="text-sm font-semibold text-[#0c213e] mb-2 block">
+                Additional Comments (Optional)
+              </label>
+              <textarea
+                className="w-full h-28 border border-gray-300 p-3 rounded-lg focus:border-[#0c213e] focus:ring-2 focus:ring-[#0c213e] focus:ring-opacity-20 focus:outline-none transition-all resize-none text-gray-700 text-sm"
+                value={feedback}
+                onChange={(e) => setFeedback(e.target.value)}
+                placeholder="Tell us about your experience with the doctor and the care you received..."
+              />
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex justify-end gap-3">
               <button 
-                onClick={() => setShowModal(false)} 
-                className="px-4 py-2 border-2 border-gray-300 rounded-lg hover:bg-gray-100 transition-colors font-medium"
+                onClick={() => {
+                  setShowModal(false);
+                  setRating(0);
+                  setFeedback('');
+                }} 
+                className="px-6 py-2.5 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium text-gray-700 text-sm"
               >
                 Cancel
               </button>
               <button 
                 onClick={handleSubmitReview} 
-                className="px-4 py-2 text-white bg-[#0c213e] rounded-lg transition-all duration-300 font-medium shadow-md hover:shadow-lg"
+                disabled={rating === 0}
+                className="px-6 py-2.5 text-white bg-[#0c213e] rounded-lg transition-all duration-200 font-medium shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed text-sm"
               >
                 Submit Review
               </button>
