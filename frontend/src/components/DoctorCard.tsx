@@ -261,8 +261,8 @@ const DoctorCard: React.FC<Props> = ({
       ★
     </span>
   ))}
-  <span className="text-sm text-gray-600">
-    {(doctor.totalRating)/(doctor.ratingCount)} ({doctor.ratingCount} reviews)
+  <span className="text-sm font-semibold text-gray-600">
+    {Number(doctor.totalRating)/Number(doctor.ratingCount)} ({(doctor.ratingCount)} reviews)
   </span>
 </div>
 
