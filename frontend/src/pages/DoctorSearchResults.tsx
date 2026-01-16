@@ -81,9 +81,16 @@ const DoctorSearchResults: React.FC = () => {
   // const [location, setLocation] = useState("");
 
   // ✅ Fetch Doctors
-  useEffect(() => {
 
-     const savedLocation = localStorage.getItem("userLocation");
+    //   const setLocationLocallyForSearch = (value:string)=>{
+    //   setLocationValue(value);
+
+    //   localStorage.setItem("userLocation",value);
+
+    // }
+  useEffect(() => {
+    
+    const savedLocation = localStorage.getItem("userLocation");
     if (savedLocation) {
       setLocationValue(savedLocation);
     }
@@ -106,6 +113,13 @@ const DoctorSearchResults: React.FC = () => {
     };
     fetchDoctors();
   }, []);
+
+  useEffect(()=>{
+    // if(setLocationValue!){
+      localStorage.setItem("userLocation",locationValue)
+    // }
+
+  },[locationValue])
 
   // ✅ Utility for date filter
   const hasSlotForDate = (doc: any, date?: string) => {
@@ -336,6 +350,9 @@ const DoctorSearchResults: React.FC = () => {
             icon={<MapPin className="w-4 h-4 text-gray-400" />}
             placeholder="Location"
             value={locationValue}
+            // onChange={(e)=>{
+            //   setLocationLocallyForSearch(e.target.value)
+            // }}
             onChange={setLocationValue}
           />
           {/* <SearchInput
