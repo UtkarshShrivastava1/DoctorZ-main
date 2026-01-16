@@ -1,7 +1,4 @@
-
-
-
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import {
@@ -72,8 +69,15 @@ const ClinicSearchResults: React.FC = () => {
   const [locationValue, setLocationValue] = useState(searchState.location || "");
   const [date, setDate] = useState(searchState.date || "");
 
+  // Autocomplete states
+  const [showSpecialtyDropdown, setShowSpecialtyDropdown] = useState(false);
+  const [showLocationDropdown, setShowLocationDropdown] = useState(false);
+  const specialtyInputRef = useRef<HTMLInputElement>(null);
+  const locationInputRef = useRef<HTMLInputElement>(null);
+  const specialtyDropdownRef = useRef<HTMLDivElement>(null);
+  const locationDropdownRef = useRef<HTMLDivElement>(null);
+
   // Filters
-  // specialtyFilters: checkboxes in sidebar (multi-select). We also use `specialty` text input as OR with these.
   const [specialtyFilters, setSpecialtyFilters] = useState<string[]>([]);
   const [typeFilters, setTypeFilters] = useState<string[]>([]);
   const [expFilters, setExpFilters] = useState<string[]>([]);
@@ -81,28 +85,128 @@ const ClinicSearchResults: React.FC = () => {
   // Misc UI
   const [showMobileFilters, setShowMobileFilters] = useState(false);
 
-  // Helper: add mock fields so experience filter can work (keeps your previous behaviour)
+  // Get unique specialties from clinics
+  // const availableSpecialties = useMemo(() => {
+  //   const specialties = new Set<string>();
+  //   clinics.forEach((clinic) => {
+  //     if (clinic.specialities && Array.isArray(clinic.specialities)) {
+  //       clinic.specialities.forEach((spec) => {
+  //         if (spec) specialties.add(spec.trim());
+  //       });
+  //     }
+  //   });
+  //   return Array.from(specialties).sort();
+  // }, [clinics]);
+
+  const availableSpecialties = useMemo(() => {
+  const specialties = new Set<string>();
+
+  const cleanSpec = (value: string) =>
+    value.length > 4 ? value.slice(2, -2).trim() : "";
+
+  clinics.forEach((clinic) => {
+    if (clinic.specialities && Array.isArray(clinic.specialities)) {
+      clinic.specialities.forEach((spec) => {
+        const cleaned = cleanSpec(spec);
+        if (cleaned) specialties.add(cleaned);
+      });
+    }
+  });
+
+  return Array.from(specialties).sort();
+}, [clinics]);
+
+
+  // Get unique locations from clinics
+  const availableLocations = useMemo(() => {
+    const locations = new Set<string>();
+    clinics.forEach((clinic) => {
+      if (clinic.district) locations.add(clinic.district.trim());
+      if (clinic.state) locations.add(clinic.state.trim());
+      if (clinic.address) locations.add(clinic.address.trim());
+    });
+    return Array.from(locations).sort();
+  }, [clinics]);
+
+  // Filter specialties based on input
+  // const filteredSpecialties = useMemo(() => {
+  //   if (!specialty) return availableSpecialties.slice(0, 8);
+  //   return availableSpecialties
+  //     .filter((s) => s.toLowerCase().includes(specialty.toLowerCase()))
+  //     .slice(0, 8);
+  // }, [specialty, availableSpecialties]);
+
+  const filteredSpecialties = useMemo(() => {
+  if (!specialty) return availableSpecialties.slice(0, 8);
+
+  const cleanedSpecialty =
+    typeof specialty === "string"
+      ? specialty.slice(2, -2)
+      : "";
+      // console.log(cleanedSpecialty)
+
+  return availableSpecialties
+    .filter((s) =>
+      s.toLowerCase().includes(cleanedSpecialty.toLowerCase())
+    )
+    .slice(0, 8);
+}, [specialty, availableSpecialties]);
+
+// console.log(availableSpecialties)
+
+
+
+
+  // Filter locations based on input
+  const filteredLocations = useMemo(() => {
+    if (!locationValue) return availableLocations.slice(0, 8);
+    return availableLocations
+      .filter((l) => l.toLowerCase().includes(locationValue.toLowerCase()))
+      .slice(0, 8);
+  }, [locationValue, availableLocations]);
+
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        specialtyDropdownRef.current &&
+        !specialtyDropdownRef.current.contains(event.target as Node) &&
+        !specialtyInputRef.current?.contains(event.target as Node)
+      ) {
+        setShowSpecialtyDropdown(false);
+      }
+      if (
+        locationDropdownRef.current &&
+        !locationDropdownRef.current.contains(event.target as Node) &&
+        !locationInputRef.current?.contains(event.target as Node)
+      ) {
+        setShowLocationDropdown(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Helper: add mock fields so experience filter can work
   const enhanceClinicsWithMockData = (clinics: Clinic[]): Clinic[] =>
     clinics.map((clinic) => ({
       ...clinic,
       rating: clinic.rating ?? Math.random() * 2 + 3,
       patientCount: clinic.patientCount ?? Math.floor(Math.random() * 5000) + 1000,
-      // If API doesn't provide establishedYear, create a plausible one
       establishedYear: clinic.establishedYear ?? Math.floor(Math.random() * 30) + 1995,
     }));
 
   useEffect(() => {
-
     const savedLocation = localStorage.getItem("userLocation");
     if (savedLocation) {
       setLocationValue(savedLocation);
     }
+
     const fetchClinics = async () => {
       setLoading(true);
       try {
         const response = await api.get(API);
-        // console.log("API response:", response.data);
-        // Support both { clinics: [...] } and { clinic: [...] } shapes (defensive)
         const responseData = response.data as any;
         const data: Clinic[] =
           responseData?.clinics || responseData?.clinic || responseData || [];
@@ -117,8 +221,11 @@ const ClinicSearchResults: React.FC = () => {
     };
 
     fetchClinics();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    localStorage.setItem("userLocation", locationValue);
+  }, [locationValue]);
 
   // Toggle helper for multi-select filters
   const toggleMulti = (setter: React.Dispatch<React.SetStateAction<string[]>>, val: string) => {
@@ -126,20 +233,19 @@ const ClinicSearchResults: React.FC = () => {
     setCurrentPage(1);
   };
 
-  // Main filtering logic (Option A: only keep filters that actually exist or we can reasonably infer)
+  // Main filtering logic
   const filtered = useMemo(() => {
     const loc = locationValue.trim().toLowerCase();
     const specText = specialty.trim().toLowerCase();
 
     return clinics.filter((clinic) => {
-      // Normalize some fields defensively
       const clinicName = (clinic.clinicName || "").toLowerCase();
       const district = (clinic.district || "").toLowerCase();
       const state = (clinic.state || "").toLowerCase();
       const cType = (clinic.clinicType || "").toLowerCase();
       const specialities = (clinic.specialities || []).map((s) => s.toLowerCase());
 
-      // 1) Specialty match: either text input OR sidebar specialty filters (OR logic across them)
+      // Specialty match
       let matchesSpec = true;
       if (specText) {
         matchesSpec = clinicName.includes(specText) || specialities.some((s) => s.includes(specText));
@@ -147,16 +253,16 @@ const ClinicSearchResults: React.FC = () => {
       if (specialtyFilters.length > 0) {
         const sfLower = specialtyFilters.map((s) => s.toLowerCase());
         const matchesSidebarSpec = specialities.some((s) => sfLower.some((f) => s.includes(f)));
-        matchesSpec = matchesSpec && matchesSidebarSpec; // Both text and sidebar must pass if both provided
+        matchesSpec = matchesSpec && matchesSidebarSpec;
       }
       if (!matchesSpec) return false;
 
-      // 2) Location filter
+      // Location filter
       if (loc) {
         if (!district.includes(loc) && !state.includes(loc) && !clinicName.includes(loc)) return false;
       }
 
-      // 3) Experience (years operating)
+      // Experience filter
       if (expFilters.length > 0) {
         const established = clinic.establishedYear ?? 0;
         const currentYear = new Date().getFullYear();
@@ -175,10 +281,9 @@ const ClinicSearchResults: React.FC = () => {
         if (!matchesExp) return false;
       }
 
-      // 4) Clinic type filter (normalize and allow partial match)
+      // Clinic type filter
       if (typeFilters.length > 0) {
         const lowerTypeFilters = typeFilters.map((t) => t.toLowerCase());
-        // match if any selected type is included in clinic.clinicType or vice versa
         const matchesType = lowerTypeFilters.some((t) => cType.includes(t) || t.includes(cType));
         if (!matchesType) return false;
       }
@@ -187,7 +292,7 @@ const ClinicSearchResults: React.FC = () => {
     });
   }, [clinics, specialty, specialtyFilters, locationValue, expFilters, typeFilters]);
 
-  // Put favorites on top
+  // Sort favorites first
   const sortedClinics = useMemo(() => {
     return [...filtered].sort((a, b) => {
       if (a.isFavourite === b.isFavourite) return 0;
@@ -195,7 +300,7 @@ const ClinicSearchResults: React.FC = () => {
     });
   }, [filtered]);
 
-  // Pagination slices
+  // Pagination
   const indexOfLastClinic = currentPage * clinicsPerPage;
   const indexOfFirstClinic = indexOfLastClinic - clinicsPerPage;
   const currentClinics = sortedClinics.slice(indexOfFirstClinic, indexOfLastClinic);
@@ -213,7 +318,6 @@ const ClinicSearchResults: React.FC = () => {
 
   const handleSearch = () => {
     setCurrentPage(1);
-    // Keep behavior same as before: navigate with state
     navigate("/clinic-search-results", {
       state: { location: locationValue, specialty, date },
       replace: true,
@@ -336,40 +440,48 @@ const ClinicSearchResults: React.FC = () => {
             </button>
           </div>
 
-          {/* Search Bar */}
+          {/* Search Bar with Autocomplete */}
           <div className="bg-white border border-gray-400 rounded-lg p-3 mb-4 shadow-sm">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-              <div className="flex items-center gap-2 border border-gray-200 rounded-lg px-3 py-1.5 bg-white">
-                <Stethoscope className="w-4 h-4 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Specialty (e.g. Dental)"
-                  className="w-full outline-none text-gray-700 font-semibold"
-                  value={specialty}
-                  onChange={(e) => setSpecialty(e.target.value)}
-                />
-              </div>
+              {/* Specialty Input with Autocomplete */}
+              <AutocompleteInput
+                ref={specialtyInputRef}
+                icon={<Stethoscope className="w-4 h-4 text-gray-400" />}
+                placeholder="Specialty (e.g. Dental)"
+                value={specialty}
+                onChange={(val) => {
+                  setSpecialty(val);
+                  setShowSpecialtyDropdown(true);
+                }}
+                onFocus={() => setShowSpecialtyDropdown(true)}
+                showDropdown={showSpecialtyDropdown}
+                suggestions={filteredSpecialties}
+                onSelectSuggestion={(val) => {
+                  setSpecialty(val);
+                  setShowSpecialtyDropdown(false);
+                }}
+                dropdownRef={specialtyDropdownRef}
+              />
 
-              <div className="flex items-center gap-2 border border-gray-200 rounded-lg px-3 py-1.5 bg-white">
-                <MapPin className="w-4 h-4 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Location (district or state)"
-                  className="w-full outline-none text-gray-700 font-semibold"
-                  value={locationValue}
-                  onChange={(e) => setLocationValue(e.target.value)}
-                />
-              </div>
-
-              {/* <div className="flex items-center gap-2 border border-gray-200 rounded-lg px-3 py-1.5 bg-white">
-                <Calendar className="w-4 h-4 text-gray-400" />
-                <input
-                  type="date"
-                  className="w-full outline-none text-gray-700"
-                  value={date}
-                  onChange={(e) => setDate(e.target.value)}
-                />
-              </div> */}
+              {/* Location Input with Autocomplete */}
+              <AutocompleteInput
+                ref={locationInputRef}
+                icon={<MapPin className="w-4 h-4 text-gray-400" />}
+                placeholder="Location (district or state)"
+                value={locationValue}
+                onChange={(val) => {
+                  setLocationValue(val);
+                  setShowLocationDropdown(true);
+                }}
+                onFocus={() => setShowLocationDropdown(true)}
+                showDropdown={showLocationDropdown}
+                suggestions={filteredLocations}
+                onSelectSuggestion={(val) => {
+                  setLocationValue(val);
+                  setShowLocationDropdown(false);
+                }}
+                dropdownRef={locationDropdownRef}
+              />
 
               <button
                 onClick={handleSearch}
@@ -531,5 +643,71 @@ const ClinicSearchResults: React.FC = () => {
     </div>
   );
 };
+
+/* 🔹 Autocomplete Input Component */
+const AutocompleteInput = React.forwardRef<
+  HTMLInputElement,
+  {
+    icon: React.ReactNode;
+    placeholder: string;
+    value: string;
+    onChange: (value: string) => void;
+    onFocus: () => void;
+    showDropdown: boolean;
+    suggestions: string[];
+    onSelectSuggestion: (value: string) => void;
+    dropdownRef: React.RefObject<HTMLDivElement>;
+  }
+>(
+  (
+    {
+      icon,
+      placeholder,
+      value,
+      onChange,
+      onFocus,
+      showDropdown,
+      suggestions,
+      onSelectSuggestion,
+      dropdownRef,
+    },
+    ref
+  ) => (
+    <div className="relative">
+      <div className="flex items-center gap-2 border border-gray-200 rounded-lg px-3 py-1.5 bg-white">
+        {icon}
+        <input
+          ref={ref}
+          type="text"
+          placeholder={placeholder}
+          className="w-full outline-none text-gray-700 font-semibold"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          onFocus={onFocus}
+          autoComplete="off"
+        />
+      </div>
+
+      {/* Dropdown */}
+      {showDropdown && suggestions.length > 0 && (
+        <div
+          ref={dropdownRef}
+          className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto"
+        >
+          {suggestions.map((suggestion, index) => (
+            <button
+              key={index}
+              type="button"
+              className="w-full text-left px-4 py-2 border-b border-gray-100  hover:bg-gray-100 text-sm text-gray-700 transition-colors first:rounded-t-lg last:rounded-b-lg"
+              onClick={() => onSelectSuggestion(suggestion)}
+            >
+              {suggestion}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+);
 
 export default ClinicSearchResults;
