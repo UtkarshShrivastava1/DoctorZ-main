@@ -656,7 +656,7 @@ const AutocompleteInput = React.forwardRef<
       {showDropdown && suggestions.length > 0 && (
         <div
           ref={dropdownRef}
-          className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto"
+          className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto no-scrollbar"
         >
           {suggestions.map((suggestion, index) => (
             <button
