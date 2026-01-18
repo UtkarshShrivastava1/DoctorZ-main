@@ -15,7 +15,9 @@ import {
   XMarkIcon,
   ArrowRightOnRectangleIcon,
   Bars3Icon,
+  PlusIcon,
 } from "@heroicons/react/24/outline";
+
 import {
   HomeIcon as HomeIconSolid,
   UserIcon as UserIconSolid,
@@ -23,6 +25,7 @@ import {
   CalendarIcon as CalendarIconSolid,
   UsersIcon as UsersIconSolid,
   BellIcon as BellIconSolid,
+  PlusIcon as PlusIconSolid,
 } from "@heroicons/react/24/solid";
 import api from "../../Services/mainApi";
 
@@ -122,6 +125,12 @@ export default function DoctorDashboard() {
       path: "doctorProfile",
       icon: UserIcon,
       iconSolid: UserIconSolid,
+    },
+    {
+      name: "Add Medicine",
+      path: "add-medicine",
+      icon: PlusIcon,
+      iconSolid: PlusIconSolid,
     },
   ];
 

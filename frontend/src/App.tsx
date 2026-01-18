@@ -80,6 +80,7 @@ import LabTestInUser from "./pages/UserPages/LabTestInUser";
 
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import AddMedicine from "./pages/DoctorPages/AddMedicine";
 
 
 const App: React.FC = () => {
@@ -182,6 +183,7 @@ const App: React.FC = () => {
             />
             <Route path="doctorProfile" element={<DoctorProfile />} />
             <Route path="notifications" element={<DoctorNotifications />} />
+            <Route path="add-medicine" element={<AddMedicine />} />
           </Route>
 
           {/* Admin Dashboard */}
