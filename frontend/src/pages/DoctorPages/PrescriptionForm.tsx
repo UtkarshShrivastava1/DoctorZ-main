@@ -51,20 +51,11 @@ const PrescriptionForm: React.FC = () => {
   const [medicineQty, setMedicineQty] = useState("");
   const [medicines, setMedicines] = useState<Medicine[]>([]);
 
-  // Fixed/constant medicine list
-  const [allMedicines] = useState<string[]>([
-    "Paracetamol",
-    "Ibuprofen",
-    "Amoxicillin",
-    "Cetirizine",
-    "Azithromycin",
-    "Dolo 650",
-  ]);
-
-  const [filteredMedicines, setFilteredMedicines] = useState<string[]>(
-    []
-  );
+  // Medicine list from API
+  const [allMedicines, setAllMedicines] = useState<string[]>([]);
+  const [filteredMedicines, setFilteredMedicines] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [loadingMedicines, setLoadingMedicines] = useState(false);
 
   const [notes, setNotes] = useState("");
   const [loading, setLoading] = useState(false);
@@ -74,6 +65,44 @@ const PrescriptionForm: React.FC = () => {
     console.log("PrescriptionForm params:", { bookingId, patientAadhar });
     console.log("location.state:", location.state);
   }, [bookingId, patientAadhar, location.state]);
+
+  // Fetch medicine list from API
+  useEffect(() => {
+    const fetchMedicineList = async () => {
+      if (!doctorId) {
+        console.warn("No doctorId found, skipping medicine list fetch");
+        return;
+      }
+
+      setLoadingMedicines(true);
+      try {
+        const response = await api.get(`/api/doctor/medicine-list/${doctorId}`);
+        
+        if (response.data.success && Array.isArray(response.data.listOfMedicine)) {
+          setAllMedicines(response.data.listOfMedicine);
+          console.log("Fetched medicines:", response.data.listOfMedicine);
+        } else {
+          console.warn("Unexpected response format:", response.data);
+          setAllMedicines([]);
+        }
+      } catch (error) {
+        console.error("Error fetching medicine list:", error);
+        // Fallback to default medicines if API fails
+        setAllMedicines([
+          "Paracetamol",
+          "Ibuprofen",
+          "Amoxicillin",
+          "Cetirizine",
+          "Azithromycin",
+          "Dolo 650",
+        ]);
+      } finally {
+        setLoadingMedicines(false);
+      }
+    };
+
+    fetchMedicineList();
+  }, [doctorId]);
 
   // Safely load all diseases from JSON once
   useEffect(() => {
@@ -155,7 +184,7 @@ const PrescriptionForm: React.FC = () => {
     }
 
     const filtered = allMedicines.filter((m) =>
-      m.toLowerCase().startsWith(query.toLowerCase())
+      m.toLowerCase().includes(query.toLowerCase())
     );
 
     setFilteredMedicines(filtered.slice(0, 10));
@@ -418,7 +447,8 @@ const PrescriptionForm: React.FC = () => {
                   onChange={(e) => handleMedicineSearch(e.target.value)}
                   onFocus={() => medicineName && setShowSuggestions(true)}
                   className="border rounded-lg p-3 w-full"
-                  placeholder="Medicine name"
+                  placeholder={loadingMedicines ? "Loading medicines..." : "Medicine name"}
+                  disabled={loadingMedicines}
                 />
 
                 {showSuggestions && filteredMedicines.length > 0 && (
