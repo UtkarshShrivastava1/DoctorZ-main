@@ -77,6 +77,7 @@ const PrescriptionForm: React.FC = () => {
       setLoadingMedicines(true);
       try {
         const response = await api.get(`/api/doctor/medicine-list/${doctorId}`);
+        console.log(response)
         
         if (response.data.success && Array.isArray(response.data.listOfMedicine)) {
           setAllMedicines(response.data.listOfMedicine);
