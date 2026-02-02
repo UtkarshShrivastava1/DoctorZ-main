@@ -40,7 +40,7 @@ const RegisterClinic: React.FC = () => {
   const generateStaffID = (length = 8) => {
     const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
     return Array.from({ length }, () =>
-      chars.charAt(Math.floor(Math.random() * chars.length))
+      chars.charAt(Math.floor(Math.random() * chars.length)),
     ).join("");
   };
 
@@ -79,7 +79,7 @@ const RegisterClinic: React.FC = () => {
       console.error("❌ Error submitting form:", err);
       toast.error(
         err?.response?.data?.message ||
-          "Registration failed. Please try again."
+          "Registration failed. Please try again.",
       );
     } finally {
       setLoading(false);
@@ -93,6 +93,7 @@ const RegisterClinic: React.FC = () => {
     placeholder,
     registerField,
     error,
+    require,
   }: {
     id: string;
     label: string;
@@ -100,6 +101,7 @@ const RegisterClinic: React.FC = () => {
     placeholder?: string;
     registerField: any;
     error?: string;
+    require?: any;
   }) => (
     <div className="relative">
       <label
@@ -107,6 +109,7 @@ const RegisterClinic: React.FC = () => {
         className="block text-sm font-semibold text-gray-700 mb-1"
       >
         {label}
+        {require === "true" ? <span className="text-red-500"> *</span> : ""}
       </label>
       <input
         id={id}
@@ -162,6 +165,9 @@ const RegisterClinic: React.FC = () => {
             {/* --- Clinic Info --- */}
             <h2 className="md:col-span-2 text-lg font-semibold text-[#0c213e] border-b border-[#0c213e]/20 pb-2">
               Clinic Information
+              <span className="text-red-500 font-normal text-sm">
+                ( <span className="text-red-500">*</span> Shows required field )
+              </span>
             </h2>
 
             <InputField
@@ -170,13 +176,23 @@ const RegisterClinic: React.FC = () => {
               placeholder="ABC Health Clinic"
               registerField={register("clinicName", {
                 required: "Clinic name is required",
+                minLength: {
+                  value: 3,
+                  message: "Clinic name must be at least 3 characters",
+                },
+                pattern: {
+                  value: /^[A-Za-z0-9\s.,'-]+$/,
+                  message: "Clinic name contains invalid characters",
+                },
               })}
               error={errors.clinicName?.message}
+              require={"true"}
             />
 
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1">
                 Clinic Type
+                <span className="text-red-500"> *</span>
               </label>
               <select
                 {...register("clinicType", {
@@ -200,24 +216,49 @@ const RegisterClinic: React.FC = () => {
               label="Specialities"
               placeholder="Cardiology, Pediatrics"
               registerField={register("specialities")}
+              require={"true"}
             />
             <InputField
               id="address"
               label="Address"
               placeholder="123 Street, City"
-              registerField={register("address")}
+              registerField={register("address", {
+                required: "Address is required",
+                minLength: {
+                  value: 10,
+                  message: "Address must be at least 10 characters",
+                },
+              })}
+              error={errors.address?.message}
+              require={"true"}
             />
             <InputField
               id="state"
               label="State"
               placeholder="Maharashtra"
-              registerField={register("state")}
+              registerField={register("state", {
+                required: "State is required",
+                pattern: {
+                  value: /^[A-Za-z\s]+$/,
+                  message: "State must contain only letters",
+                },
+              })}
+              error={errors.state?.message}
+              require={"true"}
             />
             <InputField
               id="district"
               label="District"
               placeholder="Mumbai"
-              registerField={register("district")}
+              registerField={register("district", {
+                required: "District is required",
+                pattern: {
+                  value: /^[A-Za-z\s]+$/,
+                  message: "District must contain only letters",
+                },
+              })}
+              error={errors.district?.message}
+              require={"true"}
             />
             <InputField
               id="pincode"
@@ -232,6 +273,7 @@ const RegisterClinic: React.FC = () => {
                 },
               })}
               error={errors.pincode?.message}
+              require={"true"}
             />
             <InputField
               id="contact"
@@ -244,19 +286,33 @@ const RegisterClinic: React.FC = () => {
                 },
               })}
               error={errors.contact?.message}
+              require={"true"}
             />
             <InputField
               id="email"
               label="Email"
               type="email"
               placeholder="clinic@example.com"
-              registerField={register("email")}
+              registerField={register("email", {
+                required: "Email is required",
+                pattern: {
+                  value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                  message: "Enter a valid email address",
+                },
+              })}
+              error={errors.email?.message}
+              require={"true"}
             />
             <InputField
               id="operatingHours"
               label="Operating Hours"
               placeholder="9 AM - 6 PM"
-              registerField={register("operatingHours")}
+              // registerField={register("operatingHours")}
+              registerField={register("operatingHours", {
+                required: "Operating hours are required",
+              })}
+              error={errors.operatingHours?.message}
+              require={"true"}
             />
 
             {/* --- Owner Info --- */}
@@ -268,7 +324,15 @@ const RegisterClinic: React.FC = () => {
               id="licenseNo"
               label="License No"
               placeholder="CLN12345"
-              registerField={register("licenseNo")}
+              registerField={register("licenseNo", {
+                required: "License number is required",
+                minLength: {
+                  value: 5,
+                  message: "License number must be at least 5 characters",
+                },
+              })}
+              error={errors.licenseNo?.message}
+              require={"true"}
             />
 
             <InputField
@@ -284,6 +348,7 @@ const RegisterClinic: React.FC = () => {
                 },
               })}
               error={errors.ownerAadhar?.message}
+              require={"true"}
             />
 
             <InputField
@@ -298,6 +363,7 @@ const RegisterClinic: React.FC = () => {
                 },
               })}
               error={errors.ownerPan?.message}
+              require={"true"}
             />
 
             {/* --- Staff Info --- */}
@@ -309,14 +375,30 @@ const RegisterClinic: React.FC = () => {
               id="staffName"
               label="Staff Name"
               placeholder="John Doe"
-              registerField={register("staffName")}
+              registerField={register("staffName", {
+                required: "Staff name is required",
+                pattern: {
+                  value: /^[A-Za-z\s]+$/,
+                  message: "Staff name must contain only letters",
+                },
+              })}
+              error={errors.staffName?.message}
+              require={"true"}
             />
             <InputField
               id="staffEmail"
               label="Staff Email"
               type="email"
               placeholder="staff@clinic.com"
-              registerField={register("staffEmail")}
+              registerField={register("staffEmail", {
+                required: "Staff email is required",
+                pattern: {
+                  value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                  message: "Enter a valid email address",
+                },
+              })}
+              error={errors.staffEmail?.message}
+              require={"true"}
             />
 
             <div className="relative">
@@ -330,15 +412,27 @@ const RegisterClinic: React.FC = () => {
                 id="staffPassword"
                 type={showPassword ? "text" : "password"}
                 placeholder="********"
+                // {...register("staffPassword", {
+                //   required: "Password is required",
+                // })}
                 {...register("staffPassword", {
                   required: "Password is required",
+                  minLength: {
+                    value: 8,
+                    message: "Password must be at least 8 characters",
+                  },
+                  pattern: {
+                    value: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).+$/,
+                    message:
+                      "Password must include uppercase, lowercase, number and special character",
+                  },
                 })}
                 className="w-full rounded-lg border border-gray-300 bg-white p-2.5 pr-10 text-gray-800 shadow-sm focus:ring-2 focus:ring-[#0c213e] transition-all"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-8 text-gray-500 hover:text-[#0c213e]"
+                className="absolute right-3 top-8 text-gray-500 hover:text-[#0c213e] mt-1"
               >
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>

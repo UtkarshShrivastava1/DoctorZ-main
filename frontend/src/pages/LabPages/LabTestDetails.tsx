@@ -1,6 +1,6 @@
 // src/pages/LabTestDetails.tsx
 import React, { useEffect, useMemo, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import api from "../../Services/mainApi";
 
 import diabetes from "../../assets/Diabetes.png";
@@ -28,11 +28,12 @@ interface Test {
 }
 
 export default function LabTestDetails() {
-  const location = useLocation();
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const test = location.state?.test as Test | undefined;
-
-  const [loading, setLoading] = useState(false);
+  
+  const [test, setTest] = useState<Test | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [bookingLoading, setBookingLoading] = useState(false);
   const [otherTests, setOtherTests] = useState<Test[]>([]);
   const [bookingDate, setBookingDate] = useState<string>("");
 
@@ -56,15 +57,43 @@ export default function LabTestDetails() {
     return localISO;
   }, []);
 
-  // redirect if no test provided
-  useEffect(() => {
-    if (!test) navigate("/all-lab-test");
-  }, [test, navigate]);
-
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, []);
+  }, [id]);
 
+  // Fetch test details by ID
+  useEffect(() => {
+    const fetchTestDetails = async () => {
+      if (!id) {
+        navigate("/all-lab-test");
+        return;
+      }
+
+      setLoading(true);
+      try {
+        const res = await api.get(`/api/lab/alllabtests`);
+        if (Array.isArray(res.data)) {
+          const foundTest = res.data.find((t: Test) => t._id === id);
+          if (foundTest) {
+            setTest(foundTest);
+          } else {
+            toast.error("Test not found");
+            navigate("/all-lab-test");
+          }
+        }
+      } catch (err) {
+        console.error("Error fetching test details:", err);
+        toast.error("Failed to load test details");
+        navigate("/all-lab-test");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTestDetails();
+  }, [id, navigate]);
+
+  // Fetch other tests from the same lab
   useEffect(() => {
     const fetchOtherTests = async () => {
       if (!test?.labId) return;
@@ -83,8 +112,6 @@ export default function LabTestDetails() {
     fetchOtherTests();
   }, [test]);
 
-  if (!test) return null;
-
   // helper: check if a yyyy-mm-dd string is in the past (compares dates only)
   const isPastDate = (dateStr: string) => {
     if (!dateStr) return false;
@@ -96,7 +123,9 @@ export default function LabTestDetails() {
   };
 
   const handleBookTest = async () => {
-    setLoading(true);
+    if (!test) return;
+
+    setBookingLoading(true);
 
     try {
       // extract token cookie (patientToken)
@@ -107,7 +136,7 @@ export default function LabTestDetails() {
 
       if (!token) {
         toast.error("Please login to book the test.");
-        setLoading(false);
+        setBookingLoading(false);
         return;
       }
 
@@ -119,24 +148,23 @@ export default function LabTestDetails() {
         patientId = payload.id;
       } catch (err) {
         toast.error("Invalid session. Please login again.");
-        setLoading(false);
+        setBookingLoading(false);
         return;
       }
 
       // validate bookingDate
       if (!bookingDate) {
         toast.error("Please select a booking date before continuing.");
-        setLoading(false);
+        setBookingLoading(false);
         return;
       }
       if (isPastDate(bookingDate)) {
         toast.error("Selected booking date cannot be in the past.");
-        setLoading(false);
+        setBookingLoading(false);
         return;
       }
 
       // Convert yyyy-mm-dd -> ISO at midnight local, then to UTC ISO string
-      // (Backend will store Date object from this ISO)
       const bookingDateISO = new Date(bookingDate + "T00:00:00").toISOString();
 
       const payload = {
@@ -156,19 +184,35 @@ export default function LabTestDetails() {
 
       console.log("✅ Booking response:", res.data);
       toast.success("Test booked successfully!");
-    } catch (error) {
+      
+      // Reset booking date after successful booking
+      setBookingDate("");
+    } catch (error: any) {
       console.error("❌ Booking error:", error);
-      toast.error("Booking failed. Try again.");
+      const errorMessage = error.response?.data?.message || "Booking failed. Try again.";
+      toast.error(errorMessage);
     } finally {
-      setLoading(false);
+      setBookingLoading(false);
     }
   };
 
   const handleViewOtherTest = (selectedTest: Test) => {
-    navigate(`/lab-test-details/${selectedTest._id}`, {
-      state: { test: selectedTest },
-    });
+    navigate(`/lab-test-details/${selectedTest._id}`);
   };
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-[#0c213e] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-gray-600">Loading test details...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!test) return null;
 
   const categoryKey = test.category?.toLowerCase() || "";
   const imageSrc = categoryImages[categoryKey] || "/placeholder-image.jpg";
@@ -205,7 +249,7 @@ export default function LabTestDetails() {
           {/* Left Column */}
           <div className="lg:col-span-1 space-y-6">
             {/* Test Card */}
-            <div className="bg-white rounded-xl  border border-gray-300 p-6 text-center">
+            <div className="bg-white rounded-xl border border-gray-300 p-6 text-center">
               <div className="w-24 h-24 mx-auto rounded-2xl bg-gradient-to-br from-indigo-50 to-blue-100 p-3 mb-4">
                 <img
                   src={imageSrc}
@@ -261,14 +305,14 @@ export default function LabTestDetails() {
               {/* Book Button */}
               <button
                 onClick={handleBookTest}
-                disabled={loading}
+                disabled={bookingLoading}
                 className={`w-full py-3 px-4 rounded-lg font-semibold transition-all duration-200 ${
-                  loading
+                  bookingLoading
                     ? "bg-gray-400 cursor-not-allowed text-white"
-                    : "bg-[#0c213e] text-white hover:bg-[#0c213e]"
+                    : "bg-[#0c213e] text-white hover:bg-[#1a3557]"
                 }`}
               >
-                {loading ? (
+                {bookingLoading ? (
                   <span className="flex items-center justify-center gap-2">
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                     Processing...

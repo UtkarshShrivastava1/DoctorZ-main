@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useNavigate } from 'react-router-dom';
 import api from "../Services/mainApi";
 import {
   Search,
@@ -35,6 +36,7 @@ import packageIcon from "../assets/icons/package.png";
 import pcod from "../assets/icons/pcod.png";
 import pregnancy from "../assets/icons/pregnancy.png";
 import iron from "../assets/icons/iron.png";
+import { Link } from "react-router-dom";
 // import pill from "../assets/icons/pill.png";
 
 // Interfaces
@@ -79,6 +81,7 @@ export default function LabTestsPage() {
   const [showAllTests, setShowAllTests] = useState(false);
   const [showAllPackages, setShowAllPackages] = useState(false);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   const iconMap: Record<string, string> = {
     heart,
@@ -464,15 +467,33 @@ export default function LabTestsPage() {
                         </div>
                       </div>
 
+                      {/* <Link to={`/lab-test-details/${t._id}`}>
                       <button
-                        onClick={() => {
-                          window.location.href = `/lab-test-details/${t._id}`;
-                        }}
+                        // onClick={() => {
+                        //   window.location.href = `/lab-test-details/${t._id}`;
+                        // }}
                         className="w-full bg-[#0c213e] text-white font-semibold py-3 px-4 rounded-xl hover:bg-[#1a3557] active:scale-95 transition-all duration-300 flex items-center justify-center gap-2 text-sm cursor-pointer"
-                      >
+                        >
                         View Details
                         <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                       </button>
+                        </Link> */}
+
+                        {/* <Link 
+  to={`/lab-test-details/${t._id}`}
+  className="w-full bg-[#0c213e] text-white font-semibold py-3 px-4 rounded-xl hover:bg-[#1a3557] active:scale-95 transition-all duration-300 flex items-center justify-center gap-2 text-sm cursor-pointer"
+>
+  View Details
+  <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+</Link> */}
+
+<button
+  onClick={() => navigate(`/lab-test-details/${t._id}`)}
+  className="w-full bg-[#0c213e] text-white font-semibold py-3 px-4 rounded-xl hover:bg-[#1a3557] active:scale-95 transition-all duration-300 flex items-center justify-center gap-2 text-sm cursor-pointer"
+>
+  View Details
+  <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+</button>
                     </div>
                   </div>
                 </motion.div>
