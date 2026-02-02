@@ -6,6 +6,7 @@ import {
   Search as SearchIcon,
   SlidersHorizontal,
   X,
+  Hospital,
 } from "lucide-react";
 import { Helmet } from "react-helmet";
 import DoctorCard from "../components/DoctorCard";
@@ -64,7 +65,7 @@ const DoctorSearchResults: React.FC = () => {
   const [languageFilters, setLanguageFilters] = useState<string[]>([]);
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
   const [consultMode, setConsultMode] = useState<"online" | "hospital" | null>(
-    null
+    "hospital"
   );
 
   // Get unique specialties from doctors
@@ -218,11 +219,15 @@ const DoctorSearchResults: React.FC = () => {
 
       const matchesDate = hasSlotForDate(d, dateVal);
 
-      const supportsHospital = d.modeOfConsult?.includes("hospital") ?? true;
-      const supportsOnline = d.modeOfConsult?.includes("online") ?? true;
+      // const supportsHospital = d.modeOfConsult?.includes("hospital") ?? true;
+      // const supportsOnline = d.modeOfConsult?.includes("online") ?? true;
 
-      if (consultMode === "online" && !supportsOnline) return false;
-      if (consultMode === "hospital" && !supportsHospital) return false;
+      // if (consultMode === "online" && !supportsOnline) return false;
+      // if (consultMode === "hospital" && !supportsHospital) return false;
+
+      if (consultMode === "online" && !d.availableOnline) return false;
+if (consultMode === "hospital" && d.availableOnline) return false;
+
 
       if (expFilters.length > 0) {
         const exp = d.experience ?? 0;
@@ -252,6 +257,7 @@ const DoctorSearchResults: React.FC = () => {
         if (!matchesLang) return false;
       }
 
+      console.log(doctors)
       return matchesSpec && matchesLocation && matchesDate;
     });
   }, [
@@ -430,7 +436,7 @@ const DoctorSearchResults: React.FC = () => {
           </div>
 
           {/* Consult Mode Toggle Buttons */}
-          <div className="flex gap-3 mb-3 px-2">
+          {/* <div className="flex gap-3 mb-3 px-2">
             <button
               onClick={() =>
                 setConsultMode(consultMode === "online" ? null : "online")
@@ -459,7 +465,50 @@ const DoctorSearchResults: React.FC = () => {
             >
               Visit Doctor
             </button>
-          </div>
+          </div> */}
+
+          {/* Consult Mode Toggle Buttons */}
+<div className="flex gap-3 mb-3 px-2 items-center">
+  <button
+    onClick={() =>
+      setConsultMode(consultMode === "hospital" ? null : "hospital")
+    }
+    className={`flex-1 py-2 rounded-lg text-center font-medium border transition ${
+      consultMode === "hospital"
+        ? "bg-[#0c213e] text-white border-[#0c213e]"
+        : "bg-white text-gray-700 border-gray-300 hover:border-[#0c213e] hover:text-[#0c213e]"
+    }`}
+    type="button"
+  >
+    Visit Doctor
+  </button>
+  <button
+    onClick={() =>
+      setConsultMode(consultMode === "online" ? null : "online")
+    }
+    className={`flex-1 py-2 rounded-lg text-center font-medium border transition ${
+      consultMode === "online"
+        ? "bg-[#0c213e] text-white border-[#0c213e]"
+        : "bg-white text-gray-700 border-gray-300 hover:border-[#0c213e] hover:text-[#0c213e]"
+    }`}
+    type="button"
+  >
+    Consult Online
+  </button>
+
+
+  {/* Clear Button */}
+  {consultMode && (
+    <button
+      onClick={() => setConsultMode(null)}
+      className="px-3 py-2 rounded-lg border border-red-400 text-red-500 text-sm font-medium hover:bg-red-50 transition"
+      type="button"
+    >
+      Clear
+    </button>
+  )}
+</div>
+
 
           {/* Doctor Cards List */}
           {loading ? (

@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import api from "../Services/mainApi";
 import packageIcon from "../assets/package.webp";
@@ -79,6 +79,24 @@ export const PackageDetails: React.FC = () => {
   const [packageDetails, setPackageDetails] = useState<PackageDetailsType | null>(null);
   const [loading, setLoading] = useState(false);
   const [openCategories, setOpenCategories] = useState<Record<string, boolean>>({});
+    const [bookingDate, setBookingDate] = useState<string>("");
+  
+
+      const todayDateString = useMemo(() => {
+        const d = new Date();
+        const tzOffset = d.getTimezoneOffset() * 60000;
+        const localISO = new Date(d.getTime() - tzOffset).toISOString().slice(0, 10);
+        return localISO;
+      }, []);
+
+        const isPastDate = (dateStr: string) => {
+    if (!dateStr) return false;
+    const selected = new Date(dateStr);
+    const s = new Date(selected.getFullYear(), selected.getMonth(), selected.getDate());
+    const today = new Date();
+    const t = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    return s < t;
+  };
 
   useEffect(() => {
     const fetchPackageDetails = async () => {
@@ -129,7 +147,7 @@ export const PackageDetails: React.FC = () => {
 
       await api.post(
         `/api/lab/packages/book`,
-        { packageId, patientId, labId },
+        { packageId, patientId, labId,bookingDate },
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
@@ -191,6 +209,26 @@ export const PackageDetails: React.FC = () => {
           <p className="text-green-600 font-medium text-sm">60% off</p>
         </div>
 
+
+        <div className="mt-4 mb-3 text-left">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Choose booking date
+                </label>
+                <input
+                  type="date"
+                  value={bookingDate}
+                  min={todayDateString}
+                  onChange={(e) => setBookingDate(e.target.value)}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                />
+                {bookingDate && isPastDate(bookingDate) && (
+                  <p className="text-xs text-red-600 mt-1">
+                    Selected date is in the past.
+                  </p>
+                )}
+              </div>
+
+
         <button
           onClick={() =>
             handlePackageBooking(
@@ -200,7 +238,7 @@ export const PackageDetails: React.FC = () => {
                 : packageDetails.labId._id
             )
           }
-          className="mt-6 w-full bg-[#0c213e] text-white font-semibold py-3 rounded-xl bg-[#0c213e]transition"
+          className=" w-full bg-[#0c213e] text-white font-semibold py-3 rounded-xl bg-[#0c213e]transition"
         >
           {loading ? "Booking..." : "Book Now"}
         </button>

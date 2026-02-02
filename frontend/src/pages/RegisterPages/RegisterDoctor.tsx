@@ -27,6 +27,7 @@ type DoctorFormInputs = {
   address: string;
   state: string;
   city: string;
+   availableOnline: boolean;
 };
 
 interface ClinicContext {
@@ -59,7 +60,14 @@ const RegisterDoctor: React.FC = () => {
     setLoading(true);
 
     const formData = new FormData();
-    Object.entries(data).forEach(([key, value]) => formData.append(key, value));
+    // Object.entries(data).forEach(([key, value]) => formData.append(key, value));
+    Object.entries(data).forEach(([key, value]) => {
+    if (key === "availableOnline") {
+      formData.append(key, String(value)); // 👈 convert boolean to string
+    } else {
+      formData.append(key, value as string);
+    }
+  });
     if (clinicId) formData.append("clinicId", clinicId);
     if (degreeFile) formData.append("degreeCert", degreeFile);
     if (photoFile) formData.append("photo", photoFile);
@@ -417,6 +425,21 @@ const RegisterDoctor: React.FC = () => {
               error={errors.password?.message}
               required
             />
+
+            <div className="flex items-center gap-2 mt-2">
+  <input
+    type="checkbox"
+    id="availableOnline"
+    {...register("availableOnline")}
+    className="w-4 h-4 text-[#0c213e] border-gray-300 rounded focus:ring-[#0c213e]"
+  />
+  <label
+    htmlFor="availableOnline"
+    className="text-sm font-medium text-gray-700"
+  >
+    Available for Online Consultation
+  </label>
+</div>
 
             {/* --- Upload Documents --- */}
             <h2 className="md:col-span-2 text-lg font-semibold text-[#0c213e] border-b border-[#0c213e]/20 pt-4 pb-2">
