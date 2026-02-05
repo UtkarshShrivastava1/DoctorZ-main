@@ -67,6 +67,8 @@ const DoctorSearchResults: React.FC = () => {
   const [consultMode, setConsultMode] = useState<"online" | "hospital" | null>(
     "hospital"
   );
+  const [name, setName] = useState("");
+
 
   // Get unique specialties from doctors
   const availableSpecialties = useMemo(() => {
@@ -205,6 +207,8 @@ const DoctorSearchResults: React.FC = () => {
     const loc = (locationValue || "").trim().toLowerCase();
     const spec = (specialty || "").trim().toLowerCase();
     const dateVal = (date || "").trim();
+    const nameVal = (name || "").trim().toLowerCase();
+
 
     return doctors.filter((d: any) => {
       const matchesSpec =
@@ -218,6 +222,11 @@ const DoctorSearchResults: React.FC = () => {
         (d.City && d.City.toLowerCase().includes(loc));
 
       const matchesDate = hasSlotForDate(d, dateVal);
+
+      const matchesName =
+  !nameVal ||
+  (d.fullName && d.fullName.toLowerCase().includes(nameVal));
+
 
       // const supportsHospital = d.modeOfConsult?.includes("hospital") ?? true;
       // const supportsOnline = d.modeOfConsult?.includes("online") ?? true;
@@ -258,13 +267,14 @@ if (consultMode === "hospital" && d.availableOnline) return false;
       }
 
       console.log(doctors)
-      return matchesSpec && matchesLocation && matchesDate;
+      return matchesSpec && matchesLocation && matchesDate &&matchesName;
     });
   }, [
     doctors,
     specialty,
     locationValue,
     date,
+    name,
     modeHospital,
     modeOnline,
     expFilters,
@@ -382,7 +392,19 @@ if (consultMode === "hospital" && d.availableOnline) return false;
 
           {/* Search Filters Bar */}
           <div className="border border-gray-300 rounded-lg bg-white p-3 mb-3 shadow-sm">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+              {/* Name Input */}
+<div className="flex items-center gap-2 border border-gray-200 rounded-lg px-3 py-1.5 bg-white">
+  <Hospital className="w-4 h-4 text-gray-400" />
+  <input
+    type="text"
+    placeholder="Doctor Name"
+    className="w-full outline-none text-gray-700 font-semibold"
+    value={name}
+    onChange={(e) => setName(e.target.value)}
+  />
+</div>
+
               {/* Specialty Input with Autocomplete */}
               <AutocompleteInput
                 ref={specialtyInputRef}
