@@ -1,6 +1,3 @@
-
-
-
 import React, { useState, useEffect } from "react";
 import { X } from "lucide-react";
 
@@ -30,8 +27,13 @@ const AppointmentFormModal: React.FC<AppointmentFormModalProps> = ({
   loading,
 }) => {
   const [relation, setRelation] = useState<"self" | "relative">("self");
-  const [aadharError, setAadharError] = useState("");
-  const [contactError, setContactError] = useState("");
+
+  const [errors, setErrors] = useState<{
+    name?: string;
+    age?: string;
+    aadhar?: string;
+    contact?: string;
+  }>({});
 
   const [formData, setFormData] = useState({
     name: "",
@@ -71,7 +73,6 @@ const AppointmentFormModal: React.FC<AppointmentFormModalProps> = ({
         }
       }
     } else {
-      // Reset when booking for relative
       setFormData({
         name: "",
         age: "",
@@ -85,49 +86,99 @@ const AppointmentFormModal: React.FC<AppointmentFormModalProps> = ({
         reports: null,
       });
     }
+
+    setErrors({});
   }, [relation]);
 
   if (!open) return null;
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
-    if (e.target.type === "file") {
-      setFormData({
-        ...formData,
-        reports: (e.target as HTMLInputElement).files,
-      });
-    } else {
-      setFormData({
-        ...formData,
-        [e.target.name]: e.target.value,
-      });
+  e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+) => {
+  const { name, value, type } = e.target;
+
+  if (type === "file") {
+    setFormData({
+      ...formData,
+      reports: (e.target as HTMLInputElement).files,
+    });
+    return;
+  }
+
+  // 🔥 Restrict Aadhar to 12 digits only
+  if (name === "aadhar") {
+    const numericValue = value.replace(/\D/g, ""); // allow only digits
+    if (numericValue.length > 12) return;
+
+    setFormData({
+      ...formData,
+      aadhar: numericValue,
+    });
+
+    setErrors((prev) => ({ ...prev, aadhar: "" }));
+    return;
+  }
+
+  // 🔥 Restrict Contact to 10 digits only
+  if (name === "contact") {
+    const numericValue = value.replace(/\D/g, "");
+    if (numericValue.length > 10) return;
+
+    setFormData({
+      ...formData,
+      contact: numericValue,
+    });
+
+    setErrors((prev) => ({ ...prev, contact: "" }));
+    return;
+  }
+
+  // Normal fields
+  setFormData({
+    ...formData,
+    [name]: value,
+  });
+
+  setErrors((prev) => ({
+    ...prev,
+    [name]: "",
+  }));
+};
+
+  const validateForm = () => {
+    let newErrors: typeof errors = {};
+
+    if (relation === "relative") {
+      if (!formData.name.trim()) {
+        newErrors.name = "Full name is required";
+      }
+
+      if (!formData.age) {
+        newErrors.age = "Age is required";
+      } else if (
+        Number(formData.age) <= 0 ||
+        Number(formData.age) > 120
+      ) {
+        newErrors.age = "Enter valid age";
+      }
+
+      if (!/^[0-9]{12}$/.test(formData.aadhar)) {
+        newErrors.aadhar = "Aadhar number must be exactly 12 digits";
+      }
+
+      if (!/^[0-9]{10}$/.test(formData.contact)) {
+        newErrors.contact = "Contact number must be exactly 10 digits";
+      }
     }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    let hasError = false;
-
-    // 🔥 VALIDATE ONLY WHEN RELATIVE
-    if (relation === "relative") {
-      if (!/^[0-9]{12}$/.test(formData.aadhar)) {
-        setAadharError("Aadhar number must be exactly 12 digits");
-        hasError = true;
-      } else {
-        setAadharError("");
-      }
-
-      if (!/^[0-9]{10}$/.test(formData.contact)) {
-        setContactError("Contact number must be exactly 10 digits");
-        hasError = true;
-      } else {
-        setContactError("");
-      }
-    }
-
-    if (hasError) return;
+    if (!validateForm()) return;
 
     const formattedData = {
       ...formData,
@@ -166,7 +217,6 @@ const AppointmentFormModal: React.FC<AppointmentFormModalProps> = ({
         </h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Booking For */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Booking For
@@ -183,7 +233,6 @@ const AppointmentFormModal: React.FC<AppointmentFormModalProps> = ({
             </select>
           </div>
 
-          {/* Fields shown only when booking for a relative */}
           {relation === "relative" && (
             <>
               <div>
@@ -191,11 +240,15 @@ const AppointmentFormModal: React.FC<AppointmentFormModalProps> = ({
                 <input
                   type="text"
                   name="name"
-                  required
                   value={formData.name}
                   onChange={handleChange}
                   className="w-full border border-gray-300 rounded-lg p-2"
                 />
+                {errors.name && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {errors.name}
+                  </p>
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-3">
@@ -204,11 +257,15 @@ const AppointmentFormModal: React.FC<AppointmentFormModalProps> = ({
                   <input
                     type="number"
                     name="age"
-                    required
                     value={formData.age}
                     onChange={handleChange}
                     className="w-full border border-gray-300 rounded-lg p-2"
                   />
+                  {errors.age && (
+                    <p className="text-red-500 text-xs mt-1">
+                      {errors.age}
+                    </p>
+                  )}
                 </div>
 
                 <div>
@@ -226,45 +283,38 @@ const AppointmentFormModal: React.FC<AppointmentFormModalProps> = ({
                 </div>
               </div>
 
-              {/* Aadhar */}
               <div>
                 <label className="text-sm text-gray-700">Aadhar Number</label>
                 <input
                   type="text"
                   name="aadhar"
-                  required
                   value={formData.aadhar}
-                  onChange={(e) => {
-                    setAadharError("");
-                    handleChange(e);
-                  }}
+                  onChange={handleChange}
                   className="w-full border border-gray-300 rounded-lg p-2"
                 />
-                {aadharError && (
-                  <p className="text-red-500 text-xs mt-1">{aadharError}</p>
+                {errors.aadhar && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {errors.aadhar}
+                  </p>
                 )}
               </div>
 
-              {/* Contact */}
               <div>
                 <label className="text-sm text-gray-700">Contact Number</label>
                 <input
                   type="text"
                   name="contact"
-                  required
                   value={formData.contact}
-                  onChange={(e) => {
-                    setContactError("");
-                    handleChange(e);
-                  }}
+                  onChange={handleChange}
                   className="w-full border border-gray-300 rounded-lg p-2"
                 />
-                {contactError && (
-                  <p className="text-red-500 text-xs mt-1">{contactError}</p>
+                {errors.contact && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {errors.contact}
+                  </p>
                 )}
               </div>
 
-              {/* EMR Optional */}
               <h3 className="text-lg font-semibold text-gray-800 mt-4 mb-2">
                 Add EMR Details (Optional)
               </h3>
@@ -315,7 +365,6 @@ const AppointmentFormModal: React.FC<AppointmentFormModalProps> = ({
                 />
               </div>
 
-              {/* Upload Reports */}
               <div>
                 <label className="text-sm font-medium text-gray-700 mb-1">
                   Upload Reports (Multiple)

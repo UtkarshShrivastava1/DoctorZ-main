@@ -206,8 +206,8 @@ function LabTestInUser() {
           <h1 className="text-4xl font-bold text-[#0c213e] mb-2 underline">My Lab Tests</h1>
           <div className="h-1 w-24 bg-white rounded-full"></div>
           {labTests.length > 0 && (
-            <p className="text-gray-300 mt-3">
-              Total Tests: <span className="font-semibold text-white">{labTests.length}</span>
+            <p className="text-black mt-3">
+              Total Tests: <span className="font-semibold text-black">{labTests.length}</span>
             </p>
           )}
         </div>
@@ -230,12 +230,12 @@ function LabTestInUser() {
                 >
                   {/* Card Header */}
                   <div className="p-6 border-b border-gray-100">
-                    <h2 className="text-2xl font-bold text-white mb-2">
+                    <h2 className="text-2xl font-bold text-black mb-2">
                       Test name: {test.testName}
                     </h2>
                     <div className="flex items-center gap-2 text-gray-300">
-                      <Building2 className="w-4 h-4" />
-                      <span className="text-sm">Lab name: {test.labId.name}</span>
+                      <Building2 className="w-4 h-4 text-black" />
+                      <span className="text-sm text-black">Lab name: {test.labId.name}</span>
                     </div>
                   </div>
 

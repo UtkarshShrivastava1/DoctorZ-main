@@ -56,6 +56,7 @@ const TimeSlots = () => {
     if (!doctorId) return;
     try {
       const res = await api.get<TimeSlotItem[]>(`/api/availability/getTimeSlots/${doctorId}`);
+      console.log(res)
       setSavedSlots(res.data);
     } catch (err) {
       console.error(err);
@@ -493,7 +494,7 @@ const TimeSlots = () => {
                       <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
-                      Working Hours
+                      Working Hours <span className="font-bold">(24 hrs)</span> 
                     </h3>
                     <div className="space-y-4">
                       <div>
@@ -625,7 +626,9 @@ const TimeSlots = () => {
                             weekday: "short",
                             month: "short",
                             day: "numeric",
+                            timeZone: "UTC",
                           })}
+                          {/* {slotItem.date} */}
                         </h3>
                         <span className={`px-2 py-0.5 text-xs font-medium rounded ${
                           slotItem.mode === "offline" 

@@ -238,7 +238,7 @@ export default function Navbar() {
       path: "/doctor-register",
       icon: <Stethoscope size={18} />,
     },
-    { label: "Clinic", path: "/clinic-register", icon: <Hospital size={18} /> },
+    { label: "Clinic/Hospital", path: "/clinic-register", icon: <Hospital size={18} /> },
     { label: "Lab", path: "/lab-register", icon: <FlaskConical size={18} /> },
   ];
 
@@ -249,7 +249,7 @@ export default function Navbar() {
       icon: <UserCircle2 size={18} />,
     },
     { label: "Doctor", path: "/doctor-login", icon: <Stethoscope size={18} /> },
-    { label: "Clinic", path: "/clinic-login", icon: <Hospital size={18} /> },
+    { label: "Clinic/Hospital", path: "/clinic-login", icon: <Hospital size={18} /> },
     { label: "Lab", path: "/lab-login", icon: <FlaskConical size={18} /> },
   ];
 

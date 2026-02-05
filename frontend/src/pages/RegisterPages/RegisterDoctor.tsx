@@ -399,16 +399,58 @@ const RegisterDoctor: React.FC = () => {
               error={errors.city?.message}
               required
             />
-            <InputField
-              id="state"
-              label="State"
-              placeholder="Chhattisgarh"
-              registerField={register("state", {
-                required: "State is required",
-              })}
-              error={errors.state?.message}
-              required
-            />
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">
+                State <span className="text-red-500">*</span>
+              </label>
+              <select
+                {...register("state", { required: "State is required" })}
+                className="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-800 shadow-sm focus:ring-2 focus:ring-[#0c213e]"
+              >
+                <option value="">Select State</option>
+                <option>Andhra Pradesh</option>
+                <option>Arunachal Pradesh</option>
+                <option>Assam</option>
+                <option>Bihar</option>
+                <option>Chhattisgarh</option>
+                <option>Goa</option>
+                <option>Gujarat</option>
+                <option>Haryana</option>
+                <option>Himachal Pradesh</option>
+                <option>Jharkhand</option>
+                <option>Karnataka</option>
+                <option>Kerala</option>
+                <option>Madhya Pradesh</option>
+                <option>Maharashtra</option>
+                <option>Manipur</option>
+                <option>Meghalaya</option>
+                <option>Mizoram</option>
+                <option>Nagaland</option>
+                <option>Odisha</option>
+                <option>Punjab</option>
+                <option>Rajasthan</option>
+                <option>Sikkim</option>
+                <option>Tamil Nadu</option>
+                <option>Telangana</option>
+                <option>Tripura</option>
+                <option>Uttar Pradesh</option>
+                <option>Uttarakhand</option>
+                <option>West Bengal</option>
+                <option>Andaman and Nicobar Islands</option>
+                <option>Chandigarh</option>
+                <option>Dadra and Nagar Haveli and Daman and Diu</option>
+                <option>Delhi</option>
+                <option>Jammu and Kashmir</option>
+                <option>Ladakh</option>
+                <option>Lakshadweep</option>
+                <option>Puducherry</option>
+              </select>
+              {errors.state && (
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.state.message}
+                </p>
+              )}
+            </div>
 
             <InputField
               id="password"

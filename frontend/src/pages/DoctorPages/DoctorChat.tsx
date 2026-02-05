@@ -361,9 +361,9 @@ const DoctorChat = () => {
   }
 
   return (
-    <div className="h-full flex flex-col border rounded-lg max-w-lg mx-auto mt-4 shadow-xl bg-white">
+    <div className="h-full w-[50%] mt-2 mx-auto flex flex-col rounded-lg bg-white">
       {/* Header */}
-      <div className="p-4 font-bold border-b bg-gradient-to-r from-blue-500 to-blue-600 text-white flex items-center justify-between">
+      <div className="p-4 font-bold border-b bg-gradient-to-r from-blue-500 to-blue-600 text-white flex items-center justify-between rounded-2xl">
         <div>
           <h1 className="text-lg">Chat with Patient</h1>
           <div className="flex items-center gap-2 mt-1">
