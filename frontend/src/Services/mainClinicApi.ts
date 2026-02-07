@@ -95,22 +95,43 @@ export interface RegisterClinicData {
   registrationCert?: File;
 }
 
-export const registerClinic = async (data: RegisterClinicData): Promise<any> => {
+// export const registerClinic = async (data: RegisterClinicData): Promise<any> => {
+//   const formData = new FormData();
+//   Object.entries(data).forEach(([key, value]) => {
+//     if (key === "specialities") {
+//       formData.append(key, JSON.stringify(value));
+//     } else if (value) {
+//       formData.append(key, value as string | Blob);
+//     }
+//   });
+
+//   const response = await api.post("/api/clinic/register", formData, {
+//     headers: { "Content-Type": "multipart/form-data" },
+//   });
+
+//   return response.data;
+// };
+
+export const registerClinic = async (data: any) => {
   const formData = new FormData();
+
   Object.entries(data).forEach(([key, value]) => {
-    if (key === "specialities") {
-      formData.append(key, JSON.stringify(value));
-    } else if (value) {
-      formData.append(key, value as string | Blob);
+    if (value instanceof File) {
+      formData.append(key, value);
+    } else if (Array.isArray(value)) {
+      formData.append(key, JSON.stringify(value)); // ✅ stringify ONLY arrays
+    } else if (value !== undefined && value !== null) {
+      formData.append(key, value as any);
     }
   });
 
-  const response = await api.post("/api/clinic/register", formData, {
-    headers: { "Content-Type": "multipart/form-data" },
+  return await api.post("/api/clinic/register", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
   });
-
-  return response.data;
 };
+
 
 // ✅ Login Clinic — safer version
 export const loginClinic = async (staffId: string, staffPassword: string) => {

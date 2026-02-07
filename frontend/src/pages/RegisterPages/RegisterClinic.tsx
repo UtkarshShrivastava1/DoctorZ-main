@@ -56,35 +56,70 @@ const RegisterClinic: React.FC = () => {
     }
   };
 
-  const onSubmit = async (data: ClinicFormInputs) => {
-    setLoading(true);
-    const staffId = generateStaffID();
+  // const onSubmit = async (data: ClinicFormInputs) => {
+  //   setLoading(true);
+  //   const staffId = generateStaffID();
 
-    try {
-      await registerClinic({
-        ...data,
-        specialities: data.specialities
-          ? data.specialities.split(",").map((s) => s.trim())
-          : [],
-        staffId,
-        registrationCert: certFile || undefined,
-      });
+  //   try {
+  //     await registerClinic({
+  //       ...data,
+  //       specialities: data.specialities
+  //         ? data.specialities.split(",").map((s) => s.trim())
+  //         : [],
+  //       staffId,
+  //       registrationCert: certFile || undefined,
+  //     });
 
-      toast.success("Clinic submitted for verification!");
+  //     toast.success("Clinic submitted for verification!");
 
-      reset();
-      setCertFile(null);
-      setCertPreview(null);
-    } catch (err: any) {
-      console.error("❌ Error submitting form:", err);
-      toast.error(
-        err?.response?.data?.message ||
-          "Registration failed. Please try again.",
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
+  //     reset();
+  //     setCertFile(null);
+  //     setCertPreview(null);
+  //   } catch (err: any) {
+  //     console.error("❌ Error submitting form:", err);
+  //     toast.error(
+  //       err?.response?.data?.message ||
+  //         "Registration failed. Please try again.",
+  //     );
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
+ const onSubmit = async (data: ClinicFormInputs) => {
+  setLoading(true);
+  const staffId = generateStaffID();
+
+  const specialitiesArray = data.specialities
+    ? data.specialities
+        .split(",")
+        .map((s) => s.trim())
+        .filter((s) => s.length > 0)
+    : [];
+
+  try {
+    await registerClinic({
+      ...data,
+      specialities: specialitiesArray, // ✅ SEND AS ARRAY (NO stringify)
+      staffId,
+      registrationCert: certFile || undefined,
+    });
+
+    toast.success("Clinic submitted for verification!");
+    reset();
+    setCertFile(null);
+    setCertPreview(null);
+  } catch (err: any) {
+    console.error("❌ Error submitting form:", err);
+    toast.error(
+      err?.response?.data?.message ||
+        "Registration failed. Please try again."
+    );
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   const InputField = ({
     id,
@@ -328,7 +363,7 @@ const RegisterClinic: React.FC = () => {
               error={errors.pincode?.message}
               require={"true"}
             />
-            <InputField
+            {/* <InputField
               id="contact"
               label="Contact Number"
               placeholder="9876543210"
@@ -340,7 +375,27 @@ const RegisterClinic: React.FC = () => {
               })}
               error={errors.contact?.message}
               require={"true"}
-            />
+            /> */}
+            <InputField
+  id="contact"
+  label="Contact Number"
+  placeholder="9876543210"
+  registerField={register("contact", {
+    required: "Contact number is required",
+    pattern: {
+      value: /^[0-9]{10}$/,
+      message: "Contact number must be exactly 10 digits",
+    },
+    onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
+      e.target.value = e.target.value
+        .replace(/\D/g, "")   // remove non-digits
+        .slice(0, 10);        // limit to 10
+    },
+  })}
+  error={errors.contact?.message}
+  require={"true"}
+/>
+
             <InputField
               id="email"
               label="Email"
@@ -388,7 +443,7 @@ const RegisterClinic: React.FC = () => {
               require={"true"}
             />
 
-            <InputField
+            {/* <InputField
               id="ownerAadhar"
               label="Owner Aadhar"
               placeholder="123456789012"
@@ -402,7 +457,27 @@ const RegisterClinic: React.FC = () => {
               })}
               error={errors.ownerAadhar?.message}
               require={"true"}
-            />
+            /> */}
+  <InputField
+  id="ownerAadhar"
+  label="Owner Aadhar"
+  placeholder="123456789012"
+  type="text"
+  registerField={register("ownerAadhar", {
+    required: "Aadhar number is required",
+    pattern: {
+      value: /^[0-9]{12}$/,
+      message: "Aadhar must be exactly 12 digits",
+    },
+    onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
+      e.target.value = e.target.value
+        .replace(/\D/g, "")   // remove non-digits
+        .slice(0, 12);        // limit to 12
+    },
+  })}
+  error={errors.ownerAadhar?.message}
+  require={"true"}
+/>
 
             <InputField
               id="ownerPan"

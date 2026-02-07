@@ -71,6 +71,12 @@ const LabManagementPro: React.FC = () => {
   const [isEditMode, setIsEditMode] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
 
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+const [deleteType, setDeleteType] = useState<"test" | "package" | null>(null);
+const [deleteId, setDeleteId] = useState<string | null>(null);
+const [deleteLoading, setDeleteLoading] = useState(false);
+
+
   const [testForm, setTestForm] = useState<Partial<Test>>({
     testName: "",
     price: 0,
@@ -232,32 +238,75 @@ const LabManagementPro: React.FC = () => {
     }
   };
 
-  const removeTest = async (testId?: string) => {
-    if (!testId) return;
-    const ok = confirm(
-      "Are you sure? This will also remove it from all packages."
-    );
-    if (!ok) return;
+      const openDeleteModal = (type: "test" | "package", id?: string) => {
+  if (!id) return;
+  setDeleteType(type);
+  setDeleteId(id);
+  setDeleteModalOpen(true);
+};
 
-    try {
-      await axios.delete(API.deleteTest(testId));
-      setTests((prev) => prev.filter((x) => x._id !== testId));
+  // const removeTest = async (testId?: string) => {
+  //   if (!testId) return;
+  //   // const ok = confirm(
+  //   //   "Are you sure? This will also remove it from all packages."
+  //   // );
+  //   // if (!ok) return;
+
+  //   try {
+  //     await axios.delete(API.deleteTest(testId));
+  //     setTests((prev) => prev.filter((x) => x._id !== testId));
+
+  //     setPackages((prev) =>
+  //       prev.map((p) => ({
+  //         ...p,
+  //         tests: p.tests.filter((t: any) =>
+  //           typeof t === "string" ? t !== testId : t._id !== testId
+  //         ),
+  //       }))
+  //     );
+
+  //     toast.success("Test deleted");
+  //   } catch (err) {
+  //     console.error("Delete test error:", err);
+  //     toast.error("Failed to delete test");
+  //   }
+  // };
+
+  const confirmDelete = async () => {
+  if (!deleteId || !deleteType) return;
+
+  setDeleteLoading(true);
+
+  try {
+    if (deleteType === "test") {
+      await axios.delete(API.deleteTest(deleteId));
+
+      setTests((prev) => prev.filter((x) => x._id !== deleteId));
 
       setPackages((prev) =>
         prev.map((p) => ({
           ...p,
           tests: p.tests.filter((t: any) =>
-            typeof t === "string" ? t !== testId : t._id !== testId
+            typeof t === "string" ? t !== deleteId : t._id !== deleteId
           ),
         }))
       );
 
       toast.success("Test deleted");
-    } catch (err) {
-      console.error("Delete test error:", err);
-      toast.error("Failed to delete test");
+    } else {
+      await axios.delete(API.deletePackage(deleteId));
+      setPackages((prev) => prev.filter((p) => p._id !== deleteId));
+      toast.success("Package deleted");
     }
-  };
+
+    setDeleteModalOpen(false);
+  } catch (err) {
+    toast.error("Failed to delete");
+  } finally {
+    setDeleteLoading(false);
+  }
+};
+
 
   /* -------------------- Package CRUD -------------------- */
   const openAddPackage = () => {
@@ -332,20 +381,20 @@ const LabManagementPro: React.FC = () => {
     }
   };
 
-  const removePackage = async (packageId?: string) => {
-    if (!packageId) return;
-    const ok = confirm("Delete this package?");
-    if (!ok) return;
+  // const removePackage = async (packageId?: string) => {
+  //   if (!packageId) return;
+  //   const ok = confirm("Delete this package?");
+  //   if (!ok) return;
 
-    try {
-      await axios.delete(API.deletePackage(packageId));
-      setPackages((prev) => prev.filter((p) => p._id !== packageId));
-      toast.success("Package deleted");
-    } catch (err) {
-      console.error("Delete package error:", err);
-      toast.error("Failed to delete package");
-    }
-  };
+  //   try {
+  //     await axios.delete(API.deletePackage(packageId));
+  //     setPackages((prev) => prev.filter((p) => p._id !== packageId));
+  //     toast.success("Package deleted");
+  //   } catch (err) {
+  //     console.error("Delete package error:", err);
+  //     toast.error("Failed to delete package");
+  //   }
+  // };
 
   /* -------------------- JSX (kept from original UI) -------------------- */
   return (
@@ -570,7 +619,9 @@ const LabManagementPro: React.FC = () => {
                       <Edit3 className="w-4 h-4" />
                     </button>
                     <button
-                      onClick={() => removeTest(t._id)}
+                      // onClick={() => removeTest(t._id)}
+                      onClick={() => openDeleteModal("test", t._id)}
+
                       className="p-2 rounded-lg hover:bg-red-50 text-red-600 transition-colors"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -637,7 +688,9 @@ const LabManagementPro: React.FC = () => {
                       <Edit3 className="w-4 h-4" />
                     </button>
                     <button
-                      onClick={() => removePackage(p._id)}
+                      // onClick={() => removePackage(p._id)}
+                      onClick={() => openDeleteModal("package", p._id)}
+
                       className="p-2 rounded-lg hover:bg-red-50 text-red-600 transition-colors"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -959,6 +1012,45 @@ const LabManagementPro: React.FC = () => {
           </div>
         </div>
       )}
+      {deleteModalOpen && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+    <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl p-6 animate-in fade-in zoom-in-95">
+      <div className="flex items-center gap-3 mb-4">
+        <div className="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center">
+          <Trash2 className="w-5 h-5 text-red-600" />
+        </div>
+        <h3 className="text-lg font-bold text-gray-900">
+          Confirm Deletion
+        </h3>
+      </div>
+
+      <p className="text-sm text-gray-600 mb-6">
+        {deleteType === "test"
+          ? "Are you sure? This test will also be removed from all packages."
+          : "Are you sure you want to delete this package?"}
+      </p>
+
+      <div className="flex gap-3">
+        <button
+          onClick={() => setDeleteModalOpen(false)}
+          className="flex-1 px-4 py-2.5 rounded-lg border border-gray-200 hover:bg-gray-50 font-medium"
+          disabled={deleteLoading}
+        >
+          Cancel
+        </button>
+
+        <button
+          onClick={confirmDelete}
+          disabled={deleteLoading}
+          className="flex-1 px-4 py-2.5 rounded-lg bg-red-600 hover:bg-red-700 text-white font-medium"
+        >
+          {deleteLoading ? "Deleting..." : "Delete"}
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
     </div>
   );
 };

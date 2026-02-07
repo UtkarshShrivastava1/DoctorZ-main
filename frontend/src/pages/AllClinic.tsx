@@ -8,6 +8,7 @@ import {
   Search as SearchIcon,
   Menu,
   X,
+  Hospital,
 } from "lucide-react";
 import { Helmet } from "react-helmet";
 import api from "../Services/mainApi";
@@ -81,6 +82,7 @@ const ClinicSearchResults: React.FC = () => {
   const [specialtyFilters, setSpecialtyFilters] = useState<string[]>([]);
   const [typeFilters, setTypeFilters] = useState<string[]>([]);
   const [expFilters, setExpFilters] = useState<string[]>([]);
+    const [name, setName] = useState("");
 
   // Misc UI
   const [showMobileFilters, setShowMobileFilters] = useState(false);
@@ -237,6 +239,8 @@ const ClinicSearchResults: React.FC = () => {
   const filtered = useMemo(() => {
     const loc = locationValue.trim().toLowerCase();
     const specText = specialty.trim().toLowerCase();
+    const nameText = name.trim().toLowerCase();
+
 
     return clinics.filter((clinic) => {
       const clinicName = (clinic.clinicName || "").toLowerCase();
@@ -245,6 +249,10 @@ const ClinicSearchResults: React.FC = () => {
       const cType = (clinic.clinicType || "").toLowerCase();
       const specialities = (clinic.specialities || []).map((s) => s.toLowerCase());
 
+
+      if (nameText && !clinicName.includes(nameText)) {
+  return false;
+}
       // Specialty match
       let matchesSpec = true;
       if (specText) {
@@ -290,7 +298,7 @@ const ClinicSearchResults: React.FC = () => {
 
       return true;
     });
-  }, [clinics, specialty, specialtyFilters, locationValue, expFilters, typeFilters]);
+  }, [clinics, specialty, name,specialtyFilters, locationValue, expFilters, typeFilters]);
 
   // Sort favorites first
   const sortedClinics = useMemo(() => {
@@ -442,7 +450,17 @@ const ClinicSearchResults: React.FC = () => {
 
           {/* Search Bar with Autocomplete */}
           <div className="bg-white border border-gray-400 rounded-lg p-3 mb-4 shadow-sm">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
+              <div className="flex items-center gap-2 border border-gray-200 rounded-lg px-3 py-1.5 bg-white">
+  <Hospital className="w-4 h-4 text-gray-400" />
+  <input
+    type="text"
+    placeholder="Clinic Name"
+    className="w-full outline-none text-gray-700 font-semibold"
+    value={name}
+    onChange={(e) => setName(e.target.value)}
+  />
+</div>
               {/* Specialty Input with Autocomplete */}
               <AutocompleteInput
                 ref={specialtyInputRef}
@@ -484,7 +502,7 @@ const ClinicSearchResults: React.FC = () => {
               />
 
               <button
-                onClick={handleSearch}
+                // onClick={handleSearch}
                 className="flex items-center justify-center gap-2 bg-[#0c213e] hover:bg-[#132d54] text-white font-medium rounded-lg px-4 py-1.5 border border-[#1f286f] transition-all duration-200"
               >
                 <SearchIcon className="w-4 h-4" />
