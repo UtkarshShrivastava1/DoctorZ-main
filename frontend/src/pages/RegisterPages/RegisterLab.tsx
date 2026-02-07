@@ -37,7 +37,7 @@ export default function RegisterLab() {
     certificateNumber: "",
   });
 
-  const handleOnChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleOnChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     
     // Clear error for this field when user starts typing
@@ -95,8 +95,6 @@ export default function RegisterLab() {
     // State validation
     if (!lab.state.trim()) {
       newErrors.state = "State is required";
-    } else if (!/^[A-Za-z\s]+$/.test(lab.state)) {
-      newErrors.state = "State must contain only letters";
     }
 
     // City validation
@@ -138,7 +136,7 @@ export default function RegisterLab() {
 
   const handleRegistration = async () => {
     if (!validateForm()) {
-      toast.error("Please fix all validation errors", { duration: 3500 });
+      toast.error("Please fill the required fields correctly", { duration: 3500 });
       return;
     }
 
@@ -163,9 +161,30 @@ export default function RegisterLab() {
         }, 1000);
       }
     } catch (error: any) {
-      toast.error(error?.response?.data?.message || "Error registering lab", {
-        duration: 3500,
-      });
+      // console.log(error)
+      // toast.error(error?.response?.data?.message || "Error registering lab", {
+      //   duration: 3500,
+      // });
+      console.log(error);
+
+let errorMessage = "Error registering lab";
+
+if (error?.response?.data?.message) {
+  const rawMessage = error.response.data.message;
+
+  if (rawMessage.includes("E11000") && rawMessage.includes("email")) {
+    errorMessage = "A lab with this email already exists.";
+  } else if (rawMessage.includes("E11000") && rawMessage.includes("certificateNumber")) {
+    errorMessage = "This certificate number is already registered.";
+  } else {
+    errorMessage = rawMessage;
+  }
+}
+
+toast.error(errorMessage, {
+  duration: 3500,
+});
+
     } finally {
       setLoading(false);
     }
@@ -256,14 +275,58 @@ export default function RegisterLab() {
               error={errors.certificateNumber}
               required
             />
-            <Input
-              label="State"
-              name="state"
-              value={lab.state}
-              onChange={handleOnChange}
-              error={errors.state}
-              required
-            />
+            <div className="flex flex-col space-y-1">
+              <label htmlFor="state" className="text-sm font-medium text-gray-700">
+                State
+                <span className="text-red-500"> *</span>
+              </label>
+              <select
+                id="state"
+                name="state"
+                value={lab.state}
+                onChange={handleOnChange}
+                className="px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition text-gray-800 bg-white"
+              >
+                <option value="">Select State</option>
+                <option>Andhra Pradesh</option>
+                <option>Arunachal Pradesh</option>
+                <option>Assam</option>
+                <option>Bihar</option>
+                <option>Chhattisgarh</option>
+                <option>Goa</option>
+                <option>Gujarat</option>
+                <option>Haryana</option>
+                <option>Himachal Pradesh</option>
+                <option>Jharkhand</option>
+                <option>Karnataka</option>
+                <option>Kerala</option>
+                <option>Madhya Pradesh</option>
+                <option>Maharashtra</option>
+                <option>Manipur</option>
+                <option>Meghalaya</option>
+                <option>Mizoram</option>
+                <option>Nagaland</option>
+                <option>Odisha</option>
+                <option>Punjab</option>
+                <option>Rajasthan</option>
+                <option>Sikkim</option>
+                <option>Tamil Nadu</option>
+                <option>Telangana</option>
+                <option>Tripura</option>
+                <option>Uttar Pradesh</option>
+                <option>Uttarakhand</option>
+                <option>West Bengal</option>
+                <option>Andaman and Nicobar Islands</option>
+                <option>Chandigarh</option>
+                <option>Dadra and Nagar Haveli and Daman and Diu</option>
+                <option>Delhi</option>
+                <option>Jammu and Kashmir</option>
+                <option>Ladakh</option>
+                <option>Lakshadweep</option>
+                <option>Puducherry</option>
+              </select>
+              {errors.state && <p className="text-red-500 text-xs mt-1">{errors.state}</p>}
+            </div>
             <Input
               label="City"
               name="city"
