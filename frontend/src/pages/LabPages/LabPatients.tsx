@@ -21,7 +21,7 @@ interface PatientBooking {
         _id: string;
         fullName: string;
         email?: string;
-        phone?: string;
+        mobileNumber?: string;
       }
     | string
     | null;
@@ -407,9 +407,9 @@ const Patients: React.FC = memo(() => {
                                 {user.email}
                               </p>
                             )}
-                            {user?.phone && (
+                            {user?.mobileNumber && (
                               <p className="text-xs text-gray-500">
-                                {user.phone}
+                                {user.mobileNumber}
                               </p>
                             )}
                           </div>

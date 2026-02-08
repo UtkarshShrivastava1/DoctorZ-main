@@ -75,8 +75,8 @@ const AddEmr: React.FC = () => {
 
     if (
       !formData.allergies.trim() ||
-      !formData.diseases.trim() ||
-      !formData.pastSurgeries.trim() ||
+      // !formData.diseases.trim() ||
+      // !formData.pastSurgeries.trim() ||
       !formData.currentMedications.trim()
     ) {
       toast.error("Please fill all required fields before submitting.");
@@ -227,11 +227,11 @@ const AddEmr: React.FC = () => {
                   <label className="flex items-center gap-2 font-semibold text-gray-700">
                     <Stethoscope className="w-4 h-4 text-blue-500" />
                     Diseases
-                    <span className="text-red-500">*</span>
+                    {/* <span className="text-red-500">*</span> */}
                   </label>
                   <input 
                     type="text" 
-                    required 
+                    // required 
                     className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#0c213e] focus:border-transparent transition-all outline-none"
                     placeholder="e.g., Diabetes Type 2, Hypertension"
                     value={formData.diseases}
@@ -245,11 +245,11 @@ const AddEmr: React.FC = () => {
                   <label className="flex items-center gap-2 font-semibold text-gray-700">
                     <Activity className="w-4 h-4 text-purple-500" />
                     Past Surgeries
-                    <span className="text-red-500">*</span>
+                    {/* <span className="text-red-500">*</span> */}
                   </label>
                   <input 
                     type="text" 
-                    required 
+                    // required 
                     className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#0c213e] focus:border-transparent transition-all outline-none"
                     placeholder="e.g., Knee Replacement, Appendectomy"
                     value={formData.pastSurgeries}

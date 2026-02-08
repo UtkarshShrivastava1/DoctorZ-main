@@ -3,6 +3,9 @@ import { useNavigate, useParams } from "react-router-dom";
 import { UserCircleIcon } from "@heroicons/react/24/solid";
 import { Phone, Star } from "lucide-react";
 import api from "../../Services/mainApi";
+import { Link } from "react-router-dom";
+import { toast } from "react-toastify";
+
 
 interface Doctor {
   _id: string;
@@ -16,6 +19,7 @@ interface DoctorWithBooking {
   doctor: Doctor;
   bookingDate: string;
   roomId: string;
+  meetingLink:string;
 }
 
 interface DoctorApiResponse {
@@ -39,6 +43,7 @@ const [hoverRating, setHoverRating] = useState(0);
     const fetchDoctors = async () => {
       try {
         const res = await api.get<DoctorApiResponse>(`/api/patient/appointments/doctors/${patientId}`);
+        console.log(res)
         setDoctors(res.data.data);
       } catch (err) {
         console.error("Error fetching doctors:", err);
@@ -63,12 +68,18 @@ const [hoverRating, setHoverRating] = useState(0);
         rating:rating,
       });
 
-      alert("Review Added Successfully!");
+      // alert("Review Added Successfully!");
+      toast.success(
+              `Review Added Successfully!`
+            );
       setShowModal(false);
       setFeedback("");
     } catch (error) {
       console.log(error);
-      alert("Something went wrong");
+      // alert("Something went wrong");
+      toast.error(
+              `Something went wrong`
+            );
     }
   };
 
@@ -92,7 +103,7 @@ const [hoverRating, setHoverRating] = useState(0);
               </tr>
             </thead>
             <tbody>
-              {doctors.map(({ doctor, bookingDate, roomId }) => (
+              {doctors.map(({ doctor, bookingDate, roomId,meetingLink }) => (
                 <tr key={doctor._id} className="border-t hover:bg-gray-50">
                   <td className="px-4 py-2 flex items-center gap-2">
                     <UserCircleIcon className="w-6 h-6 text-gray-500" />
@@ -111,9 +122,18 @@ const [hoverRating, setHoverRating] = useState(0);
                   </td>
 
                   <td className="px-4 py-2 flex gap-2">
-                    <a href={`tel:${doctor.MobileNo}`} className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 transition-colors">
+                    {/* <a href={`/${meetingLink}`} target="_blank" className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 transition-colors">
                       Call
-                    </a>
+                    </a> */}
+                    {/* <Link
+  to={`${meetingLink}`}
+  className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 transition-colors"
+>
+  Call
+</Link> */}
+                    {/* <button onClick={() => navigate(`${meetingLink}`)} className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 transition-colors">
+                      Chat
+                    </button> */}
                     <button onClick={() => navigate(`/doctor-chat/${roomId}`)} className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors">
                       Chat
                     </button>
