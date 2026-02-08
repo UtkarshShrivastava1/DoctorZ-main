@@ -18,6 +18,6 @@ export const getUserLabTests = async (userId: string) => {
 
 export const getPatientPackageBookings = async (patientId: string) => {
   return await api.get<PackageBookingResponse>(
-    `/package-bookings/${patientId}`
+    `/api/lab/package-bookings/${patientId}`
   );
 };
