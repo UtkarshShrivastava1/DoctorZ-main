@@ -6,6 +6,18 @@ export interface LabTestResponse {
   labTests: never[];
 }
 
+export interface PackageBookingResponse {
+  message: string;
+  count: number;
+  bookings: any[]; // Replace `any` with your actual PackageBooking type
+}
+
 export const getUserLabTests = async (userId: string) => {
   return await api.get<LabTestResponse>(`/api/patient/getUserLabTest/${userId}`);
+};
+
+export const getPatientPackageBookings = async (patientId: string) => {
+  return await api.get<PackageBookingResponse>(
+    `/package-bookings/${patientId}`
+  );
 };
