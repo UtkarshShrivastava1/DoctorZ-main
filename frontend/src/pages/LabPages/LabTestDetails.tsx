@@ -165,7 +165,9 @@ export default function LabTestDetails() {
       }
 
       // Convert yyyy-mm-dd -> ISO at midnight local, then to UTC ISO string
-      const bookingDateISO = new Date(bookingDate + "T00:00:00").toISOString();
+      // const bookingDateISO = new Date(bookingDate + "T00:00:00").toISOString();
+      const bookingDateISO = new Date(bookingDate + "T00:00:00Z").toISOString();
+      console.log(bookingDateISO)
 
       const payload = {
         test: {
