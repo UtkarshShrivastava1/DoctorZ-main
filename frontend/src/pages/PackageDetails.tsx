@@ -123,6 +123,7 @@ export const PackageDetails: React.FC = () => {
 
   const handlePackageBooking = async (packageId: string, labId: string) => {
     try {
+      setLoading(true);
       const token = document.cookie
         .split("; ")
         .find((row:string) => row.startsWith("patientToken="))
@@ -152,8 +153,10 @@ export const PackageDetails: React.FC = () => {
       );
 
     toast.success("Package booked successfully!");
+    setLoading(false)
     } catch (error) {
       console.error("Error booking package:", error);
+      setLoading(false)
     toast.error("Failed to book package. Please try again." );
     }
   };
