@@ -243,7 +243,12 @@ export const PackageDetails: React.FC = () => {
           }
           className=" w-full bg-[#0c213e] text-white font-semibold py-3 rounded-xl bg-[#0c213e]transition"
         >
-          {loading ? "Booking..." : "Book Now"}
+          {loading ? (
+            <span className="flex items-center justify-center gap-2">
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    Processing...
+                  </span>
+          ) : "Book Now"}
         </button>
       </div>
 
