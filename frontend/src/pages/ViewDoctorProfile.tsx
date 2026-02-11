@@ -147,6 +147,21 @@ const ViewDoctorProfile: React.FC = () => {
 
     navigate(`/clinic/${doctor?.clinic[0]}`);
   };
+  
+// setTimeout(() => {
+//   setToast(null);
+// }, 3000);
+
+useEffect(() => {
+  if (toast) {
+    const timer = setTimeout(() => {
+      setToast(null);
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }
+}, [toast]);
+
 
   if (loading) {
     return (
@@ -218,7 +233,8 @@ const ViewDoctorProfile: React.FC = () => {
               <div className="relative">
                 <div className="w-28 h-28 sm:w-32 sm:h-32 lg:w-40 lg:h-40 rounded-full border-4 border-white/30 shadow-2xl overflow-hidden">
                   <img
-                    src={`http://localhost:3000/uploads/${doctor.photo}`}
+                    // src={`http://localhost:3000/uploads/${doctor.photo}`}
+                    src={doctor.photo}
                     alt={doctor.fullName}
                     className="w-full h-full object-cover"
                     onError={(e) => {

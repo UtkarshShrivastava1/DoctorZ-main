@@ -169,7 +169,8 @@ const DoctorProfile: React.FC = () => {
                   />
                 ) : doctor?.photo ? (
                   <img
-                    src={`http://localhost:3000/uploads/${doctor.photo}?t=${Date.now()}`}
+                    // src={`http://localhost:3000/uploads/${doctor.photo}?t=${Date.now()}`}
+                    src={doctor.photo}
                     className="w-full h-full object-cover"
                     alt="Profile"
                   />
@@ -429,7 +430,7 @@ const DoctorProfile: React.FC = () => {
                     <label className={labelClass}>Digital Signature</label>
                     <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 inline-block">
                       <img
-                        src={`http://localhost:3000/uploads/${doctor.signature}`}
+                        src={doctor.signature}
                         className="h-20 object-contain"
                         alt="Signature"
                       />

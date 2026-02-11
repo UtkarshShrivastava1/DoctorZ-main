@@ -171,50 +171,110 @@ export default function LabTestsPage() {
     fetchData();
   }, []);
 
-  const filteredTests = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    const hasCategoryFilters = selectedCategories.length > 0;
+  // const filteredTests = useMemo(() => {
+  //   const q = query.trim().toLowerCase();
+  //   const hasCategoryFilters = selectedCategories.length > 0;
 
-    return tests.filter((t) => {
-      const matchesQuery =
-        q === "" ||
-        t.testName?.toLowerCase().includes(q) ||
-        t.shortDescription?.toLowerCase().includes(q);
+  //   return tests.filter((t) => {
+  //     const matchesQuery =
+  //       q === "" ||
+  //       t.testName?.toLowerCase().includes(q) ||
+  //       t.shortDescription?.toLowerCase().includes(q);
 
-      if (!hasCategoryFilters) return matchesQuery;
+  //     if (!hasCategoryFilters) return matchesQuery;
 
-      const nameBlob = `${t.testName || ""} ${t.category || ""} ${
-        t.customCategory || ""
-      }`.toLowerCase();
+  //     const nameBlob = `${t.testName || ""} ${t.category || ""} ${
+  //       t.customCategory || ""
+  //     }`.toLowerCase();
 
-      const matchesAnyCategory = selectedCategories.some((cat) =>
-        nameBlob.includes(cat.toLowerCase())
-      );
+  //     const matchesAnyCategory = selectedCategories.some((cat) =>
+  //       nameBlob.includes(cat.toLowerCase())
+  //     );
 
-      return matchesQuery && matchesAnyCategory;
-    });
-  }, [tests, query, selectedCategories]);
+  //     return matchesQuery && matchesAnyCategory;
+  //   });
+  // }, [tests, query, selectedCategories]);
 
-  const filteredPackages = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    const hasCategoryFilters = selectedCategories.length > 0;
+  // Replace the existing filteredTests and filteredPackages useMemo hooks with these:
 
-    return packages.filter((p) => {
+const filteredTests = useMemo(() => {
+  const q = query.trim().toLowerCase();
+  const hasCategoryFilters = selectedCategories.length > 0;
+
+  return tests.filter((t) => {
+    // ✅ SEARCH EVERYWHERE: test name, description, lab name, category
+    const searchableText = `
+      ${t.testName || ""} 
+      ${t.shortDescription || ""} 
+      ${t.lab?.name || t.labName || ""} 
+      ${t.category || ""} 
+      ${t.customCategory || ""}
+    `.toLowerCase();
+
+    const matchesQuery = q === "" || searchableText.includes(q);
+
+    if (!hasCategoryFilters) return matchesQuery;
+
+    // Category filtering (unchanged)
+    const nameBlob = `${t.testName || ""} ${t.category || ""} ${t.customCategory || ""}`.toLowerCase();
+    const matchesAnyCategory = selectedCategories.some((cat) =>
+      nameBlob.includes(cat.toLowerCase())
+    );
+
+    return matchesQuery && matchesAnyCategory;
+  });
+}, [tests, query, selectedCategories]);
+
+const filteredPackages = useMemo(() => {
+  const q = query.trim().toLowerCase();
+  const hasCategoryFilters = selectedCategories.length > 0;
+
+  return packages.filter((p) => {
+    // ✅ SEARCH EVERYWHERE: package name, description, lab name, tests included
+    const searchableText = `
+      ${p.packageName || p.name || p.title || ""} 
+      ${p.description || p.shortDescription || ""} 
+      ${p.lab?.name || p.labName || ""} 
+      ${(p.tests || []).map(t => t.testName || t.name).join(' ') || ""}
+    `.toLowerCase();
+
+    const matchesQuery = q === "" || searchableText.includes(q);
+
+    if (!hasCategoryFilters) return matchesQuery;
+
+    // Category filtering (unchanged)
+    const matchesAnyCategory = selectedCategories.some((cat) => {
+      const c = cat.toLowerCase();
       const name = (p.packageName || p.name || p.title || "").toLowerCase();
       const desc = (p.description || p.shortDescription || "").toLowerCase();
-
-      const matchesQuery = q === "" || name.includes(q) || desc.includes(q);
-
-      if (!hasCategoryFilters) return matchesQuery;
-
-      const matchesAnyCategory = selectedCategories.some((cat) => {
-        const c = cat.toLowerCase();
-        return name.includes(c) || desc.includes(c);
-      });
-
-      return matchesQuery && matchesAnyCategory;
+      return name.includes(c) || desc.includes(c);
     });
-  }, [packages, query, selectedCategories]);
+
+    return matchesQuery && matchesAnyCategory;
+  });
+}, [packages, query, selectedCategories]);
+
+
+  // const filteredPackages = useMemo(() => {
+  //   const q = query.trim().toLowerCase();
+  //   const hasCategoryFilters = selectedCategories.length > 0;
+
+  //   return packages.filter((p) => {
+  //     const name = (p.packageName || p.name || p.title || "").toLowerCase();
+  //     const desc = (p.description || p.shortDescription || "").toLowerCase();
+
+  //     const matchesQuery = q === "" || name.includes(q) || desc.includes(q);
+
+  //     if (!hasCategoryFilters) return matchesQuery;
+
+  //     const matchesAnyCategory = selectedCategories.some((cat) => {
+  //       const c = cat.toLowerCase();
+  //       return name.includes(c) || desc.includes(c);
+  //     });
+
+  //     return matchesQuery && matchesAnyCategory;
+  //   });
+  // }, [packages, query, selectedCategories]);
 
   return (
     <div
