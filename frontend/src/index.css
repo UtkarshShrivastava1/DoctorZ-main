@@ -6,6 +6,10 @@ body {
   color: #111827;           /* gray-900 */
   font-family: 'Montserrat', sans-serif;
 }
+html {
+  font-size: 85%;
+}
+
 
 /* Hide scrollbar but keep scroll functionality */
 .scrollbar-hide::-webkit-scrollbar {
@@ -87,4 +91,28 @@ body {
 
 .animation-delay-4000 {
   animation-delay: 4s;
+}
+
+
+@keyframes blinkPulse {
+  0%, 100% {
+    box-shadow: 0 0 0px rgba(255, 255, 255, 0.0);
+  }
+  50% {
+    box-shadow: 0 0 12px rgba(255, 255, 255, 0.45);
+  }
+}
+
+.blink-focus {
+  animation: blinkPulse 1.6s infinite ease-in-out;
+}
+
+
+.no-scrollbar {
+  scrollbar-width: none;        /* Firefox */
+  -ms-overflow-style: none;     /* IE 10+ */
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;                /* Chrome, Safari */
 }
