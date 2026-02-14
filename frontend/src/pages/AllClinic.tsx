@@ -522,7 +522,7 @@ const ClinicSearchResults: React.FC = () => {
               <div className="text-gray-700">No clinics found matching your filters.</div>
             </div>
           ) : (
-            <div className="space-y-7">
+            <div className="space-y-2">
               {currentClinics.map((clinic) => (
                 <ClinicCard
                   key={clinic._id}

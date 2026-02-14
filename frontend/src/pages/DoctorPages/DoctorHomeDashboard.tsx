@@ -19,6 +19,7 @@ interface Doctor {
   doctorId: string;
   fullName: string;
   email: string;
+  photo:string;
 }
 
 interface DoctorResponse {
@@ -198,7 +199,7 @@ const DoctorDashboardHome: React.FC = () => {
           {/* <p className="text-2xl font-bold mb-4">Manage</p> */}
           <button
             onClick={() => navigate(`/doctordashboard/${doctorId}/time-slots`)}
-            className="w-full bg-white text-[#0c213e] px-4 py-2 rounded-lg font-medium text-sm hover:bg-gray-100 transition-colors"
+            className="w-full bg-white text-[#0c213e] px-4 py-2 rounded-lg font-medium text-sm hover:bg-gray-100 transition-colors mb-2"
           >
             Manage availability
           </button>
@@ -295,7 +296,8 @@ const DoctorDashboardHome: React.FC = () => {
           <div className="text-center mb-6">
             <div className="w-24 h-24 bg-[#0c213e] rounded-full flex items-center justify-center mx-auto mb-4">
               <span className="text-3xl font-bold text-white">
-                {doctor?.fullName?.charAt(0).toUpperCase()}
+                {/* {doctor?.fullName?.charAt(0).toUpperCase()} */}
+                <img src={`${doctor?.photo}`} alt="" />
               </span>
             </div>
             <h3 className="text-lg font-semibold text-gray-900 mb-1">
