@@ -27,15 +27,328 @@ interface Test {
   reportFile?: string | null;
 }
 
+// ─── Booking Confirmation Modal ────────────────────────────────────────────────
+interface BookingConfirmationModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  testName: string;
+  labName: string;
+  bookingDate: string;
+  price: number;
+  category: string;
+}
+
+function BookingConfirmationModal({
+  isOpen,
+  onClose,
+  testName,
+  labName,
+  bookingDate,
+  price,
+  category,
+}: BookingConfirmationModalProps) {
+  const [visible, setVisible] = useState(false);
+  const [animate, setAnimate] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      setVisible(true);
+      // tiny delay so CSS transition picks up the change
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => setAnimate(true));
+      });
+    } else {
+      setAnimate(false);
+      const timer = setTimeout(() => setVisible(false), 300);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen]);
+
+  if (!visible) return null;
+
+  // Format date for display  e.g. "14 February 2025"
+  const formattedDate = bookingDate
+    ? new Date(bookingDate + "T00:00:00").toLocaleDateString("en-IN", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      })
+    : "";
+
+  // Close only when clicking the backdrop (not the card)
+  const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.target === e.currentTarget) onClose();
+  };
+
+  return (
+    <div
+      onClick={handleBackdropClick}
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 50,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "1rem",
+        backgroundColor: animate ? "rgba(0,0,0,0.45)" : "rgba(0,0,0,0)",
+        backdropFilter: animate ? "blur(4px)" : "blur(0px)",
+        transition: "background-color 0.3s ease, backdrop-filter 0.3s ease",
+      }}
+    >
+      <div
+        style={{
+          background: "#ffffff",
+          borderRadius: "1.25rem",
+          boxShadow: "0 25px 60px rgba(12,33,62,0.22), 0 4px 16px rgba(12,33,62,0.1)",
+          maxWidth: "480px",
+          width: "100%",
+          overflow: "hidden",
+          transform: animate ? "scale(1) translateY(0)" : "scale(0.92) translateY(24px)",
+          opacity: animate ? 1 : 0,
+          transition: "transform 0.35s cubic-bezier(0.34,1.56,0.64,1), opacity 0.3s ease",
+        }}
+      >
+        {/* Top accent bar */}
+        <div style={{ height: "5px", background: "linear-gradient(90deg, #0c213e 0%, #2a4a7f 60%, #4f7dc2 100%)" }} />
+
+        {/* Header */}
+        <div
+          style={{
+            background: "linear-gradient(135deg, #0c213e 0%, #1a3a6e 100%)",
+            padding: "2rem 2rem 1.5rem",
+            textAlign: "center",
+            position: "relative",
+          }}
+        >
+          {/* Checkmark circle */}
+          <div
+            style={{
+              width: "64px",
+              height: "64px",
+              borderRadius: "50%",
+              background: "rgba(255,255,255,0.12)",
+              border: "2px solid rgba(255,255,255,0.25)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              margin: "0 auto 1rem",
+            }}
+          >
+            <svg
+              width="32"
+              height="32"
+              viewBox="0 0 32 32"
+              fill="none"
+              style={{
+                strokeDasharray: 60,
+                strokeDashoffset: animate ? 0 : 60,
+                transition: "stroke-dashoffset 0.6s ease 0.25s",
+              }}
+            >
+              <circle cx="16" cy="16" r="14" stroke="rgba(255,255,255,0.3)" strokeWidth="2" fill="none" />
+              <polyline
+                points="8,16 13,21 24,10"
+                stroke="#4ade80"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                fill="none"
+              />
+            </svg>
+          </div>
+
+          <h2 style={{ color: "#ffffff", fontSize: "1.35rem", fontWeight: 700, margin: 0, letterSpacing: "-0.01em" }}>
+            Booking Confirmed!
+          </h2>
+          <p style={{ color: "rgba(255,255,255,0.65)", fontSize: "0.85rem", marginTop: "0.35rem" }}>
+            Your lab test has been successfully scheduled
+          </p>
+
+          {/* Close button */}
+          <button
+            onClick={onClose}
+            style={{
+              position: "absolute",
+              top: "1rem",
+              right: "1rem",
+              background: "rgba(255,255,255,0.1)",
+              border: "none",
+              borderRadius: "50%",
+              width: "32px",
+              height: "32px",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              color: "rgba(255,255,255,0.7)",
+              fontSize: "1.1rem",
+              lineHeight: 1,
+              transition: "background 0.2s",
+            }}
+            onMouseEnter={(e) => ((e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.2)")}
+            onMouseLeave={(e) => ((e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.1)")}
+          >
+            ×
+          </button>
+        </div>
+
+        {/* Body */}
+        <div style={{ padding: "1.75rem 2rem" }}>
+          {/* Booking summary card */}
+          <div
+            style={{
+              background: "#f8faff",
+              border: "1px solid #dde8f8",
+              borderRadius: "0.875rem",
+              padding: "1.25rem",
+              marginBottom: "1.25rem",
+            }}
+          >
+            <p style={{ fontSize: "0.78rem", fontWeight: 600, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "1rem" }}>
+              Booking Summary
+            </p>
+
+            <DetailRow label="Test Name" value={testName} bold />
+            <DetailRow label="Lab / Clinic" value={labName} />
+            <DetailRow label="Scheduled Date" value={formattedDate} />
+            <DetailRow label="Category" value={category} />
+            <DetailRow
+              label="Amount"
+              value={`₹${price}`}
+              valueStyle={{ color: "#0c213e", fontWeight: 700, fontSize: "1.05rem" }}
+              isLast
+            />
+          </div>
+
+          {/* Info note */}
+          <div
+            style={{
+              background: "#fffbeb",
+              border: "1px solid #fde68a",
+              borderRadius: "0.625rem",
+              padding: "0.75rem 1rem",
+              display: "flex",
+              gap: "0.6rem",
+              alignItems: "flex-start",
+              marginBottom: "1.5rem",
+            }}
+          >
+            <span style={{ fontSize: "1rem", flexShrink: 0, marginTop: "1px" }}>ℹ️</span>
+            <p style={{ fontSize: "0.8rem", color: "#92400e", margin: 0, lineHeight: 1.5 }}>
+              Our team will contact you to confirm the sample collection time. Please keep your phone accessible.
+            </p>
+          </div>
+
+          {/* CTA buttons */}
+          <div style={{ display: "flex", gap: "0.75rem" }}>
+            <button
+              onClick={onClose}
+              style={{
+                flex: 1,
+                padding: "0.75rem 1rem",
+                borderRadius: "0.625rem",
+                border: "1.5px solid #d1d5db",
+                background: "#ffffff",
+                color: "#374151",
+                fontWeight: 600,
+                fontSize: "0.875rem",
+                cursor: "pointer",
+                transition: "border-color 0.2s, background 0.2s",
+              }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.borderColor = "#0c213e";
+                (e.currentTarget as HTMLButtonElement).style.background = "#f8faff";
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.borderColor = "#d1d5db";
+                (e.currentTarget as HTMLButtonElement).style.background = "#ffffff";
+              }}
+            >
+              Close
+            </button>
+            <button
+              onClick={onClose}
+              style={{
+                flex: 1,
+                padding: "0.75rem 1rem",
+                borderRadius: "0.625rem",
+                border: "none",
+                background: "linear-gradient(135deg, #0c213e 0%, #1a3a6e 100%)",
+                color: "#ffffff",
+                fontWeight: 600,
+                fontSize: "0.875rem",
+                cursor: "pointer",
+                transition: "opacity 0.2s, transform 0.15s",
+              }}
+              onMouseEnter={(e) => ((e.currentTarget as HTMLButtonElement).style.opacity = "0.88")}
+              onMouseLeave={(e) => ((e.currentTarget as HTMLButtonElement).style.opacity = "1")}
+            >
+              View My Bookings
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Small reusable row inside the summary card
+function DetailRow({
+  label,
+  value,
+  bold,
+  isLast,
+  valueStyle,
+}: {
+  label: string;
+  value: string;
+  bold?: boolean;
+  isLast?: boolean;
+  valueStyle?: React.CSSProperties;
+}) {
+  return (
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "flex-start",
+        gap: "1rem",
+        paddingBottom: isLast ? 0 : "0.75rem",
+        marginBottom: isLast ? 0 : "0.75rem",
+        borderBottom: isLast ? "none" : "1px solid #e9eef8",
+      }}
+    >
+      <span style={{ fontSize: "0.82rem", color: "#6b7280", flexShrink: 0 }}>{label}</span>
+      <span
+        style={{
+          fontSize: "0.875rem",
+          color: "#111827",
+          fontWeight: bold ? 600 : 500,
+          textAlign: "right",
+          ...valueStyle,
+        }}
+      >
+        {value}
+      </span>
+    </div>
+  );
+}
+// ──────────────────────────────────────────────────────────────────────────────
+
 export default function LabTestDetails() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  
+
   const [test, setTest] = useState<Test | null>(null);
   const [loading, setLoading] = useState(true);
   const [bookingLoading, setBookingLoading] = useState(false);
   const [otherTests, setOtherTests] = useState<Test[]>([]);
   const [bookingDate, setBookingDate] = useState<string>("");
+
+  // ── Modal state ──
+  const [modalOpen, setModalOpen] = useState(false);
+  const [confirmedDate, setConfirmedDate] = useState<string>("");
 
   // category -> image map
   const categoryImages: Record<string, string> = {
@@ -164,10 +477,7 @@ export default function LabTestDetails() {
         return;
       }
 
-      // Convert yyyy-mm-dd -> ISO at midnight local, then to UTC ISO string
-      // const bookingDateISO = new Date(bookingDate + "T00:00:00").toISOString();
       const bookingDateISO = new Date(bookingDate + "T00:00:00Z").toISOString();
-      console.log(bookingDateISO)
 
       const payload = {
         test: {
@@ -185,10 +495,11 @@ export default function LabTestDetails() {
       });
 
       console.log("✅ Booking response:", res.data);
-      toast.success("Test booked successfully!");
-      
-      // Reset booking date after successful booking
+
+      // ── Show confirmation modal ──
+      setConfirmedDate(bookingDate);
       setBookingDate("");
+      setModalOpen(true);
     } catch (error: any) {
       console.error("❌ Booking error:", error);
       const errorMessage = error.response?.data?.message || "Booking failed. Try again.";
@@ -221,6 +532,17 @@ export default function LabTestDetails() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* ── Booking Confirmation Modal ── */}
+      <BookingConfirmationModal
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        testName={test.testName}
+        labName={test.labName}
+        bookingDate={confirmedDate}
+        price={test.price}
+        category={test.category || "General"}
+      />
+
       {/* Header */}
       <div className="bg-white border-b border-gray-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
