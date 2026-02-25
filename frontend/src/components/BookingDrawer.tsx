@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState, useRef } from "react";
-import { X, Video, Phone, ChevronLeft, ChevronRight } from "lucide-react";
+import { X, Video, Phone, ChevronLeft, ChevronRight, CheckCircle, Calendar, Hash, MapPin, User } from "lucide-react";
 import { formatDayShort, formatDateNumber } from "../utils/date.js";
 import api from "../Services/mainApi.js";
 import AppointmentFormModal from "./AppointmentFormModal.js";
@@ -35,19 +35,131 @@ interface MonthDataEntry {
 
 interface SlotsAPIResponse {
   availableMonths: {
-    [key: string]: Array<{
-      date: string;
-      slots: Slot[];
-    }>;
+    [key: string]: Array<{ date: string; slots: Slot[] }>;
   };
 }
 
-const BookingDrawer: React.FC<Props> = ({
-  doctor,
-  open,
-  onClose,
-  onBooked,
+interface TokenBookingResponse {
+  message: string;
+  tokenNumber: number;
+  booking: unknown;
+}
+
+// ─── Confirmation Modal ───────────────────────────────────────────────────────
+interface ConfirmationModalProps {
+  open: boolean;
+  tokenNumber: number;
+  date: string;
+  doctor: DoctorForBooking;
+  patientName: string;
+  onClose: () => void; // hides modal only (backdrop click)
+  onDone: () => void;  // closes modal then drawer
+}
+
+const DetailRow: React.FC<{ icon: React.ReactNode; label: string; value: string }> = ({ icon, label, value }) => (
+  <div className="flex items-start gap-3">
+    <span className="mt-0.5 text-[#0c213e]/50">{icon}</span>
+    <div className="flex-1 min-w-0">
+      <p className="text-xs text-gray-400">{label}</p>
+      <p className="text-sm font-medium text-gray-800 truncate">{value}</p>
+    </div>
+  </div>
+);
+
+const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
+  open, tokenNumber, date, doctor, patientName, onClose, onDone,
 }) => {
+  const [visible, setVisible] = useState(false);
+  const [animateIn, setAnimateIn] = useState(false);
+
+  useEffect(() => {
+    if (open) {
+      setVisible(true);
+      requestAnimationFrame(() => requestAnimationFrame(() => setAnimateIn(true)));
+    } else {
+      setAnimateIn(false);
+      const t = setTimeout(() => setVisible(false), 350);
+      return () => clearTimeout(t);
+    }
+  }, [open]);
+
+  const formattedDate = new Date(date).toLocaleDateString("en-IN", {
+    weekday: "long", day: "numeric", month: "long", year: "numeric",
+  });
+
+  if (!visible) return null;
+
+  return (
+    <div className={`fixed inset-0 z-[60] flex items-end sm:items-center justify-center px-4 pb-4 sm:pb-0 transition-all duration-300 ${animateIn ? "opacity-100" : "opacity-0"}`}>
+      {/* Backdrop */}
+      <div
+        className={`absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity duration-300 ${animateIn ? "opacity-100" : "opacity-0"}`}
+        onClick={onClose}
+      />
+
+      {/* Card */}
+      <div
+        className={`relative w-full max-w-sm bg-white rounded-2xl shadow-2xl overflow-hidden transition-all duration-500 ${animateIn ? "translate-y-0 opacity-100 scale-100" : "translate-y-10 opacity-0 scale-95"}`}
+        style={{ transitionTimingFunction: "cubic-bezier(0.34, 1.56, 0.64, 1)" }}
+      >
+        {/* Dark header strip */}
+        <div className="bg-gradient-to-r from-[#0c213e] to-[#1a3a6b] px-6 pt-8 pb-6 text-white text-center relative">
+          <button onClick={onClose} className="absolute top-3 right-3 text-white/60 hover:text-white transition-colors">
+            <X className="w-5 h-5" />
+          </button>
+
+          {/* Animated check */}
+          <div className={`mx-auto mb-4 w-16 h-16 rounded-full bg-white/20 flex items-center justify-center transition-all duration-500 delay-150 ${animateIn ? "scale-100 opacity-100" : "scale-50 opacity-0"}`}>
+            <CheckCircle className="w-9 h-9 text-green-300" />
+          </div>
+
+          <h2 className={`text-xl font-bold transition-all duration-500 delay-200 ${animateIn ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"}`}>
+            Booking Confirmed!
+          </h2>
+          <p className={`text-white/70 text-sm mt-1 transition-all duration-500 delay-250 ${animateIn ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"}`}>
+            Your in-clinic token has been reserved
+          </p>
+        </div>
+
+        {/* Token badge — floats out of header */}
+        <div className={`mx-6 -mt-5 bg-white rounded-xl shadow-lg border border-gray-100 px-6 py-4 text-center transition-all duration-500 delay-300 ${animateIn ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"}`}>
+          <p className="text-xs text-gray-400 uppercase tracking-widest mb-1 font-medium">Token Number</p>
+          <p className="text-6xl font-extrabold text-[#0c213e] leading-none">#{tokenNumber}</p>
+        </div>
+
+        {/* Details list */}
+        <div className={`px-6 py-5 space-y-3 transition-all duration-500 delay-[350ms] ${animateIn ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"}`}>
+          <DetailRow icon={<User className="w-4 h-4" />} label="Patient" value={patientName} />
+          <DetailRow icon={<Calendar className="w-4 h-4" />} label="Date" value={formattedDate} />
+          <DetailRow icon={<Hash className="w-4 h-4" />} label="Doctor" value={`Dr. ${doctor.fullName}`} />
+          {doctor.clinicAddress && (
+            <DetailRow icon={<MapPin className="w-4 h-4" />} label="Clinic" value={doctor.clinicAddress} />
+          )}
+        </div>
+
+        {/* Info note */}
+        <div className={`mx-6 mb-5 bg-amber-50 border border-amber-100 rounded-xl px-4 py-3 transition-all duration-500 delay-[400ms] ${animateIn ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"}`}>
+          <p className="text-xs text-amber-700 text-center leading-relaxed">
+            Please visit the clinic and show this token number to the receptionist. Tokens are served in order.
+          </p>
+        </div>
+
+        {/* CTA */}
+        <div className={`px-6 pb-6 transition-all duration-500 delay-[450ms] ${animateIn ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"}`}>
+          <button
+            onClick={onDone}
+            className="w-full bg-[#0c213e] text-white py-3 rounded-xl font-semibold text-sm hover:bg-[#0f2a55] transition-colors"
+          >
+            Done
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ─── Main Drawer ──────────────────────────────────────────────────────────────
+const BookingDrawer: React.FC<Props> = ({ doctor, open, onClose, onBooked }) => {
   const [mode, setMode] = useState<"online" | "offline">("offline");
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
@@ -60,20 +172,32 @@ const BookingDrawer: React.FC<Props> = ({
   const [availableDates, setAvailableDates] = useState<string[]>([]);
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [allMonthsData, setAllMonthsData] = useState<{ [key: string]: MonthDataEntry[] }>({});
+  const [confirmationData, setConfirmationData] = useState<{ tokenNumber: number; date: string; patientName: string } | null>(null);
+  const [showConfirmation, setShowConfirmation] = useState(false);
   const sidebarRef = useRef<HTMLDivElement | null>(null);
 
   const formatDate = (date: Date) =>
-    `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
-      2,
-      "0"
-    )}-${String(date.getDate()).padStart(2, "0")}`;
+    `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+
+  const offlineDays = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const year = currentMonth.getFullYear();
+    const month = currentMonth.getMonth();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const days: Date[] = [];
+    for (let d = 1; d <= daysInMonth; d++) {
+      const date = new Date(year, month, d);
+      if (date >= today) days.push(date);
+    }
+    return days;
+  }, [currentMonth]);
 
   const days = useMemo(() => {
     if (!availableDates || availableDates.length === 0) return [];
     return availableDates.map((dateStr) => new Date(dateStr));
   }, [availableDates]);
 
-  // Reset when doctor changes
   useEffect(() => {
     if (!doctor) return;
     setMode("offline");
@@ -85,9 +209,10 @@ const BookingDrawer: React.FC<Props> = ({
     setAvailableMonthKeys([]);
     setAvailableDates([]);
     setAllMonthsData({});
+    setConfirmationData(null);
+    setShowConfirmation(false);
   }, [doctor]);
 
-  // Reset when mode changes - IMPORTANT: Clear all state
   useEffect(() => {
     setSelectedDate(null);
     setSelectedTime(null);
@@ -96,252 +221,144 @@ const BookingDrawer: React.FC<Props> = ({
     setAvailableMonthKeys([]);
     setAvailableDates([]);
     setAllMonthsData({});
-    setCurrentMonth(new Date()); // Reset to current month
+    setCurrentMonth(new Date());
+    setConfirmationData(null);
+    setShowConfirmation(false);
   }, [mode]);
 
-  const monthKey = `${currentMonth.getFullYear()}-${String(
-    currentMonth.getMonth() + 1
-  ).padStart(2, "0")}`;
+  const monthKey = `${currentMonth.getFullYear()}-${String(currentMonth.getMonth() + 1).padStart(2, "0")}`;
 
-  // 🔥 FETCH SLOTS WITH MODE FILTERING
+  // Fetch slots (online only)
   useEffect(() => {
+    if (mode !== "online") return;
     const fetchSlots = async () => {
       if (!doctor) return;
-
       setLoadingSlots(true);
       setFetchError(null);
-
       try {
-        console.log(`[BookingDrawer] Fetching slots for mode: ${mode}`);
-        const res = await api.get<SlotsAPIResponse>(
-          `/api/patient/slots/${doctor._id}`,
-          {
-            params: { mode },
-            headers: {
-              'Cache-Control': 'no-cache',
-              'Pragma': 'no-cache'
-            }
-          }
-        );
-        console.log(`[BookingDrawer] API Response for mode ${mode}:`, res.data);
+        const res = await api.get<SlotsAPIResponse>(`/api/patient/slots/${doctor._id}`, {
+          params: { mode },
+          headers: { "Cache-Control": "no-cache", Pragma: "no-cache" },
+        });
 
-        if (
-          !res.data ||
-          !res.data.availableMonths ||
-          Object.keys(res.data.availableMonths).length === 0
-        ) {
-          setSlots([]);
-          setAvailableMonthKeys([]);
-          setAvailableDates([]);
-          setAllMonthsData({});
-          setFetchError(
-            `No slots available for ${
-              mode === "online" ? "online consultations" : "in-person visits"
-            }`
-          );
+        if (!res.data?.availableMonths || Object.keys(res.data.availableMonths).length === 0) {
+          setSlots([]); setAvailableMonthKeys([]); setAvailableDates([]); setAllMonthsData({});
+          setFetchError("No slots available for online consultations");
           return;
         }
 
-        // Store all months data
         setAllMonthsData(res.data.availableMonths);
-
         const keys = Object.keys(res.data.availableMonths).sort();
-        console.log(`[BookingDrawer] Available month keys for ${mode}:`, keys);
         setAvailableMonthKeys(keys);
 
-        const monthData: MonthDataEntry[] =
-          res.data.availableMonths[monthKey] ?? [];
-
+        const monthData: MonthDataEntry[] = res.data.availableMonths[monthKey] ?? [];
         const todayStr = formatDate(new Date());
-
-        const futureDates = monthData
-          .map((entry) => entry.date.slice(0, 10))
-          .filter((dateStr) => dateStr >= todayStr);
-
-        console.log(`[BookingDrawer] Future dates for ${monthKey} in ${mode} mode:`, futureDates);
+        const futureDates = monthData.map((e) => e.date.slice(0, 10)).filter((d) => d >= todayStr);
         setAvailableDates(futureDates);
 
-        // If no dates available for current month, try to set first available month
         if (futureDates.length === 0 && keys.length > 0) {
-          const firstAvailableMonth = keys.find((key) => {
-            const monthData = res.data.availableMonths[key] ?? [];
-            const dates = monthData
-              .map((entry) => entry.date.slice(0, 10))
-              .filter((dateStr) => dateStr >= todayStr);
-            return dates.length > 0;
+          const first = keys.find((key) => {
+            const md = res.data.availableMonths[key] ?? [];
+            return md.map((e) => e.date.slice(0, 10)).some((d) => d >= todayStr);
           });
-
-          if (firstAvailableMonth) {
-            const [y, m] = firstAvailableMonth.split("-");
-            const newMonth = new Date(Number(y), Number(m) - 1);
-            console.log(`[BookingDrawer] Switching to first available month: ${firstAvailableMonth}`);
-            setCurrentMonth(newMonth);
-            return;
+          if (first) {
+            const [y, m] = first.split("-");
+            setCurrentMonth(new Date(Number(y), Number(m) - 1));
           }
         }
-
-        // Set slots for the selected date if it exists in current month data
-        if (selectedDate) {
-          const dateEntry = monthData.find(
-            (entry) => entry.date.slice(0, 10) === formatDate(selectedDate)
-          );
-          setSlots(dateEntry?.slots ?? []);
-        }
       } catch (err: any) {
-        console.error("[BookingDrawer] Failed to fetch slots", err);
-        setSlots([]);
-        setAvailableMonthKeys([]);
-        setAvailableDates([]);
-        setAllMonthsData({});
-        setFetchError(
-          err.response?.data?.message ||
-            "Failed to load slots. Please try again."
-        );
+        setSlots([]); setAvailableMonthKeys([]); setAvailableDates([]); setAllMonthsData({});
+        setFetchError(err.response?.data?.message || "Failed to load slots. Please try again.");
       } finally {
         setLoadingSlots(false);
       }
     };
-
     fetchSlots();
   }, [doctor, mode, monthKey]);
 
-  // Update slots when selectedDate changes
   useEffect(() => {
-    if (!selectedDate || !allMonthsData[monthKey]) {
-      setSlots([]);
-      return;
-    }
-
-    const monthData = allMonthsData[monthKey];
-    const dateEntry = monthData.find(
-      (entry) => entry.date.slice(0, 10) === formatDate(selectedDate)
-    );
-
-    console.log(`[BookingDrawer] Selected date: ${formatDate(selectedDate)}, Found slots:`, dateEntry?.slots.length ?? 0);
+    if (mode !== "online") return;
+    if (!selectedDate || !allMonthsData[monthKey]) { setSlots([]); return; }
+    const dateEntry = allMonthsData[monthKey].find((e) => e.date.slice(0, 10) === formatDate(selectedDate));
     setSlots(dateEntry?.slots ?? []);
-    setSelectedTime(null); // Reset selected time when date changes
-  }, [selectedDate, allMonthsData, monthKey]);
+    setSelectedTime(null);
+  }, [selectedDate, allMonthsData, monthKey, mode]);
 
-  // BOOKING
-  const handleBook = async (formData: {
-    name: string;
-    age: number;
-    gender: "Male" | "Female" | "Other";
-    aadhar: string;
-    contact: string;
-    allergies?: string[];
-    diseases?: string[];
-    pastSurgeries?: string[];
-    currentMedications?: string[];
-    reports?: FileList | null;
+  // ── Offline booking ──
+  const handleOfflineBook = async (formData: {
+    name: string; age: number; gender: "Male" | "Female" | "Other";
+    aadhar: string; contact: string; allergies?: string[]; diseases?: string[];
+    pastSurgeries?: string[]; currentMedications?: string[]; reports?: FileList | null;
   }) => {
-    const token = document.cookie
-      .split("; ")
-      .find((r) => r.startsWith("patientToken="))
-      ?.split("=")[1];
-
-    // ⛔ Not logged in
-    if (!token) {
-      toast.info("Please login to book an appointment.");
-      setTimeout(() => {
-        window.location.href = "/patient-login";
-      }, 1200);
-      return;
-    }
-
-    // ⛔ Missing data
-    if (!doctor || !selectedDate || !selectedTime) {
-      toast.warn("Please select date & time.");
-      return;
-    }
-
-    const selectedSlotId = slots.find((s) => s.time === selectedTime)?._id;
-
-    if (!selectedSlotId) {
-      toast.error("Invalid slot selected. Please try again.");
-      return;
-    }
+    const token = document.cookie.split("; ").find((r) => r.startsWith("patientToken="))?.split("=")[1];
+    if (!token) { toast.info("Please login to book an appointment."); setTimeout(() => { window.location.href = "/patient-login"; }, 1200); return; }
+    if (!doctor || !selectedDate) { toast.warn("Please select a date."); return; }
 
     setBookingLoading(true);
+    try {
+      const pay = token.split(".")[1] ? JSON.parse(atob(token.split(".")[1])) : null;
+      const userId = pay?.id;
+      if (!userId) { toast.error("Invalid session. Please login again."); setTimeout(() => { window.location.href = "/patient-login"; }, 1200); return; }
 
+      const res = await api.post<TokenBookingResponse>("/api/bookOffline/bookToken", {
+        doctorId: doctor._id,
+        userId,
+        date: formatDate(selectedDate),
+        fees: doctor.fees ?? 0,
+        patient: { name: formData.name, age: formData.age, gender: formData.gender, aadhar: formData.aadhar, contact: formData.contact },
+      });
+
+      setShowForm(false);
+      setConfirmationData({ tokenNumber: res.data.tokenNumber, date: formatDate(selectedDate), patientName: formData.name });
+      setTimeout(() => setShowConfirmation(true), 150);
+      onBooked?.(res.data);
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || err.message || "Something went wrong.");
+    } finally {
+      setBookingLoading(false);
+    }
+  };
+
+  // ── Online booking ──
+  const handleBook = async (formData: {
+    name: string; age: number; gender: "Male" | "Female" | "Other";
+    aadhar: string; contact: string; allergies?: string[]; diseases?: string[];
+    pastSurgeries?: string[]; currentMedications?: string[]; reports?: FileList | null;
+  }) => {
+    if (mode === "offline") return handleOfflineBook(formData);
+
+    const token = document.cookie.split("; ").find((r) => r.startsWith("patientToken="))?.split("=")[1];
+    if (!token) { toast.info("Please login to book an appointment."); setTimeout(() => { window.location.href = "/patient-login"; }, 1200); return; }
+    if (!doctor || !selectedDate || !selectedTime) { toast.warn("Please select date & time."); return; }
+
+    const selectedSlotId = slots.find((s) => s.time === selectedTime)?._id;
+    if (!selectedSlotId) { toast.error("Invalid slot selected. Please try again."); return; }
+
+    setBookingLoading(true);
     try {
       const data = new FormData();
-
-      const payloadBase64 = token.split(".")[1];
-      const pay = payloadBase64 ? JSON.parse(atob(payloadBase64)) : null;
+      const pay = token.split(".")[1] ? JSON.parse(atob(token.split(".")[1])) : null;
       const userId = pay?.id;
-
-      if (!userId) {
-        toast.error("Invalid session. Please login again.");
-        setTimeout(() => {
-          window.location.href = "/patient-login";
-        }, 1200);
-        return;
-      }
+      if (!userId) { toast.error("Invalid session. Please login again."); setTimeout(() => { window.location.href = "/patient-login"; }, 1200); return; }
 
       data.append("doctorId", doctor._id);
       data.append("userId", userId);
       data.append("mode", mode);
-
       const [hour, minute] = selectedTime.split(":");
-
-      const localDateTime = new Date(
-        selectedDate.getFullYear(),
-        selectedDate.getMonth(),
-        selectedDate.getDate(),
-        Number(hour),
-        Number(minute),
-        0
-      ).toISOString();
-
-      data.append("dateTime", localDateTime);
+      data.append("dateTime", new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate(), Number(hour), Number(minute), 0).toISOString());
       data.append("fees", String(doctor.fees ?? 0));
       data.append("slot", selectedTime);
-      data.append("slotId", selectedSlotId ?? "");
+      data.append("slotId", selectedSlotId);
+      data.append("patient", JSON.stringify({ name: formData.name, age: formData.age, gender: formData.gender, aadhar: formData.aadhar, contact: formData.contact }));
+      data.append("emr", JSON.stringify({ allergies: formData.allergies, diseases: formData.diseases, pastSurgeries: formData.pastSurgeries, currentMedications: formData.currentMedications }));
+      if (formData.reports) Array.from(formData.reports).forEach((f) => data.append("reports", f));
 
-      data.append(
-        "patient",
-        JSON.stringify({
-          name: formData.name,
-          age: formData.age,
-          gender: formData.gender,
-          aadhar: formData.aadhar,
-          contact: formData.contact,
-        })
-      );
-
-      data.append(
-        "emr",
-        JSON.stringify({
-          allergies: formData.allergies,
-          diseases: formData.diseases,
-          pastSurgeries: formData.pastSurgeries,
-          currentMedications: formData.currentMedications,
-        })
-      );
-
-      if (formData.reports) {
-        Array.from(formData.reports).forEach((file) => {
-          data.append("reports", file);
-        });
-      }
-
-      await api.post("/api/booking/book", data, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-
-      toast.success(
-        `Appointment booked successfully with Dr. ${doctor.fullName}!`
-      );
-
+      await api.post("/api/booking/book", data, { headers: { "Content-Type": "multipart/form-data" } });
+      toast.success(`Appointment booked successfully with Dr. ${doctor.fullName}!`);
       onBooked?.(formData);
       onClose();
     } catch (err: any) {
-      console.error("Booking error", err);
-      const msg =
-        err.response?.data?.message || err.message || "Something went wrong.";
-
-      toast.error(msg);
+      toast.error(err.response?.data?.message || err.message || "Something went wrong.");
     } finally {
       setBookingLoading(false);
     }
@@ -349,296 +366,210 @@ const BookingDrawer: React.FC<Props> = ({
 
   if (!doctor) return null;
 
+  const today = new Date();
+  const isCurrentMonth = currentMonth.getFullYear() === today.getFullYear() && currentMonth.getMonth() === today.getMonth();
+  const maxOfflineMonth = new Date(today.getFullYear(), today.getMonth() + 2);
+  const isMaxOfflineMonth = currentMonth.getFullYear() === maxOfflineMonth.getFullYear() && currentMonth.getMonth() === maxOfflineMonth.getMonth();
+
   return (
     <>
       <Helmet>
-        <script type="application/ld+json">{`
-          {
-            "@context": "https://schema.org",
-            "@type": "Physician",
-            "name": "${doctor.fullName}",
-            "medicalSpecialty": "${doctor.specialization ?? "General"}",
-            "image": "${
-              doctor.photo
-                ? `http://localhost:3000/uploads/${doctor.photo}`
-                : ""
-            }",
-            "priceRange": "${doctor.fees ?? "0"}"
-          }
-        `}</script>
+        <script type="application/ld+json">{`{"@context":"https://schema.org","@type":"Physician","name":"${doctor.fullName}","medicalSpecialty":"${doctor.specialization ?? "General"}","image":"${doctor.photo ? `http://localhost:3000/uploads/${doctor.photo}` : ""}","priceRange":"${doctor.fees ?? "0"}"}`}</script>
       </Helmet>
 
-      <div
-        className={`fixed inset-0 z-50 flex justify-end transition-opacity duration-300 ${
-          open ? "opacity-100" : "opacity-0 pointer-events-none"
-        }`}
-      >
-        <div
-          onClick={onClose}
-          className="absolute inset-0 bg-black/40 backdrop"
-        />
+      <div className={`fixed inset-0 z-50 flex justify-end transition-opacity duration-300 ${open ? "opacity-100" : "opacity-0 pointer-events-none"}`}>
+        <div onClick={onClose} className="absolute inset-0 bg-black/40 backdrop" />
 
         <aside
           ref={sidebarRef}
-          className={`relative bg-white w-full sm:w-[480px] h-full shadow-2xl transform transition-transform duration-500 ease-in-out ${
-            open ? "translate-x-0" : "translate-x-full"
-          } rounded-l-2xl overflow-hidden`}
+          className={`relative bg-white w-full sm:w-[480px] h-full shadow-2xl transform transition-transform duration-500 ease-in-out ${open ? "translate-x-0" : "translate-x-full"} rounded-l-2xl overflow-hidden`}
         >
           {/* Header */}
           <header className="flex items-center justify-between px-5 py-4 border-b border-gray-200 bg-gray-50">
             <div className="flex items-center gap-3">
               {doctor.photo ? (
-                <img
-                  src={`http://localhost:3000/uploads/${doctor.photo}`}
-                  alt={doctor.fullName}
-                  className="h-14 w-14 rounded-full object-cover border border-gray-200"
-                />
+                <img src={`${doctor.photo}`} alt={doctor.fullName} className="h-14 w-14 rounded-full object-cover border border-gray-200" />
               ) : (
-                <div className="h-14 w-14 flex items-center justify-center rounded-full bg-[#0c213e] text-white text-lg font-semibold">
-                  {doctor.fullName.charAt(0)}
-                </div>
+                <div className="h-14 w-14 flex items-center justify-center rounded-full bg-[#0c213e] text-white text-lg font-semibold">{doctor.fullName.charAt(0)}</div>
               )}
               <div>
-                <h2 className="text-lg font-semibold text-gray-900">
-                  {doctor.fullName}
-                </h2>
+                <h2 className="text-lg font-semibold text-gray-900">Dr. {doctor.fullName}</h2>
                 <p className="text-sm text-gray-500">{doctor.specialization}</p>
+                <p className="text-md text-gray-800 font-bold">₹{doctor.fees}</p>
               </div>
             </div>
-            <button
-              onClick={onClose}
-              className="text-gray-500 hover:bg-gray-200 rounded-full p-2 transition-colors"
-            >
+            <button onClick={onClose} className="text-gray-500 hover:bg-gray-200 rounded-full p-2 transition-colors">
               <X className="w-5 h-5" />
             </button>
           </header>
 
           {/* Content */}
           <div className="p-5 space-y-5 overflow-y-auto h-[calc(100%-4rem)] scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
-            {/* Mode buttons - Always show at top */}
+            {/* Mode toggle */}
             <div className="grid grid-cols-2 gap-3">
-              <button
-                onClick={() => setMode("offline")}
-                className={`flex items-center justify-center gap-2 px-3 py-2 rounded-lg border text-sm font-medium transition-all ${
-                  mode === "offline"
-                    ? "bg-[#0c213e] text-white shadow"
-                    : "bg-white text-gray-700 hover:border-[#0c213e]/40"
-                }`}
-              >
+              <button onClick={() => setMode("offline")} className={`flex items-center justify-center gap-2 px-3 py-2 rounded-lg border text-sm font-medium transition-all ${mode === "offline" ? "bg-[#0c213e] text-white shadow" : "bg-white text-gray-700 hover:border-[#0c213e]/40"}`}>
                 <Phone className="w-4 h-4" /> Visit Doctor
               </button>
-              <button
-                onClick={() => setMode("online")}
-                className={`flex items-center justify-center gap-2 px-3 py-2 rounded-lg border text-sm font-medium transition-all ${
-                  mode === "online"
-                    ? "bg-[#0c213e] text-white shadow"
-                    : "bg-white text-gray-700 hover:border-[#0c213e]/40"
-                }`}
-              >
+              <button onClick={() => setMode("online")} className={`flex items-center justify-center gap-2 px-3 py-2 rounded-lg border text-sm font-medium transition-all ${mode === "online" ? "bg-[#0c213e] text-white shadow" : "bg-white text-gray-700 hover:border-[#0c213e]/40"}`}>
                 <Video className="w-4 h-4" /> Consult Online
               </button>
             </div>
 
-            {/* Loading State */}
-            {loadingSlots && availableMonthKeys.length === 0 && (
-              <div className="text-center py-8">
-                <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-gray-200 border-t-[#0c213e]"></div>
-                <p className="text-gray-500 text-sm mt-3">Loading slots...</p>
-              </div>
-            )}
-
-            {/* Error Message */}
-            {!loadingSlots && fetchError && (
-              <div className="text-center py-6 bg-red-50 rounded-2xl border border-red-100">
-                <p className="text-red-600 text-sm font-medium">{fetchError}</p>
-              </div>
-            )}
-
-            {/* If no slots */}
-            {!loadingSlots && !fetchError && availableMonthKeys.length === 0 && (
-              <div className="text-center py-8 bg-white rounded-2xl border border-gray-100 shadow-sm">
-                <h2 className="text-lg font-semibold text-gray-800 mb-1">
-                  No Slots Available
-                </h2>
-                <p className="text-gray-500 text-sm">
-                  This doctor hasn't added any appointment slots yet for{" "}
-                  {mode === "online"
-                    ? "online consultations"
-                    : "in-person visits"}
-                  .
-                </p>
-              </div>
-            )}
-
-            {/* Content when slots are available */}
-            {!loadingSlots && !fetchError && availableMonthKeys.length > 0 && (
+            {/* ── OFFLINE ── */}
+            {mode === "offline" && (
               <>
-                {/* Month navigation */}
-                <div className="flex justify-between items-center mb-3">
-                  <button
-                    className={`p-2 rounded ${
-                      availableMonthKeys.indexOf(monthKey) <= 0
-                        ? "opacity-40 cursor-not-allowed"
-                        : "hover:bg-gray-100"
-                    }`}
-                    disabled={availableMonthKeys.indexOf(monthKey) <= 0}
-                    onClick={() => {
-                      const idx = availableMonthKeys.indexOf(monthKey);
-                      if (idx > 0) {
-                        const prevKey = availableMonthKeys[idx - 1];
-                        const [y, m] = prevKey.split("-");
-                        const newMonth = new Date(Number(y), Number(m) - 1);
-                        setCurrentMonth(newMonth);
-                        setSelectedDate(null);
-                      }
-                    }}
-                  >
+                <div className="bg-blue-50 border border-blue-100 rounded-xl px-4 py-3 text-sm text-blue-700">
+                  <p className="font-medium mb-0.5">Walk-in Token Booking</p>
+                  <p className="text-xs text-blue-500">Select a date and get your token number for an in-person visit</p>
+                </div>
+
+                <div className="flex justify-between items-center">
+                  <button className={`p-2 rounded ${isCurrentMonth ? "opacity-40 cursor-not-allowed" : "hover:bg-gray-100"}`} disabled={isCurrentMonth} onClick={() => { setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1)); setSelectedDate(null); }}>
                     <ChevronLeft className="w-4 h-4" />
                   </button>
-
-                  <span className="text-sm font-semibold text-gray-800">
-                    {currentMonth.toLocaleString("default", {
-                      month: "long",
-                      year: "numeric",
-                    })}
-                  </span>
-
-                  <button
-                    className={`p-2 rounded ${
-                      availableMonthKeys.indexOf(monthKey) >=
-                      availableMonthKeys.length - 1
-                        ? "opacity-40 cursor-not-allowed"
-                        : "hover:bg-gray-100"
-                    }`}
-                    disabled={
-                      availableMonthKeys.indexOf(monthKey) >=
-                      availableMonthKeys.length - 1
-                    }
-                    onClick={() => {
-                      const idx = availableMonthKeys.indexOf(monthKey);
-                      if (idx < availableMonthKeys.length - 1) {
-                        const nextKey = availableMonthKeys[idx + 1];
-                        const [y, m] = nextKey.split("-");
-                        const newMonth = new Date(Number(y), Number(m) - 1);
-                        setCurrentMonth(newMonth);
-                        setSelectedDate(null);
-                      }
-                    }}
-                  >
+                  <span className="text-sm font-semibold text-gray-800">{currentMonth.toLocaleString("default", { month: "long", year: "numeric" })}</span>
+                  <button className={`p-2 rounded ${isMaxOfflineMonth ? "opacity-40 cursor-not-allowed" : "hover:bg-gray-100"}`} disabled={isMaxOfflineMonth} onClick={() => { setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1)); setSelectedDate(null); }}>
                     <ChevronRight className="w-4 h-4" />
                   </button>
                 </div>
 
-                {/* Date selection */}
-                {days.length > 0 ? (
+                {offlineDays.length > 0 ? (
                   <div className="flex gap-2 overflow-x-auto py-2 scrollbar-thin scrollbar-thumb-gray-300">
-                    {days.map((d) => {
+                    {offlineDays.map((d) => {
                       const key = formatDate(d);
-                      const active =
-                        selectedDate && formatDate(selectedDate) === key;
-
+                      const active = selectedDate && formatDate(selectedDate) === key;
                       return (
-                        <button
-                          key={key}
-                          onClick={() => setSelectedDate(d)}
-                          className={`min-w-[72px] p-3 text-center rounded-lg border transition-all
-                          ${
-                            active
-                              ? "bg-[#0c213e] text-white shadow"
-                              : "bg-white text-gray-800 hover:shadow-sm"
-                          }`}
-                        >
-                          <div className="text-xs opacity-80">
-                            {formatDayShort(d)}
-                          </div>
-                          <div className="text-lg font-semibold">
-                            {formatDateNumber(d)}
-                          </div>
+                        <button key={key} onClick={() => setSelectedDate(d)} className={`min-w-[72px] p-3 text-center rounded-lg border transition-all ${active ? "bg-[#0c213e] text-white shadow" : "bg-white text-gray-800 hover:shadow-sm"}`}>
+                          <div className="text-xs opacity-80">{formatDayShort(d)}</div>
+                          <div className="text-lg font-semibold">{formatDateNumber(d)}</div>
                         </button>
                       );
                     })}
                   </div>
                 ) : (
                   <div className="text-center py-4 bg-gray-50 rounded-lg">
-                    <p className="text-gray-500 text-sm">
-                      No available dates in this month
-                    </p>
+                    <p className="text-gray-500 text-sm">No available dates in this month</p>
                   </div>
                 )}
 
-                {/* Slots */}
                 {selectedDate && (
-                  <div>
-                    <h4 className="text-sm font-semibold mb-2 text-gray-700">
-                      Available Slots
-                    </h4>
+                  <div className="bg-gray-50 rounded-xl border border-gray-200 px-4 py-3 text-sm text-gray-700">
+                    <p className="font-medium">Selected Date</p>
+                    <p className="text-[#0c213e] font-semibold mt-0.5">{selectedDate.toLocaleDateString("en-IN", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}</p>
+                    <p className="text-xs text-gray-400 mt-1">Your token number will be assigned after booking</p>
+                  </div>
+                )}
+              </>
+            )}
 
-                    {slots.length === 0 ? (
-                      <div className="text-center py-6 bg-gray-50 rounded-lg border border-gray-200">
-                        <p className="text-gray-600 text-sm font-medium">
-                          No slots available for this date
-                        </p>
-                        <p className="text-gray-500 text-xs mt-1">
-                          Please select another date
-                        </p>
-                      </div>
-                    ) : (
-                      <div className="grid grid-cols-3 gap-2">
-                        {slots.map((slot) => {
-                          const isBooked = !slot.isActive;
-                          const selected = selectedTime === slot.time;
+            {/* ── ONLINE ── */}
+            {mode === "online" && (
+              <>
+                {loadingSlots && availableMonthKeys.length === 0 && (
+                  <div className="text-center py-8">
+                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-gray-200 border-t-[#0c213e]" />
+                    <p className="text-gray-500 text-sm mt-3">Loading slots...</p>
+                  </div>
+                )}
+                {!loadingSlots && fetchError && (
+                  <div className="text-center py-6 bg-red-50 rounded-2xl border border-red-100">
+                    <p className="text-red-600 text-sm font-medium">{fetchError}</p>
+                  </div>
+                )}
+                {!loadingSlots && !fetchError && availableMonthKeys.length === 0 && (
+                  <div className="text-center py-8 bg-white rounded-2xl border border-gray-100 shadow-sm">
+                    <h2 className="text-lg font-semibold text-gray-800 mb-1">No Slots Available</h2>
+                    <p className="text-gray-500 text-sm">This doctor hasn't added any appointment slots yet for online consultations.</p>
+                  </div>
+                )}
+                {!loadingSlots && !fetchError && availableMonthKeys.length > 0 && (
+                  <>
+                    <div className="flex justify-between items-center mb-3">
+                      <button className={`p-2 rounded ${availableMonthKeys.indexOf(monthKey) <= 0 ? "opacity-40 cursor-not-allowed" : "hover:bg-gray-100"}`} disabled={availableMonthKeys.indexOf(monthKey) <= 0} onClick={() => { const idx = availableMonthKeys.indexOf(monthKey); if (idx > 0) { const [y, m] = availableMonthKeys[idx - 1].split("-"); setCurrentMonth(new Date(Number(y), Number(m) - 1)); setSelectedDate(null); } }}>
+                        <ChevronLeft className="w-4 h-4" />
+                      </button>
+                      <span className="text-sm font-semibold text-gray-800">{currentMonth.toLocaleString("default", { month: "long", year: "numeric" })}</span>
+                      <button className={`p-2 rounded ${availableMonthKeys.indexOf(monthKey) >= availableMonthKeys.length - 1 ? "opacity-40 cursor-not-allowed" : "hover:bg-gray-100"}`} disabled={availableMonthKeys.indexOf(monthKey) >= availableMonthKeys.length - 1} onClick={() => { const idx = availableMonthKeys.indexOf(monthKey); if (idx < availableMonthKeys.length - 1) { const [y, m] = availableMonthKeys[idx + 1].split("-"); setCurrentMonth(new Date(Number(y), Number(m) - 1)); setSelectedDate(null); } }}>
+                        <ChevronRight className="w-4 h-4" />
+                      </button>
+                    </div>
+
+                    {days.length > 0 ? (
+                      <div className="flex gap-2 overflow-x-auto py-2 scrollbar-thin scrollbar-thumb-gray-300">
+                        {days.map((d) => {
+                          const key = formatDate(d);
+                          const active = selectedDate && formatDate(selectedDate) === key;
                           return (
-                            <button
-                              key={slot._id}
-                              onClick={() => {
-                                if (isBooked) return;
-                                setSelectedTime(
-                                  selectedTime === slot.time ? null : slot.time
-                                );
-                              }}
-                              disabled={isBooked}
-                              className={`p-2 rounded border text-sm transition-all ${
-                                selected
-                                  ? "bg-[#0c213e] text-white shadow"
-                                  : "bg-white border-green-600 border-2 text-gray-600 hover:shadow-sm"
-                              } ${
-                                isBooked
-                                  ? "!bg-gray-300 !text-white !border-white cursor-not-allowed"
-                                  : ""
-                              }`}
-                            >
-                              {slot.time}
+                            <button key={key} onClick={() => setSelectedDate(d)} className={`min-w-[72px] p-3 text-center rounded-lg border transition-all ${active ? "bg-[#0c213e] text-white shadow" : "bg-white text-gray-800 hover:shadow-sm"}`}>
+                              <div className="text-xs opacity-80">{formatDayShort(d)}</div>
+                              <div className="text-lg font-semibold">{formatDateNumber(d)}</div>
                             </button>
                           );
                         })}
                       </div>
+                    ) : (
+                      <div className="text-center py-4 bg-gray-50 rounded-lg">
+                        <p className="text-gray-500 text-sm">No available dates in this month</p>
+                      </div>
                     )}
-                  </div>
+
+                    {selectedDate && (
+                      <div>
+                        <h4 className="text-sm font-semibold mb-2 text-gray-700">Available Slots</h4>
+                        {slots.length === 0 ? (
+                          <div className="text-center py-6 bg-gray-50 rounded-lg border border-gray-200">
+                            <p className="text-gray-600 text-sm font-medium">No slots available for this date</p>
+                            <p className="text-gray-500 text-xs mt-1">Please select another date</p>
+                          </div>
+                        ) : (
+                          <div className="grid grid-cols-3 gap-2">
+                            {slots.map((slot) => {
+                              const isBooked = !slot.isActive;
+                              const selected = selectedTime === slot.time;
+                              return (
+                                <button key={slot._id} onClick={() => { if (isBooked) return; setSelectedTime(selectedTime === slot.time ? null : slot.time); }} disabled={isBooked} className={`p-2 rounded border text-sm transition-all ${selected ? "bg-[#0c213e] text-white shadow" : "bg-white border-green-600 border-2 text-gray-600 hover:shadow-sm"} ${isBooked ? "!bg-gray-300 !text-white !border-white cursor-not-allowed" : ""}`}>
+                                  {slot.time}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </>
                 )}
               </>
             )}
           </div>
 
-          {selectedTime && (
+          {/* Sticky CTA */}
+          {((mode === "offline" && selectedDate) || (mode === "online" && selectedTime)) && (
             <div className="sticky bottom-0 bg-white border-t border-gray-200 px-4 py-3">
-              <button
-                onClick={() => setShowForm(true)}
-                disabled={bookingLoading}
-                className="w-full bg-[#0c213e] text-white py-2 rounded-lg font-medium hover:bg-[#0f1650] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {bookingLoading ? "Processing..." : "Continue"}
+              <button onClick={() => setShowForm(true)} disabled={bookingLoading} className="w-full bg-[#0c213e] text-white py-2 rounded-lg font-medium hover:bg-[#0f1650] transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                {bookingLoading ? "Processing..." : mode === "offline" ? "Book Token" : "Continue"}
               </button>
             </div>
           )}
 
-          <AppointmentFormModal
-            open={showForm}
-            onClose={() => setShowForm(false)}
-            onSubmit={handleBook}
-            loading={bookingLoading}
-          />
+          <AppointmentFormModal open={showForm} onClose={() => setShowForm(false)} onSubmit={handleBook} loading={bookingLoading} />
         </aside>
       </div>
+
+      {/* Confirmation modal — sits above everything at z-60 */}
+      {confirmationData && doctor && (
+        <ConfirmationModal
+          open={showConfirmation}
+          tokenNumber={confirmationData.tokenNumber}
+          date={confirmationData.date}
+          doctor={doctor}
+          patientName={confirmationData.patientName}
+          onClose={() => setShowConfirmation(false)}
+          onDone={() => {
+            setShowConfirmation(false);
+            setTimeout(onClose, 50);
+          }}
+        />
+      )}
     </>
   );
 };
