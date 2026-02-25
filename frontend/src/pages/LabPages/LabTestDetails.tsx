@@ -1,6 +1,6 @@
 // src/pages/LabTestDetails.tsx
 import React, { useEffect, useMemo, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import api from "../../Services/mainApi";
 
 import diabetes from "../../assets/Diabetes.png";
@@ -222,7 +222,7 @@ function BookingConfirmationModal({
           </div>
 
           {/* Info note */}
-          <div
+          {/* <div
             style={{
               background: "#fffbeb",
               border: "1px solid #fde68a",
@@ -238,7 +238,7 @@ function BookingConfirmationModal({
             <p style={{ fontSize: "0.8rem", color: "#92400e", margin: 0, lineHeight: 1.5 }}>
               Our team will contact you to confirm the sample collection time. Please keep your phone accessible.
             </p>
-          </div>
+          </div> */}
 
           {/* CTA buttons */}
           <div style={{ display: "flex", gap: "0.75rem" }}>
@@ -267,8 +267,9 @@ function BookingConfirmationModal({
             >
               Close
             </button>
+            {/* <Link to={""}>
             <button
-              onClick={onClose}
+              // onClick={onClose}
               style={{
                 flex: 1,
                 padding: "0.75rem 1rem",
@@ -283,9 +284,10 @@ function BookingConfirmationModal({
               }}
               onMouseEnter={(e) => ((e.currentTarget as HTMLButtonElement).style.opacity = "0.88")}
               onMouseLeave={(e) => ((e.currentTarget as HTMLButtonElement).style.opacity = "1")}
-            >
+              >
               View My Bookings
             </button>
+              </Link> */}
           </div>
         </div>
       </div>
