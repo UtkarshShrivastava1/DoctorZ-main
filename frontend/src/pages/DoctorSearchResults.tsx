@@ -391,7 +391,7 @@ if (consultMode === "hospital" && d.availableOnline) return false;
           </div>
 
           {/* Search Filters Bar */}
-          <div className="border border-gray-300 rounded-lg bg-white p-3 mb-3 shadow-sm">
+          <div className="border border-gray-200 rounded-lg bg-white p-3 mb-3 shadow-sm">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
               {/* Name Input */}
 <div className="flex items-center gap-2 border border-gray-200 rounded-lg px-3 py-1.5 bg-white">
@@ -543,7 +543,7 @@ if (consultMode === "hospital" && d.availableOnline) return false;
               No doctors found matching your filters.
             </div>
           ) : (
-            <div className="space-y-6">
+            <div className="space-y-3">
               {currentDoctors.map((doc) => (
                 <DoctorCard
                   key={doc._id}
@@ -670,10 +670,10 @@ if (consultMode === "hospital" && d.availableOnline) return false;
           setDrawerOpen(false);
           setSelectedDoctor(null);
         }}
-        onBooked={() => {
-          setDrawerOpen(false);
-          setSelectedDoctor(null);
-        }}
+        // onBooked={() => {
+        //   setDrawerOpen(false);
+        //   setSelectedDoctor(null);
+        // }}
       />
     </div>
   );
