@@ -300,13 +300,36 @@ const BookingDrawer: React.FC<Props> = ({ doctor, open, onClose, onBooked }) => 
       const userId = pay?.id;
       if (!userId) { toast.error("Invalid session. Please login again."); setTimeout(() => { window.location.href = "/patient-login"; }, 1200); return; }
 
-      const res = await api.post<TokenBookingResponse>("/api/bookOffline/bookToken", {
-        doctorId: doctor._id,
-        userId,
-        date: formatDate(selectedDate),
-        fees: doctor.fees ?? 0,
-        patient: { name: formData.name, age: formData.age, gender: formData.gender, aadhar: formData.aadhar, contact: formData.contact },
-      });
+      // const res = await api.post<TokenBookingResponse>("/api/bookOffline/bookToken", {
+      //   doctorId: doctor._id,
+      //   userId,
+      //   date: formatDate(selectedDate),
+      //   fees: doctor.fees ?? 0,
+      //   patient: { name: formData.name, age: formData.age, gender: formData.gender, aadhar: formData.aadhar, contact: formData.contact },
+      // });
+
+      const res = await api.post<TokenBookingResponse>(
+  "/api/bookOffline/bookToken",
+  {
+    doctorId: doctor._id,
+    fullName: formData.name,
+    gender: formData.gender,
+
+    // convert age to DOB if backend strictly requires dob
+    dob: new Date(
+      new Date().getFullYear() - formData.age,
+      0,
+      1
+    ).toISOString(),
+
+    mobileNumber: formData.contact,
+    aadhar: formData.aadhar,
+
+    date: formatDate(selectedDate),
+
+    paid: true,
+  }
+);
 
       setShowForm(false);
       setConfirmationData({ tokenNumber: res.data.tokenNumber, date: formatDate(selectedDate), patientName: formData.name });
