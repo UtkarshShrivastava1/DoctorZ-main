@@ -719,7 +719,7 @@ const ClinicDetails: React.FC = () => {
                           <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center border-4 border-white shadow-lg group-hover:border-indigo-100 transition-colors">
                             {doc.photo ? (
                               <img
-                                src={`http://localhost:3000/uploads/${doc.photo}`}
+                                src={doc.photo}
                                 alt={doc.fullName}
                                 className="object-cover w-full h-full"
                               />

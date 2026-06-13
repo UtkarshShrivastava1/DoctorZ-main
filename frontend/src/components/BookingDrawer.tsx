@@ -568,7 +568,7 @@ const BookingDrawer: React.FC<Props> = ({ doctor, open, onClose, onBooked }) => 
           {/* Sticky CTA */}
           {((mode === "offline" && selectedDate) || (mode === "online" && selectedTime)) && (
             <div className="sticky bottom-0 bg-white border-t border-gray-200 px-4 py-3">
-              <button onClick={() => setShowForm(true)} disabled={bookingLoading} className="w-full bg-[#0c213e] text-white py-2 rounded-lg font-medium hover:bg-[#0f1650] transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+              <button onClick={() => setShowForm(true)} disabled={bookingLoading} className="w-full bg-[#0c213e] text-white py-2 rounded-lg font-medium hover:bg-[#0f1650] transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer">
                 {bookingLoading ? "Processing..." : mode === "offline" ? "Book Token" : "Continue"}
               </button>
             </div>

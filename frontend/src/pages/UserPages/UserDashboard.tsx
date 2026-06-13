@@ -231,7 +231,7 @@ function UserDashboard() {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-y-auto pt-[57px] md:pt-0 bg-gray-50">
+      <main className="flex-1 overflow-y-auto pt-[57px] md:pt-0 bg-gray-50" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
         <div className="p-4 md:p-6 lg:p-8">
           <Outlet />
         </div>

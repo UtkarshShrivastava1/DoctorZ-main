@@ -233,13 +233,13 @@ export default function Navbar() {
       path: "/patient-register",
       icon: <UserCircle2 size={18} />,
     },
-    {
-      label: "Doctor",
-      path: "/doctor-register",
-      icon: <Stethoscope size={18} />,
-    },
-    { label: "Clinic/Hospital", path: "/clinic-register", icon: <Hospital size={18} /> },
-    { label: "Lab", path: "/lab-register", icon: <FlaskConical size={18} /> },
+    // {
+    //   label: "Doctor",
+    //   path: "/doctor-register",
+    //   icon: <Stethoscope size={18} />,
+    // },
+    // { label: "Clinic/Hospital", path: "/clinic-register", icon: <Hospital size={18} /> },
+    // { label: "Lab", path: "/lab-register", icon: <FlaskConical size={18} /> },
   ];
 
   const loginOptions = [
@@ -248,9 +248,9 @@ export default function Navbar() {
       path: "/patient-login",
       icon: <UserCircle2 size={18} />,
     },
-    { label: "Doctor", path: "/doctor-login", icon: <Stethoscope size={18} /> },
-    { label: "Clinic/Hospital", path: "/clinic-login", icon: <Hospital size={18} /> },
-    { label: "Lab", path: "/lab-login", icon: <FlaskConical size={18} /> },
+    // { label: "Doctor", path: "/doctor-login", icon: <Stethoscope size={18} /> },
+    // { label: "Clinic/Hospital", path: "/clinic-login", icon: <Hospital size={18} /> },
+    // { label: "Lab", path: "/lab-login", icon: <FlaskConical size={18} /> },
   ];
 
   // ---------------- RENDER ----------------
