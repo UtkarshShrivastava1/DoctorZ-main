@@ -1,380 +1,3 @@
-// import React, { useEffect, useState, useContext } from "react";
-// // import { useParams } from "react-router-dom";
-// import { getUserLabTests } from "../../Services/getLabTest";
-// import { AuthContext } from "../../Context/AuthContext";
-
-// export interface LabTestItem {
-//   labId: { name: string; city: string; address: string };
-//   _id: string;
-//   testName: string;
-//   status: string;
-//   doctorId?: { fullName: string; MobileNo: string };
-//   bookedAt?: string;
-//   reportUrl?: string;
-// }
-
-// function LabTestInUser() {
-//   const [labTests, setLabTests] = useState<LabTestItem[]>([]);
-//   const { user } = useContext(AuthContext); // or from context
-
-//   useEffect(() => {
-//     if (!user?.id) return;
-
-//     const fetchLabTests = async () => {
-//       try {
-//         const res = await getUserLabTests(user.id);
-//         setLabTests(res.data.labTests);
-//         console.log("Lab Tests API Response:", res.data.labTests);
-//       } catch (err) {
-//         console.log("Error fetching lab tests:", err);
-//       }
-//     };
-
-//     fetchLabTests();
-//   }, [user]);
-
-//   // return (
-//   //   <div className="p-4">
-//   //     <h1 className="text-xl font-semibold mb-4">Lab Test</h1>
-
-//   //     {labTests.length === 0 ? (
-//   //       <p>No lab tests found.</p>
-//   //     ) : (
-//   //       <div className="space-y-3">
-//   //         {labTests.map((test) => (
-//   //           <div
-//   //             key={test._id}
-//   //             className="border p-3 rounded-lg shadow-sm bg-white"
-//   //           >
-//   //             <p>
-//   //               <strong>Test Name:</strong> {test.testName}
-//   //             </p>
-//   //             {/* <p><strong>Status:</strong> {test.status}</p> */}
-//   //             <p>
-//   //               <strong>Lab:</strong> {test.labId.name}
-//   //             </p>
-
-//   //             {/* {test.bookedAt && !isNaN(Date.parse(test.bookedAt)) ? (
-//   //               <p>
-//   //                 <strong>Appointment Date:</strong>{" "}
-//   //                 {new Date(test.bookedAt).toLocaleString()}
-//   //               </p>
-//   //             ) : (
-//   //               <p>Appointment Date: Not Available</p>
-//   //             )} */}
-
-//   //             {test.bookedAt && !isNaN(Date.parse(test.bookedAt)) ? (
-//   //               <div>
-//   //                 <p>
-//   //                   <strong>Appointment Date:</strong>{" "}
-//   //                   {new Date(test.bookedAt).toLocaleDateString()}
-//   //                 </p>
-//   //                 <p>
-//   //                   <strong>Appointment Time:</strong>{" "}
-//   //                   {new Date(test.bookedAt).toLocaleTimeString([], {
-//   //                     hour: "2-digit",
-//   //                     minute: "2-digit",
-//   //                   })}
-//   //                 </p>
-//   //               </div>
-//   //             ) : (
-//   //               <p>Appointment Date: Not Available</p>
-//   //             )}
-
-//   //             {/* {test.reportUrl && (
-//   //               <a
-//   //                 href={test.reportUrl}
-//   //                 target="_blank"
-//   //                 rel="noopener noreferrer"
-//   //                 className="text-blue-600 underline"
-//   //               >
-//   //                 View Report
-//   //               </a>
-//   //             )} */}
-//   //           </div>
-//   //         ))}
-//   //       </div>
-//   //     )}
-//   //   </div>
-//   // );
-
-//   return (
-//   <div className="p-6">
-//     <h1 className="text-2xl font-semibold mb-6">My Lab Tests</h1>
-
-//     {labTests.length === 0 ? (
-//       <p className="text-gray-500">No lab tests found.</p>
-//     ) : (
-//       <div className="space-y-4">
-//         {labTests.map((test) => (
-//           <div
-//             key={test._id}
-//             className="bg-white p-4 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200"
-//           >
-//             <p className="font-medium text-lg mb-1"> <strong>Test Name:</strong> {test.testName}</p>
-//             <p className="text-gray-600 mb-1">
-//               <strong>Lab:</strong> {test.labId.name}
-//             </p>
-//             {test.bookedAt && !isNaN(Date.parse(test.bookedAt)) ? (
-//               <div className="text-gray-600 mb-1">
-//                 <p>
-//                   <strong>Appointment Date:</strong>{" "}
-//                   {new Date(test.bookedAt).toLocaleDateString()}
-//                 </p>
-//                 <p>
-//                   <strong>Appointment Time:</strong>{" "}
-//                   {new Date(test.bookedAt).toLocaleTimeString([], {
-//                     hour: "2-digit",
-//                     minute: "2-digit",
-//                   })}
-//                 </p>
-//               </div>
-//             ) : (
-//               <p className="text-gray-500">Appointment Date: Not Available</p>
-//             )}
-//             {test.reportUrl && (
-//               <a
-//                 href={test.reportUrl}
-//                 target="_blank"
-//                 rel="noopener noreferrer"
-//                 className="text-blue-600 underline mt-2 inline-block"
-//               >
-//                 View Report
-//               </a>
-//             )}
-//           </div>
-//         ))}
-//       </div>
-//     )}
-//   </div>
-// );
-
-
-// }
-
-
-// export default LabTestInUser;
-
-
-// import  { useEffect, useState, useContext } from "react";
-// import { ChevronLeft, ChevronRight, Calendar, Clock, FileText, MapPin, Building2 } from "lucide-react";
-// import { getUserLabTests } from "../../Services/getLabTest";
-// import { AuthContext } from "../../Context/AuthContext";
-
-// export interface LabTestItem {
-//   labId: { name: string; city: string; address: string };
-//   _id: string;
-//   testName: string;
-//   status: string;
-//   doctorId?: { fullName: string; MobileNo: string };
-//   bookedAt?: string;
-//   reportUrl?: string;
-// }
-
-// function LabTestInUser() {
-//   const [labTests, setLabTests] = useState<LabTestItem[]>([]);
-//   const { user } = useContext(AuthContext);
-
-//   const [currentPage, setCurrentPage] = useState(1);
-//   const itemsPerPage = 2;
-
-//   useEffect(() => {
-//     if (!user?.id) return;
-
-//     const fetchLabTests = async () => {
-//       try {
-//         const res = await getUserLabTests(user.id);
-//         setLabTests(res.data.labTests);
-//         console.log("Lab Tests API Response:", res.data.labTests);
-//       } catch (err) {
-//         console.log("Error fetching lab tests:", err);
-//       }
-//     };
-
-//     fetchLabTests();
-//   }, [user]);
-
-//   const totalPages = Math.ceil(labTests.length / itemsPerPage);
-//   const startIndex = (currentPage - 1) * itemsPerPage;
-//   const currentTests = labTests.slice(startIndex, startIndex + itemsPerPage);
-
-//   return (
-//     <div className="min-h-screen">
-//       <div className="max-w-6xl mx-auto p-6">
-//         {/* Header */}
-//         <div className="mb-8">
-//           <h1 className="text-4xl font-bold text-[#0c213e] mb-2 underline">My Lab Tests</h1>
-//           <div className="h-1 w-24 bg-white rounded-full"></div>
-//           {labTests.length > 0 && (
-//             <p className="text-black mt-3">
-//               Total Tests: <span className="font-semibold text-black">{labTests.length}</span>
-//             </p>
-//           )}
-//         </div>
-
-//         {labTests.length === 0 ? (
-//           <div className="bg-white rounded-2xl shadow-2xl p-12 text-center">
-//             <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-//               <FileText className="w-10 h-10 text-gray-400" />
-//             </div>
-//             <p className="text-gray-600 text-lg">No lab tests found.</p>
-//             <p className="text-gray-400 text-sm mt-2">Your lab test history will appear here.</p>
-//           </div>
-//         ) : (
-//           <>
-//             <div className="space-y-6">
-//               {currentTests.map((test) => (
-//                 <div
-//                   key={test._id}
-//                   className="bg-white border-b rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden"
-//                 >
-//                   {/* Card Header */}
-//                   <div className="p-6 border-b border-gray-100">
-//                     <h2 className="text-2xl font-bold text-black mb-2">
-//                       Test name: {test.testName}
-//                     </h2>
-//                     <div className="flex items-center gap-2 text-gray-300">
-//                       <Building2 className="w-4 h-4 text-black" />
-//                       <span className="text-sm text-black">Lab name: {test.labId.name}</span>
-//                     </div>
-//                   </div>
-
-//                   {/* Card Body */}
-//                   <div className="p-6">
-//                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-//                       {/* Lab Information */}
-//                       <div className="space-y-4">
-//                         <div className="flex items-start gap-3">
-//                           <div className="mt-1 p-2 rounded-lg" style={{ backgroundColor: '#08172c' }}>
-//                             <MapPin className="w-4 h-4 text-white" />
-//                           </div>
-//                           <div className="flex-1">
-//                             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
-//                               Location
-//                             </p>
-//                             <p className="text-gray-800 font-medium">
-//                               {test.labId.city}
-//                             </p>
-//                             <p className="text-gray-600 text-sm mt-1">
-//                               {test.labId.address}
-//                             </p>
-//                           </div>
-//                         </div>
-//                       </div>
-
-//                       {/* Appointment Information */}
-//                       <div className="space-y-4">
-//                         {test.bookedAt && !isNaN(Date.parse(test.bookedAt)) ? (
-//                           <>
-//                             <div className="flex items-start gap-3">
-//                               <div className="mt-1 p-2 rounded-lg" style={{ backgroundColor: '#08172c' }}>
-//                                 <Calendar className="w-4 h-4 text-white" />
-//                               </div>
-//                               <div className="flex-1">
-//                                 <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
-//                                   Appointment Date
-//                                 </p>
-//                                 <p className="text-gray-800 font-medium">
-//                                   {new Date(test.bookedAt).toLocaleDateString('en-US', {
-//                                     weekday: 'short',
-//                                     year: 'numeric',
-//                                     month: 'long',
-//                                     day: 'numeric'
-//                                   })}
-//                                 </p>
-//                               </div>
-//                             </div>
-
-//                             <div className="flex items-start gap-3">
-//                               <div className="mt-1 p-2 rounded-lg" style={{ backgroundColor: '#08172c' }}>
-//                                 <Clock className="w-4 h-4 text-white" />
-//                               </div>
-//                               <div className="flex-1">
-//                                 <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
-//                                   Appointment Time
-//                                 </p>
-//                                 <p className="text-gray-800 font-medium">
-//                                   {new Date(test.bookedAt).toLocaleTimeString([], {
-//                                     hour: "2-digit",
-//                                     minute: "2-digit",
-//                                   })}
-//                                 </p>
-//                               </div>
-//                             </div>
-//                           </>
-//                         ) : (
-//                           <div className="flex items-start gap-3">
-//                             <div className="mt-1 p-2 rounded-lg bg-gray-100">
-//                               <Calendar className="w-4 h-4 text-gray-400" />
-//                             </div>
-//                             <div className="flex-1">
-//                               <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
-//                                 Appointment Date
-//                               </p>
-//                               <p className="text-gray-500 italic">Not Available</p>
-//                             </div>
-//                           </div>
-//                         )}
-//                       </div>
-//                     </div>
-
-//                     {/* Report Button */}
-//                     {test.reportUrl && (
-//                       <div className="mt-6 pt-6 border-t border-gray-100">
-//                         <a
-//                           href={test.reportUrl}
-//                           target="_blank"
-//                           rel="noopener noreferrer"
-//                           className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-white font-semibold transition-all duration-300 hover:shadow-lg"
-//                           style={{ backgroundColor: '#08172c' }}
-//                         >
-//                           <FileText className="w-5 h-5" />
-//                           View Report
-//                         </a>
-//                       </div>
-//                     )}
-//                   </div>
-//                 </div>
-//               ))}
-//             </div>
-
-//             {/* Pagination */}
-//             {totalPages > 1 && (
-//               <div className="flex justify-center items-center gap-4 mt-8">
-//                 <button
-//                   disabled={currentPage === 1 || totalPages === 0}
-//                   onClick={() => setCurrentPage((p) => p - 1)}
-//                   className="p-3 rounded-xl text-white font-medium transition-all duration-300 hover:shadow-lg disabled:opacity-40 disabled:cursor-not-allowed"
-//                   style={{ backgroundColor: '#08172c' }}
-//                 >
-//                   <ChevronLeft className="w-5 h-5" />
-//                 </button>
-
-//                 <div className="px-6 py-3 bg-white rounded-xl shadow-lg">
-//                   <span className="font-bold" style={{ color: '#08172c' }}>
-//                     Page {currentPage} of {totalPages || 1}
-//                   </span>
-//                 </div>
-
-//                 <button
-//                   disabled={currentPage === totalPages}
-//                   onClick={() => setCurrentPage((p) => p + 1)}
-//                   className="p-3 rounded-xl text-white font-medium transition-all duration-300 hover:shadow-lg disabled:opacity-40 disabled:cursor-not-allowed"
-//                   style={{ backgroundColor: '#08172c' }}
-//                 >
-//                   <ChevronRight className="w-5 h-5" />
-//                 </button>
-//               </div>
-//             )}
-//           </>
-//         )}
-//       </div>
-//     </div>
-//   );
-// }
-
-// export default LabTestInUser;
-
 import { useEffect, useState, useContext } from "react";
 import {
   ChevronLeft,
@@ -384,15 +7,13 @@ import {
   FileText,
   MapPin,
   Building2,
-  Package
+  Package,
+  FlaskConical,
 } from "lucide-react";
 import { getUserLabTests, getPatientPackageBookings } from "../../Services/getLabTest";
-// import { getPatientPackageBookings } from "../../Services/getPatientPackageBookings";
 import { AuthContext } from "../../Context/AuthContext";
 
-/* =========================
-   Interfaces
-========================= */
+// ─── Types ─────────────────────────────────────────────────────────────────────
 
 export interface LabTestItem {
   labId: { name: string; city: string; address: string };
@@ -419,280 +40,424 @@ export interface PackageBookingItem {
   status: string;
 }
 
-/* =========================
-   Component
-========================= */
+// ─── Helpers ───────────────────────────────────────────────────────────────────
+
+const formatDate = (dateStr: string) =>
+  new Date(dateStr).toLocaleDateString("en-US", {
+    weekday: "short",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+
+const formatTime = (dateStr: string) =>
+  new Date(dateStr).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+
+const statusStyle = (status: string): string => {
+  switch (status.toLowerCase()) {
+    case "completed":
+      return "bg-green-50 text-green-700 border border-green-100";
+    case "pending":
+      return "bg-amber-50 text-amber-700 border border-amber-100";
+    case "cancelled":
+      return "bg-red-50 text-red-700 border border-red-100";
+    default:
+      return "bg-gray-50 text-gray-600 border border-gray-100";
+  }
+};
+
+// ─── Sub-components ────────────────────────────────────────────────────────────
+
+interface InfoRowProps {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+}
+
+const InfoRow: React.FC<InfoRowProps> = ({ icon, label, value }) => (
+  <div className="flex items-start gap-3">
+    <div className="w-9 h-9 bg-[#0c213e]/8 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5">
+      {icon}
+    </div>
+    <div>
+      <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-0.5">
+        {label}
+      </p>
+      <p className="text-base font-medium text-gray-700">{value}</p>
+    </div>
+  </div>
+);
+
+interface PaginationProps {
+  page: number;
+  totalPages: number;
+  onPrev: () => void;
+  onNext: () => void;
+}
+
+const Pagination: React.FC<PaginationProps> = ({ page, totalPages, onPrev, onNext }) => (
+  <div className="flex justify-center items-center gap-3 mt-6">
+    <button
+      disabled={page === 1}
+      onClick={onPrev}
+      className="w-10 h-10 rounded-xl bg-white border border-gray-200 flex items-center justify-center text-[#0c213e] hover:bg-[#0c213e] hover:text-white hover:border-[#0c213e] disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:text-[#0c213e] disabled:hover:border-gray-200 transition-all duration-150"
+    >
+      <ChevronLeft size={18} />
+    </button>
+    <span className="text-sm font-semibold text-gray-500 px-4 py-2 bg-white border border-gray-100 rounded-xl">
+      {page} / {totalPages}
+    </span>
+    <button
+      disabled={page === totalPages}
+      onClick={onNext}
+      className="w-10 h-10 rounded-xl bg-white border border-gray-200 flex items-center justify-center text-[#0c213e] hover:bg-[#0c213e] hover:text-white hover:border-[#0c213e] disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:text-[#0c213e] disabled:hover:border-gray-200 transition-all duration-150"
+    >
+      <ChevronRight size={18} />
+    </button>
+  </div>
+);
+
+interface EmptyStateProps {
+  icon: React.ReactNode;
+  title: string;
+  subtitle: string;
+}
+
+const EmptyState: React.FC<EmptyStateProps> = ({ icon, title, subtitle }) => (
+  <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-14 text-center">
+    <div className="w-20 h-20 bg-gray-50 border border-gray-100 rounded-full flex items-center justify-center mx-auto mb-5">
+      {icon}
+    </div>
+    <h3 className="text-lg font-semibold text-gray-600 mb-1">{title}</h3>
+    <p className="text-base text-gray-400">{subtitle}</p>
+  </div>
+);
+
+// ─── Lab Test Card (always expanded) ──────────────────────────────────────────
+
+const LabTestCard: React.FC<{ test: LabTestItem }> = ({ test }) => {
+  const hasDate = !!test.bookedAt && !isNaN(Date.parse(test.bookedAt));
+
+  return (
+    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-200">
+      {/* Card header strip */}
+      <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100 bg-gray-50/60">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 bg-[#0c213e] rounded-xl flex items-center justify-center flex-shrink-0">
+            <FlaskConical size={20} className="text-[#a8c4e0]" />
+          </div>
+          <div>
+            <p className="text-lg font-bold text-[#0c213e]">{test.testName}</p>
+            <p className="text-md text-gray-400 mt-0.5">{test.labId.name}</p>
+          </div>
+        </div>
+        <span className={`px-3 py-1.5 rounded-full text-xs font-semibold capitalize ${statusStyle(test.status)}`}>
+          {test.status}
+        </span>
+      </div>
+
+      {/* Card body — always visible */}
+      <div className="p-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5">
+          <InfoRow
+            icon={<Building2 size={16} className="text-[#0c213e]/60" />}
+            label="Lab"
+            value={test.labId.name}
+          />
+          <InfoRow
+            icon={<MapPin size={16} className="text-[#0c213e]/60" />}
+            label="Location"
+            value={`${test.labId.city}${test.labId.address ? " · " + test.labId.address : ""}`}
+          />
+          {hasDate ? (
+            <>
+              <InfoRow
+                icon={<Calendar size={16} className="text-[#0c213e]/60" />}
+                label="Appointment Date"
+                value={formatDate(test.bookedAt!)}
+              />
+              <InfoRow
+                icon={<Clock size={16} className="text-[#0c213e]/60" />}
+                label="Appointment Time"
+                value={formatTime(test.bookedAt!)}
+              />
+            </>
+          ) : (
+            <InfoRow
+              icon={<Calendar size={16} className="text-[#0c213e]/60" />}
+              label="Appointment"
+              value="Not available"
+            />
+          )}
+        </div>
+
+        {test.reportUrl && (
+          <div className="mt-6 pt-6 border-t border-gray-100 flex items-center gap-2">
+            <FileText size={15} className="text-indigo-400" />
+            <span className="text-xs font-semibold uppercase tracking-wider text-gray-400 mr-2">
+              Report
+            </span>
+            <a
+              href={test.reportUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#0c213e] hover:bg-[#132d54] text-white text-sm font-semibold rounded-xl transition-colors duration-150"
+            >
+              <FileText size={15} />
+              View Report
+            </a>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// ─── Package Booking Card (always expanded) ────────────────────────────────────
+
+const PackageCard: React.FC<{ booking: PackageBookingItem }> = ({ booking }) => (
+  <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-200">
+    {/* Card header strip */}
+    <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100 bg-gray-50/60">
+      <div className="flex items-center gap-4">
+        <div className="w-12 h-12 bg-[#0c213e] rounded-xl flex items-center justify-center flex-shrink-0">
+          <Package size={20} className="text-[#a8c4e0]" />
+        </div>
+        <div>
+          <p className="text-lg font-bold text-[#0c213e]">{booking.packageId.packageName}</p>
+          <p className="text-md text-gray-400 mt-0.5">{booking.labId.name}</p>
+        </div>
+      </div>
+      <div className="flex items-center gap-3 flex-shrink-0">
+        <span className="text-base font-bold text-[#0c213e]">
+          ₹{booking.packageId.totalPrice.toLocaleString()}
+        </span>
+        <span className={`px-3 py-1.5 rounded-full text-xs font-semibold capitalize ${statusStyle(booking.status)}`}>
+          {booking.status}
+        </span>
+      </div>
+    </div>
+
+    {/* Card body — always visible */}
+    <div className="p-6">
+      {booking.packageId.description && (
+        <p className="text-base text-gray-500 mb-6 leading-relaxed">
+          {booking.packageId.description}
+        </p>
+      )}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5">
+        <InfoRow
+          icon={<Building2 size={16} className="text-[#0c213e]/60" />}
+          label="Lab"
+          value={booking.labId.name}
+        />
+        <InfoRow
+          icon={<MapPin size={16} className="text-[#0c213e]/60" />}
+          label="Location"
+          value={`${booking.labId.city}${booking.labId.address ? " · " + booking.labId.address : ""}`}
+        />
+        <InfoRow
+          icon={<Calendar size={16} className="text-[#0c213e]/60" />}
+          label="Booking Date"
+          value={formatDate(booking.bookingDate)}
+        />
+        <InfoRow
+          icon={<Package size={16} className="text-[#0c213e]/60" />}
+          label="Total Price"
+          value={`₹${booking.packageId.totalPrice.toLocaleString()}`}
+        />
+      </div>
+    </div>
+  </div>
+);
+
+// ─── Main Component ────────────────────────────────────────────────────────────
 
 function LabTestInUser() {
   const { user } = useContext(AuthContext);
 
   const [labTests, setLabTests] = useState<LabTestItem[]>([]);
   const [packageBookings, setPackageBookings] = useState<PackageBookingItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<"tests" | "packages">("tests");
 
   const [labPage, setLabPage] = useState(1);
   const [packagePage, setPackagePage] = useState(1);
-
-  const itemsPerPage = 2;
-
-  /* =========================
-     Fetch Data
-  ========================= */
+  const itemsPerPage = 5;
 
   useEffect(() => {
     if (!user?.id) return;
-
     const fetchData = async () => {
+      setLoading(true);
       try {
-        const labRes = await getUserLabTests(user.id);
+        const [labRes, packageRes] = await Promise.all([
+          getUserLabTests(user.id),
+          getPatientPackageBookings(user.id),
+        ]);
         setLabTests(labRes.data.labTests || []);
-
-        const packageRes = await getPatientPackageBookings(user.id);
         setPackageBookings(packageRes.data.bookings || []);
       } catch (err) {
         console.log("Error fetching data:", err);
+      } finally {
+        setLoading(false);
       }
     };
-
     fetchData();
   }, [user]);
 
-  /* =========================
-     Pagination
-  ========================= */
-
-  const totalLabPages = Math.ceil(labTests.length / itemsPerPage);
-  const totalPackagePages = Math.ceil(packageBookings.length / itemsPerPage);
+  const totalLabPages = Math.max(1, Math.ceil(labTests.length / itemsPerPage));
+  const totalPackagePages = Math.max(1, Math.ceil(packageBookings.length / itemsPerPage));
 
   const currentLabTests = labTests.slice(
     (labPage - 1) * itemsPerPage,
     labPage * itemsPerPage
   );
-
   const currentPackages = packageBookings.slice(
     (packagePage - 1) * itemsPerPage,
     packagePage * itemsPerPage
   );
 
+  // ── Loading ────────────────────────────────────────────────────────────────
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-12 h-12 border-4 border-[#0c213e]/20 border-t-[#0c213e] rounded-full animate-spin" />
+          <p className="text-base text-gray-400 font-medium">Loading your records…</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen">
-      <div className="max-w-6xl mx-auto p-6">
+    <div className="min-h-screen bg-gray-50 py-8 px-4">
+      <div className="max-w-4xl mx-auto">
 
-        {/* ================= LAB TEST SECTION ================= */}
-
-        <div className="mb-16">
-          <h1 className="text-4xl font-bold text-[#0c213e] mb-4 underline">
-            My Lab Tests
-          </h1>
-
-          {labTests.length === 0 ? (
-            <div className="bg-white rounded-2xl shadow-xl p-10 text-center">
-              <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-600">No lab tests found.</p>
+        {/* ── Page Header ──────────────────────────────────────────────────── */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-4 flex flex-col sm:flex-row sm:items-center gap-5">
+          <div className="flex items-center gap-4 flex-1 min-w-0">
+            <div className="w-14 h-14 bg-[#0c213e] rounded-2xl flex items-center justify-center flex-shrink-0">
+              <FlaskConical size={26} className="text-[#a8c4e0]" />
             </div>
-          ) : (
-            <>
-              <div className="space-y-6">
-                {currentLabTests.map((test) => (
-                  <div
-                    key={test._id}
-                    className="bg-white rounded-2xl shadow-xl p-6"
-                  >
-                    <h2 className="text-2xl font-bold mb-2">
-                      {test.testName}
-                    </h2>
-
-                    <p className="text-gray-600 mb-2">
-                      Status:{" "}
-                      <span className="font-semibold capitalize">
-                        {test.status}
-                      </span>
-                    </p>
-
-                    <div className="grid md:grid-cols-2 gap-6 mt-4">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <Building2 className="w-4 h-4" />
-                          <span>{test.labId.name}</span>
-                        </div>
-
-                        <div className="flex items-center gap-2 mt-2">
-                          <MapPin className="w-4 h-4" />
-                          <span>{test.labId.city}</span>
-                        </div>
-
-                        <p className="text-sm text-gray-600">
-                          {test.labId.address}
-                        </p>
-                      </div>
-
-                      {test.bookedAt && (
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <Calendar className="w-4 h-4" />
-                            <span>
-                              {new Date(test.bookedAt).toLocaleDateString()}
-                            </span>
-                          </div>
-
-                          <div className="flex items-center gap-2 mt-2">
-                            <Clock className="w-4 h-4" />
-                            <span>
-                              {new Date(test.bookedAt).toLocaleTimeString([], {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              })}
-                            </span>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    {test.reportUrl && (
-                      <div className="mt-6">
-                        <a
-                          href={test.reportUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="px-6 py-3 rounded-xl text-white font-semibold inline-flex items-center gap-2"
-                          style={{ backgroundColor: "#08172c" }}
-                        >
-                          <FileText className="w-4 h-4" />
-                          View Report
-                        </a>
-                      </div>
-                    )}
-                  </div>
-                ))}
+            <div className="min-w-0">
+              <h1 className="text-2xl font-bold text-[#0c213e] leading-tight">
+                My Lab Records
+              </h1>
+              <p className="text-md text-gray-400 mt-0.5">
+                View your booked tests and health packages
+              </p>
+              <div className="flex flex-wrap gap-2 mt-2">
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#0c213e]/8 text-[#0c213e] text-xs font-semibold">
+                  <FlaskConical size={12} /> {labTests.length} Test{labTests.length !== 1 ? "s" : ""}
+                </span>
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-50 text-blue-600 text-xs font-semibold">
+                  <Package size={12} /> {packageBookings.length} Package{packageBookings.length !== 1 ? "s" : ""}
+                </span>
               </div>
-
-              {totalLabPages > 1 && (
-                <div className="flex justify-center items-center gap-4 mt-8">
-                  <button
-                    disabled={labPage === 1}
-                    onClick={() => setLabPage((p) => p - 1)}
-                    className="p-3 rounded-xl text-white"
-                    style={{ backgroundColor: "#08172c" }}
-                  >
-                    <ChevronLeft />
-                  </button>
-
-                  <span className="font-bold">
-                    Page {labPage} of {totalLabPages}
-                  </span>
-
-                  <button
-                    disabled={labPage === totalLabPages}
-                    onClick={() => setLabPage((p) => p + 1)}
-                    className="p-3 rounded-xl text-white"
-                    style={{ backgroundColor: "#08172c" }}
-                  >
-                    <ChevronRight />
-                  </button>
-                </div>
-              )}
-            </>
-          )}
+            </div>
+          </div>
         </div>
 
-        {/* ================= PACKAGE BOOKINGS SECTION ================= */}
+        {/* ── Tab Switcher ─────────────────────────────────────────────────── */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-2 mb-4">
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              onClick={() => setActiveTab("tests")}
+              className={`flex items-center justify-center gap-2.5 py-3.5 rounded-xl text-sm font-semibold transition-all duration-200 ${
+                activeTab === "tests"
+                  ? "bg-[#0c213e] text-white shadow-md"
+                  : "text-gray-500 hover:bg-gray-50"
+              }`}
+            >
+              <FlaskConical size={17} />
+              Lab Tests
+              <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${
+                activeTab === "tests"
+                  ? "bg-white/20 text-white"
+                  : "bg-gray-100 text-gray-600"
+              }`}>
+                {labTests.length}
+              </span>
+            </button>
 
-        <div>
-          <h1 className="text-4xl font-bold text-[#0c213e] mb-4 underline">
-            My Package Bookings
-          </h1>
-
-          {packageBookings.length === 0 ? (
-            <div className="bg-white rounded-2xl shadow-xl p-10 text-center">
-              <Package className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-600">No package bookings found.</p>
-            </div>
-          ) : (
-            <>
-              <div className="space-y-6">
-                {currentPackages.map((booking) => (
-                  <div
-                    key={booking._id}
-                    className="bg-white rounded-2xl shadow-xl p-6"
-                  >
-                    <h2 className="text-2xl font-bold mb-2">
-                      {booking.packageId.packageName}
-                    </h2>
-
-                    <p className="text-gray-600 mb-2">
-                      ₹ {booking.packageId.totalPrice}
-                    </p>
-
-                    <p className="text-gray-600 text-sm mb-4">
-                      {booking.packageId.description}
-                    </p>
-
-                    <div className="grid md:grid-cols-2 gap-6">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <Building2 className="w-4 h-4" />
-                          <span>{booking.labId.name}</span>
-                        </div>
-
-                        <div className="flex items-center gap-2 mt-2">
-                          <MapPin className="w-4 h-4" />
-                          <span>{booking.labId.city}</span>
-                        </div>
-
-                        <p className="text-sm text-gray-600">
-                          {booking.labId.address}
-                        </p>
-                      </div>
-
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <Calendar className="w-4 h-4" />
-                          <span>
-                            {new Date(
-                              booking.bookingDate
-                            ).toLocaleDateString()}
-                          </span>
-                        </div>
-
-                        <p className="mt-2 text-gray-600">
-                          Status:{" "}
-                          <span className="font-semibold capitalize">
-                            {booking.status}
-                          </span>
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {totalPackagePages > 1 && (
-                <div className="flex justify-center items-center gap-4 mt-8">
-                  <button
-                    disabled={packagePage === 1}
-                    onClick={() => setPackagePage((p) => p - 1)}
-                    className="p-3 rounded-xl text-white"
-                    style={{ backgroundColor: "#08172c" }}
-                  >
-                    <ChevronLeft />
-                  </button>
-
-                  <span className="font-bold">
-                    Page {packagePage} of {totalPackagePages}
-                  </span>
-
-                  <button
-                    disabled={packagePage === totalPackagePages}
-                    onClick={() => setPackagePage((p) => p + 1)}
-                    className="p-3 rounded-xl text-white"
-                    style={{ backgroundColor: "#08172c" }}
-                  >
-                    <ChevronRight />
-                  </button>
-                </div>
-              )}
-            </>
-          )}
+            <button
+              onClick={() => setActiveTab("packages")}
+              className={`flex items-center justify-center gap-2.5 py-3.5 rounded-xl text-sm font-semibold transition-all duration-200 ${
+                activeTab === "packages"
+                  ? "bg-[#0c213e] text-white shadow-md"
+                  : "text-gray-500 hover:bg-gray-50"
+              }`}
+            >
+              <Package size={17} />
+              Package Bookings
+              <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${
+                activeTab === "packages"
+                  ? "bg-white/20 text-white"
+                  : "bg-gray-100 text-gray-600"
+              }`}>
+                {packageBookings.length}
+              </span>
+            </button>
+          </div>
         </div>
+
+        {/* ── Lab Tests Tab ────────────────────────────────────────────────── */}
+        {activeTab === "tests" && (
+          <>
+            {labTests.length === 0 ? (
+              <EmptyState
+                icon={<FlaskConical size={30} className="text-gray-200" />}
+                title="No lab tests found"
+                subtitle="Your booked lab tests will appear here"
+              />
+            ) : (
+              <>
+                <div className="space-y-4">
+                  {currentLabTests.map((test) => (
+                    <LabTestCard key={test._id} test={test} />
+                  ))}
+                </div>
+                {totalLabPages > 1 && (
+                  <Pagination
+                    page={labPage}
+                    totalPages={totalLabPages}
+                    onPrev={() => setLabPage((p) => p - 1)}
+                    onNext={() => setLabPage((p) => p + 1)}
+                  />
+                )}
+              </>
+            )}
+          </>
+        )}
+
+        {/* ── Package Bookings Tab ─────────────────────────────────────────── */}
+        {activeTab === "packages" && (
+          <>
+            {packageBookings.length === 0 ? (
+              <EmptyState
+                icon={<Package size={30} className="text-gray-200" />}
+                title="No package bookings found"
+                subtitle="Your booked health packages will appear here"
+              />
+            ) : (
+              <>
+                <div className="space-y-4">
+                  {currentPackages.map((booking) => (
+                    <PackageCard key={booking._id} booking={booking} />
+                  ))}
+                </div>
+                {totalPackagePages > 1 && (
+                  <Pagination
+                    page={packagePage}
+                    totalPages={totalPackagePages}
+                    onPrev={() => setPackagePage((p) => p - 1)}
+                    onNext={() => setPackagePage((p) => p + 1)}
+                  />
+                )}
+              </>
+            )}
+          </>
+        )}
 
       </div>
     </div>
@@ -700,5 +465,3 @@ function LabTestInUser() {
 }
 
 export default LabTestInUser;
-
-
